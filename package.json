@@ -1,0 +1,16 @@
+{
+  "name": "unitsnap.js",
+  "version": "1.0.0",
+  "description": "Library for snapshot based unit testing",
+  "main": "index.js",
+  "scripts": {
+    "coveralls": "./node_modules/.bin/istanbul cover --root src ./node_modules/.bin/jasmine JASMINE_CONFIG_PATH=jasmine.json",
+    "test": "node $NODE_DEBUG_OPTION ./node_modules/.bin/jasmine JASMINE_CONFIG_PATH=jasmine.json"
+  },
+  "author": "akaterra",
+  "license": "ISC",
+  "devDependencies": {
+    "istanbul": "0.4.5",
+    "jasmine": "3.1.0"
+  }
+}
