@@ -703,7 +703,7 @@ var unitsnap = require('unitsnap.js');
 
 unitsnap.extendJasmine();
 
-unitsnap.config().snapshot.setCallbackStrategy(<snapshots dir>);
+unitsnap.config().snapshot.setFsProvider(<snapshots dir>);
 ```
 
 Use the matcher in some **it**:
