@@ -163,6 +163,11 @@ Snapshot.prototype = {
 
     return this;
   },
+  includeType: function (flag) {
+    this._config.type = flag !== false;
+
+    return this;
+  },
   isEnabled: function (key) {
     return this._config[key] === true;
   },
@@ -268,6 +273,10 @@ function snapshotMapEntry(snapshot, entry) {
 
   if (snapshot.isEnabled('result') && ! entry.isException) {
     mappedEntry.result = entry.result;
+  }
+
+  if (snapshot.isEnabled('type')) {
+    mappedEntry.type = entry.type;
   }
 
   if (snapshot.isEnabled('callsCount')) {

@@ -1,6 +1,6 @@
 {
   "name": "unitsnap.js",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Library for snapshot based unit testing",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,11 @@
   },
   "author": "akaterra",
   "license": "ISC",
+  "keywords": [
+    "snapshot",
+    "testing",
+    "unittest"
+  ],
   "devDependencies": {
     "istanbul": "0.4.5",
     "jasmine": "3.1.0"

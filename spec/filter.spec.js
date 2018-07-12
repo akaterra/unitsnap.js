@@ -25,31 +25,61 @@ describe('Filter', () => {
   it('should set context expectation', () => {
     const e = new unitsnap.Filter([{}, {}, {}]);
 
-    expect(e.context(1).ctx(2)._context).toBe(2);
+    expect(e.context(1).ctx(2)._context).toEqual([2, false]);
   });
 
   it('should set epoch expectation', () => {
     const e = new unitsnap.Filter([{}, {}, {}]);
 
-    expect(e.custom(f)._custom).toBe(f);
+    expect(e.custom(f)._custom).toEqual([f, false]);
   });
 
   it('should set custom expectation', () => {
     const e = new unitsnap.Filter([{}, {}, {}]);
 
-    expect(e.epoch(1)._epoch).toBe(1);
+    expect(e.epoch(1)._epoch).toEqual([1, false]);
   });
 
   it('should set fn expectation', () => {
     const e = new unitsnap.Filter([{}, {}, {}]);
 
-    expect(e.fn(f)._fn).toBe(f);
+    expect(e.fn(f)._fn).toEqual([f, false]);
   });
 
   it('should set tags expectation', () => {
     const e = new unitsnap.Filter([{}, {}, {}]);
 
-    expect(e.tags(1, 2, 3)._tags).toEqual([1, 2, 3]);
+    expect(e.tags(1, 2, 3)._tags).toEqual([[1, 2, 3], false]);
+  });
+
+  it('should set context disregard', () => {
+    const e = new unitsnap.Filter([{}, {}, {}]);
+
+    expect(e.context(1).not().ctx(2)._context).toEqual([2, true]);
+  });
+
+  it('should set epoch disregard', () => {
+    const e = new unitsnap.Filter([{}, {}, {}]);
+
+    expect(e.not().custom(f)._custom).toEqual([f, true]);
+  });
+
+  it('should set custom disregard', () => {
+    const e = new unitsnap.Filter([{}, {}, {}]);
+
+    expect(e.not().epoch(1)._epoch).toEqual([1, true]);
+  });
+
+  it('should set fn disregard', () => {
+    const e = new unitsnap.Filter([{}, {}, {}]);
+
+    expect(e.not().fn(f)._fn).toEqual([f, true]);
+  });
+
+  it('should set tags disregard', () => {
+    const e = new unitsnap.Filter([{}, {}, {}]);
+
+    expect(e.not().tags(1, 2, 3)._tags).toEqual([[1, 2, 3], true]);
   });
 
   it('should throw exception on non callable custom', () => {
@@ -68,6 +98,119 @@ describe('Filter', () => {
     const e = new unitsnap.Filter([{}, {}, {}]);
 
     expect(e.snapshot()._entries).toEqual([{}, {}, {}]);
+  });
+
+  it('should create snapshot with entries filtered by expectations', () => {
+    const custom = (entry) => entry.a === 1;
+
+    const e = new unitsnap.Filter([{
+      a: 1,
+      context: null,
+      epoch: 3,
+      origin: custom,
+      tags: [1, 2, 3],
+    }, {
+      a: null,
+      context: 2,
+      epoch: 3,
+      origin: custom,
+      tags: [1, 2, 3],
+    }, {
+      a: 1,
+      context: 2,
+      epoch: null,
+      origin: custom,
+      tags: [1, 2, 3],
+    }, {
+      a: 1,
+      context: 2,
+      epoch: 3,
+      origin: null,
+      tags: [1, 2, 3],
+    }, {
+      a: 1,
+      context: 2,
+      epoch: 3,
+      origin: custom,
+      tags: [1],
+    }, { // this one passes all expectations
+      a: 1,
+      context: 2,
+      epoch: 3,
+      origin: custom,
+      tags: [1, 2, 3],
+    }]);
+
+    e.context(1).ctx(2);
+    e.custom(custom);
+    e.epoch(3);
+    e.fn(custom);
+    e.tags(1, 2, 3);
+
+    expect(e.snapshot()._entries).toEqual([{
+      a: 1,
+      context: 2,
+      epoch: 3,
+      origin: custom,
+      tags: [1, 2, 3],
+    }]);
+  });
+
+
+  it('should create snapshot with entries filtered by disregard', () => {
+    const custom = (entry) => entry.a === 1;
+
+    const e = new unitsnap.Filter([{
+      a: 1,
+      context: null,
+      epoch: 3,
+      origin: custom,
+      tags: [1, 2, 3],
+    }, {
+      a: null,
+      context: 2,
+      epoch: 3,
+      origin: custom,
+      tags: [1, 2, 3],
+    }, {
+      a: 1,
+      context: 2,
+      epoch: null,
+      origin: custom,
+      tags: [1, 2, 3],
+    }, {
+      a: 1,
+      context: 2,
+      epoch: 3,
+      origin: null,
+      tags: [1, 2, 3],
+    }, {
+      a: 1,
+      context: 2,
+      epoch: 3,
+      origin: custom,
+      tags: [1],
+    }, { // this one passes all expectations
+      a: null,
+      context: null,
+      epoch: null,
+      origin: null,
+      tags: [4, 5, 6],
+    }]);
+
+    e.not().context(1).not().ctx(2);
+    e.not().custom(custom);
+    e.not().epoch(3);
+    e.not().fn(custom);
+    e.not().tags(1, 2, 3);
+
+    expect(e.snapshot()._entries).toEqual([{
+      a: null,
+      context: null,
+      epoch: null,
+      origin: null,
+      tags: [4, 5, 6],
+    }]);
   });
 
   it('should create snapshot with entries filtered by expectations', () => {

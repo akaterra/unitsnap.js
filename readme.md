@@ -106,7 +106,8 @@ const checkResult = snapshot.setFsProvider(__dirname).assertSaved('snapshot'); /
 const Observer = require('unitsnap.js').Observer;
 ```
 
-Observer provides a isolated context within which the History, Mock, Fixture and Snapshot (see description below) modules will be created and within which their intercommunication will be organized. For example, the Mock will be linked to the History, or the Snapshot constructed with the **snapshot** will be configured by the basic Snapshot of the Observer's context.
+Observer provides a isolated context within which the History, Mock, Fixture and Snapshot (see description below) modules will be created and within which their intercommunication will be organized.
+For example, the Mock will be linked to the History, or the Snapshot constructed with the **snapshot** will be configured by the basic Snapshot of the Observer's context.
 
 For ease of use, Observer also implements a set of methods that are proxy methods for the corresponding module linked to the context.
 
@@ -174,7 +175,7 @@ tags: [ // custom tags
     <value>,..
 ],
 time: <Date>,
-type: <string>, // type, "single" or "instance"
+type: <string>, // type, "single", "constructor" or "method"
 ```
 
 A some single called function is commonly will generate two entries:
@@ -237,11 +238,13 @@ generates entries containing the next fields:
 Asynchronous functions returning a Promise will additionally generate an entry with the result of the promise resolving (as "result") or with the error of the promise rejection (as "exception").
 
 Collected entries can be assigned to an epochs and will be filtered after by the necessary epoch. 
-Epoches can be nested.
+Epochs can be nested.
 
 * **getCurrentEpoch()** - returns the current epoch descriptor or null if the history is not yet begun.
 
-* **addOnEndCallback(function)** - adds a callback to the current epoch, this callback will be triggerred on the epoch end.
+* **addOnEndCallback(function)** - adds a callback to the current epoch.
+
+  This callback will be triggered on the epoch end.
 
 * **begin(epoch, comment)** - begins a historical epoch.
 
@@ -249,7 +252,7 @@ Epoches can be nested.
 
 * **filter()** - creates Filter over the collected historical entries.
 
-* **flush()** - flushes epoches and collected historical entries.
+* **flush()** - flushes epochs and collected historical entries.
 
 * **push(entry)** - pushes the historical entry.
 
@@ -272,7 +275,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     const Mocked = mock.from({
         a: function () { return 1; }, // custom function
         b: Function, // stub function
-        c: 123, // stub function returning 123
+        c: 123, // function returning 123
         d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // exception - can be linked to observer Fixture only in context of observer
     });
@@ -294,7 +297,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     var Mocked = observer.from({
         a: function () { return 1; }, // custom function
         b: Function, // stub function
-        c: 123, // stub function returning 123
+        c: 123, // function returning 123
         d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // linked to observer.Fixture.pop
     });
@@ -355,7 +358,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         constructor: 123, // generates constructor returning "123"
         a: function () { return 1; }, // custom function
         b: A, // A.prototype.b
-        c: 123, // stub function returning 123
+        c: 123, // function returning 123
         d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // exception - can be linked to observer Fixture only in context of observer
     });
@@ -378,7 +381,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         constructor: 123, // generates constructor returning "123"
         a: function () { return 1; }, // custom function
         b: A, // A.prototype.b
-        c: 123, // stub function returning "123"
+        c: 123, // function returning "123"
         d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // linked to observer.Fixture.pop
     });
@@ -420,15 +423,15 @@ const Fixture = require('unitsnap.js').Fixture;
 
 Fixture provides a fake data to be used as a result of the function call.
 
-* **pop** - pops a value from the container
+* **pop** - pops a value from the container.
 
-* **push(...values)** - pushes values to the container
+* **push(...values)** - pushes values to the container.
 
-* **throwOnCallback(function)** - checks the popped value via callback and throws values as an error
+* **throwOnCallback(function)** - checks the popped value via callback and throws values as an error.
 
-* **throwOnClassOf(class)** - checks the popped value to be strict instance of class and throws values as an error
+* **throwOnClassOf(class)** - checks the popped value to be strict instance of class and throws values as an error.
 
-* **throwOnInstanceOf(class)** - checks the popped value to be instance of class and throws values as an error
+* **throwOnInstanceOf(class)** - checks the popped value to be instance of class and throws values as an error.
 
 ##### FixtureCallbackStrategy
 
@@ -482,23 +485,31 @@ fixture.setFsProvider({test: [1, 2, 3]}); // values by dictionary key "test" wil
 
 Filter allows to filter the collected historical entries and create a new snapshot over them.
 
-If some subset of the collected historical entries is required, first of all the filtering conditions must be defined. Then the snapshot over this subset of the historical entries can be created.
+If some subset of the collected historical entries is required, first of all the filtering conditions must be defined.
+Then the snapshot over this subset of the historical entries can be created.
 
-* **context(obj)** - add "filter by context", all entries belonging to the **obj** will be taken.
+* **context(obj)** - adds "filter by context", all entries belonging to the **obj** will be taken.
 
-* **custom(function)** - add "filter by custom handler", all entries will be checked by the handler.
+* **custom(function)** - adds "filter by custom handler", all entries will be checked by the handler.
 
-* **epoch(epoch)** - add "filter by epoch", all entries belonging to the **epoch** will be taken.
+* **epoch(epoch)** - adds "filter by epoch", all entries belonging to the **epoch** will be taken.
 
-* **fn(function)** - add "filter by function", all entries having the **function** as an observed function will be taken.
+* **fn(function)** - adds "filter by function", all entries having the **function** as an observed function will be taken.
 
-* **tags(...tags)** - add "filter by tags", all entries having the tags will be taken.
+* **tags(...tags)** - adds "filter by tags", all entries having the tags will be taken.
 
-* **snapshot()** - create snapshot over the filteren historical entries.
+* **not()** - enables "negative" filter once so that the next filter will perform a negative comparison:
+  ```javascript
+  filter.not().epoch('excluded epoch'); // excludes all entries with "epoch" fields = "excluded epoch"
+  ```
+
+* **snapshot()** - create snapshot over the filtered historical entries.
 
 ### Snapshot
 
-Snapshot contains the entire or the filtered subset of the historical entries. These entries can be serialized and asserted with the some other snapshot. Also it is possible to create a new Filter over the entries of the snapshot, then filter and create an additional snapshot over them.
+Snapshot contains the entire or the filtered subset of the historical entries.
+These entries can be serialized and asserted with the some other snapshot.
+Also it is possible to create a new Filter over the entries of the snapshot, then filter and create an additional snapshot over them.
 
 * **assert(snapshot)** - asserts other snapshot.
 
@@ -516,7 +527,11 @@ Snapshot contains the entire or the filtered subset of the historical entries. T
 
 * **includeExceptionsCount()** - "exceptionCount" section of the entry will be included to the serialized representation.
 
+* **includeIsAsync()** - "isAsync" section of the entry will be included to the serialized representation.
+
 * **includeName()** - "name" section of the entry will be included to the serialized representation.
+
+* **includeType()** - "type" section of the entry will be included to the serialized representation.
 
 * **load(name)** - loads serialized representation of the snapshot.
 
@@ -528,13 +543,15 @@ Snapshot contains the entire or the filtered subset of the historical entries. T
 
 ##### Value processors
 
-The specific value of some entry can be serialized with the custom serializer. It can be convenient in cases when the some generalized representation of the value required. For example, assertion of type "instance of class" can be applied to the value serialized in form of "class name" of the value instead of its initial value.
+The specific value of some entry can be serialized with the custom serializer.
+It can be convenient in cases when the some generalized representation of the value required.
+For example, assertion of type "instance of class" can be applied to the value serialized in form of "class name" of the value instead of its initial value.
 
 Note, that each added processor will be inserted into beginning of the processors chain so that it will be applied first.
 
 * **addProcessor(checker, serializer)** -  adds custom checker and serializer.
 
-  **checker** is a function that checks if the value should be serialized, **serializer** performs value serializetion.
+  **checker** is a function that checks if the value should be serialized, **serializer** performs value serialization.
 
 * **addClassOfProcessor(class, serializer)** - adds "class of" processor, the value will be serialized as:
   ```javascript
@@ -554,9 +571,9 @@ Note, that each added processor will be inserted into beginning of the processor
 
 * **addPathProcessor(path, serializer)** - adds "match to path" processor, the value having **path** will be serialized with **serializer**
 
-  Path can contain an asterix ("*") as any number of characters and an underscore ("_") as a single character.
+  Path can contain an asterisk ("*") as any number of characters and an underscore ("_") as a single character.
 
-* **addRegexPathProcessor(regex, serializer)** - adds "match to regex path" processor, the value with path matched to the **regex** will be serialized with **serializer**
+* **addRegexPathProcessor(regex, serializer)** - adds "match to regex path" processor, the value with path matched to the **regex** will be serialized with **serializer**.
 
 * **addUndefinedProcessor(serializer)** - adds "undefined value" processor, the value will be serialized as:
   ```javascript
@@ -634,7 +651,7 @@ Available helpers:
   }
   ```
 
-* **Ignore** - the value will be omitted in the serialized snapshot
+* **Ignore** - the value will be omitted in the serialized snapshot.
 
 * **InstanceOfType** - checks the value to be instance of Date and serializes the value as:
   ```javascript

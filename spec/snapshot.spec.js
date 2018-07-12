@@ -375,6 +375,12 @@ describe('Snapshot', () => {
     expect(e.includeName()._config.name).toBe(true);
   });
 
+  it('should enable include type', () => {
+    const e = new unitsnap.Snapshot().includeType();
+
+    expect(e._config.type).toBe(true);
+  });
+
   describe('when serializes', () => {
     it('should serialize with custom checker and serializer', () => {
       const checker = (d) => d instanceof A;
@@ -400,7 +406,7 @@ describe('Snapshot', () => {
 
     it('should serialize with path serializer contained "*" as "arbitrary symbols" pattern', () => {
       const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
+        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
       }]).addPathProcessor('[0]*result', _ => 'serialized');
 
       expect(e.serialize()).toEqual([{
@@ -410,7 +416,7 @@ describe('Snapshot', () => {
 
     it('should serialize with path regex serializer', () => {
       const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
+        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
       }]).addRegexPathProcessor('[0].*result', _ => 'serialized');
 
       expect(e.serialize()).toEqual([{
@@ -430,7 +436,7 @@ describe('Snapshot', () => {
 
     it('should serialize with disabled include args', () => {
       const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
+        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
       }]).includeArgs(false);
 
       expect(e.serialize()).toEqual([{
@@ -440,7 +446,7 @@ describe('Snapshot', () => {
 
     it('should serialize with enabled include calls count', () => {
       const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
+        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
       }]).includeCallsCount();
 
       expect(e.serialize()).toEqual([{
@@ -450,7 +456,7 @@ describe('Snapshot', () => {
 
     it('should serialize with enabled include epoch', () => {
       const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
+        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
       }]).includeEpoch();
 
       expect(e.serialize()).toEqual([{
@@ -460,7 +466,7 @@ describe('Snapshot', () => {
 
     it('should serialize with enabled include exception', () => {
       const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exception: 'exception', exceptionsCount: 2, isAsync: true, isException: true, name: 'name', result: 3,
+        args: [], callsCount: 1, epoch: 'epoch', exception: 'exception', exceptionsCount: 2, isAsync: true, isException: true, name: 'name', result: 3, type: 'type',
       }]).includeException();
 
       expect(e.serialize()).toEqual([{
@@ -471,7 +477,7 @@ describe('Snapshot', () => {
 
     it('should serialize with enabled include exceptions count', () => {
       const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
+        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
       }]).includeExceptionsCount();
 
       expect(e.serialize()).toEqual([{
@@ -481,7 +487,7 @@ describe('Snapshot', () => {
 
     it('should serialize with enabled include is async', () => {
       const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
+        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
       }]).includeIsAsync();
 
       expect(e.serialize()).toEqual([{
@@ -491,11 +497,21 @@ describe('Snapshot', () => {
 
     it('should serialize with enabled include name', () => {
       const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
+        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
       }]).includeName();
 
       expect(e.serialize()).toEqual([{
         args: [], name: 'name', result: 3,
+      }]);
+    });
+
+    it('should serialize with enabled include type', () => {
+      const e = new unitsnap.Snapshot([{
+        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
+      }]).includeType();
+
+      expect(e.serialize()).toEqual([{
+        args: [], result: 3, type: 'type',
       }]);
     });
   });
