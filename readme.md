@@ -1,7 +1,7 @@
 # UnitSnap.js
 
 The library allows to use the taken or saved snapshot of the units observed during an execution flow as an assertion in unit tests.
-The principle of this stands on the concept of the pure function which always have the same result of execution (may be partially for individual purposes).
+The principle of this stands on the concept of the pure function which always has the same result of execution (may be partially for individual purposes).
 Then this result can be saved as a snapshot and compared with a snapshot of the same execution flow.
 
 ### Example of snapshot generation
@@ -114,7 +114,7 @@ For ease of use, Observer also implements a set of methods that are proxy method
 * **config()** - returns a config object with the History, Mock, Fixture and Snapshot of the Observer.
 
   ```javascript
-  observer.config().snapshot.setCallbackStrategy(<dir>);
+  observer.config().snapshot.setFsProvider(__dirname);
   
   observer.snapshot(); // a new Snapshot automatically configured to use the filesystem provider
   ```
