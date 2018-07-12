@@ -690,9 +690,9 @@ Available helpers:
 Filesystem provider allows to load and save snapshots as files.
 
 ```javascript
-snapshot.setCallbackStrategy(<snapshots dir>);
+snapshot.setFsProvider(__dirname);
 
-snapshot.save('test'); // <snapshots dir>/test.snapshot.json
+snapshot.save('test'); // __dirname/test.snapshot.json
 
 snapshot.load('test');
 ```
@@ -702,7 +702,7 @@ snapshot.load('test');
 Memory provider allows to load and save temporary snapshot in memory.
 
 ```javascript
-snapshot.setQueueStrategy();
+snapshot.setMemoryProvider();
 
 snapshot.save('test');
 
