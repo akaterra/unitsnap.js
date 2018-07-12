@@ -49,7 +49,7 @@ Serialized snapshot (snapshot.serialize()):
 Save taken snapshot:
 
 ```javascript
-snapshot.setCallbackStrategy(__dir + '/snapshots').save('snapshot');
+snapshot.setFsProvider(__dirname).save('snapshot');
 ```
 
 ### Example of snapshot assertion
@@ -97,7 +97,7 @@ Serialized snapshot (snapshot.serialize()):
 Assert saved snapshot:
 
 ```javascript
-const checkResult = snapshot.setCallbackStrategy(__dir + '/snapshots').assertSaved('snapshot'); // "[0].args.b" as path of mismatched value
+const checkResult = snapshot.setFsProvider(__dirname).assertSaved('snapshot'); // "[0].args.b" as path of mismatched value
 ```
 
 ### Observer
@@ -703,7 +703,7 @@ var unitsnap = require('unitsnap.js');
 
 unitsnap.extendJasmine();
 
-unitsnap.config().snapshot.setFsProvider(<snapshots dir>);
+unitsnap.config().snapshot.setFsProvider(__dirname);
 ```
 
 Use the matcher in some **it**:
@@ -712,19 +712,19 @@ Use the matcher in some **it**:
 it('should do something', function () {
     ...
 
-    expect(observer.snapshot()).toMatchSnapshot('snapshot');
+    expect(observer.snapshot()).toMatchSnapshot('test');
 });
 ```
 
 Run Jasmine with the env variable **SAVE_SNAPSHOT**=1 telling to the matcher to save snapshots.
-The snapshot will be saved into the "\<snapshots dir>/snapshot.js" file.
+The snapshot will be saved into the "\<__dirname>/test.snapshot.js" file.
 
 Be sure that the saved snapshot represents valid state of the execution flow.
 
 Run Jasmine usually now to assert the saved snapshot.
 It will throw standard Jasmine **toEqual** error on mismatch.
 
-Example:
+Example (see full example /spec/example.spec.js):
 
 ```javascript
 const unitsnap = require('unitsnap.js');
