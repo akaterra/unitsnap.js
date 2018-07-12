@@ -15,7 +15,7 @@ class A {
     }
 }
 
-A = observer.mock(A); // mock A class observing on all methods ("a")
+A = observer.by(A); // mock A class observing on all methods ("a")
 
 const a = new A();
 
@@ -63,7 +63,7 @@ class A {
     }
 }
 
-A = observer.mock(A); // mock A class observing on all methods ("a")
+A = observer.by(A); // mock A class observing on all methods ("a")
 
 const a = new A();
 
@@ -269,7 +269,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     ```javascript
     const mock = new Mock(history);
 
-    const Mocked = mock.build({
+    const Mocked = mock.from({
         a: function () { return 1; }, // custom function
         b: Function, // stub function
         c: 123, // stub function returning 123
@@ -291,7 +291,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     ```javascript
     var observer = new Observer();
 
-    var Mocked = observer.build({
+    var Mocked = observer.from({
         a: function () { return 1; }, // custom function
         b: Function, // stub function
         c: 123, // stub function returning 123
