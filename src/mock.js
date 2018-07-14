@@ -1,5 +1,9 @@
 function Mock(history) {
   this._history = history;
+
+  if (history && history._observer) {
+    this._fixturePop = history._observer._fixture.pop.bind(history._observer._fixture);
+  }
 }
 
 Mock.prototype = {
@@ -19,8 +23,10 @@ Mock.prototype = {
     var clazz = maker.makePrototypeFor(cls, true);
 
     clazz.RESTORE = function () {
+      Object.assign(cls, maker._clsProps);
       Object.assign(cls.prototype, maker._clsProto);
 
+      maker._propsMetadata.extraClassProps.forEach(function (key) { delete cls[key]; });
       maker._propsMetadata.extraProps.forEach(function (key) { delete cls.prototype[key]; });
 
       delete cls.RESTORE;
@@ -33,7 +39,7 @@ Mock.prototype = {
   spy: function (fn) {
     var self = this;
 
-    return spyCallable(fn, {
+    return spyFunction(fn, {
       argsAnnotation: fn,
       extra: {
         name: fn.name,
@@ -49,6 +55,16 @@ Mock.prototype = {
   },
 };
 
+function StaticMethod(value) {
+  if (! (this instanceof StaticMethod)) {
+    return new StaticMethod(value);
+  } else {
+    this.value = value;
+  }
+}
+
+var classNativeProps = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
+
 function ClassMaker(mock, cls, props) {
   if (! (cls instanceof Function)) {
     throw new Error('Class constructor must be function');
@@ -56,6 +72,13 @@ function ClassMaker(mock, cls, props) {
 
   this._cls = cls;
   this._clsConstructorName = cls.prototype.hasOwnProperty('constructor') ? cls.prototype.constructor.name : cls.name;
+  this._clsProps = Object.getOwnPropertyNames(cls).filter(function (key) {
+      return classNativeProps.indexOf(key) === - 1;
+  }).reduce(function (acc, key) {
+    acc[key] = cls[key];
+
+    return acc;
+  }, {});
   this._clsProto = Object.getOwnPropertyNames(cls.prototype).reduce(function (acc, key) {
     acc[key] = cls.prototype[key];
 
@@ -79,7 +102,7 @@ function ClassMaker(mock, cls, props) {
     }, {})
     : props;
 
-  this._propsMetadata = { extraProps: [] };
+  this._propsMetadata = { extraClassProps: [], extraProps: [] };
 }
 
 ClassMaker.prototype = {
@@ -91,9 +114,15 @@ ClassMaker.prototype = {
     var self = this;
 
     if (this._props.hasOwnProperty('constructor')) {
-      var rep = this.getPropReplacement('constructor');
+      var rep = classMakerGetReplacement(
+        self._props.constructor,
+        'constructor',
+        self._cls,
+        self._clsProtoCopy,
+        self._propsMetadata
+      );
 
-      cls = spyCallable(copyConstructor(rep), {
+      cls = spyFunction(copyConstructor(rep), {
         argsAnnotation: self._cls,
         extra: {
           name: this._clsConstructorName,
@@ -110,6 +139,8 @@ ClassMaker.prototype = {
     } else {
       cls = copyConstructor(cls);
     }
+
+    Object.assign(cls, self._clsProps);
 
     Object.defineProperty(cls, 'name', {value: this._cls.name, writable: false});
 
@@ -143,91 +174,121 @@ ClassMaker.prototype = {
         return;
       }
 
-      var rep = self.getPropReplacement(key);
+      var rep;
 
-      spyClassCallable(cls, key, rep, {
-        argsAnnotation: self._cls.prototype[key],
-        extra: {
-          name: self._clsConstructorName + '.' + rep.name,
-          type: 'method',
-        },
-        origin: self._cls.prototype[key],
-        replacement: rep,
-        onCall: function (context, state) {
-          if (self._mock._history) {
-            self._mock._history.push(state);
-          }
+      if (self._props[key] instanceof StaticMethod) {
+        rep = classMakerGetReplacement(
+          self._props[key].value,
+          key,
+          self._cls,
+          self._clsProps,
+          self._propsMetadata.extraClassProps
+        );
+
+        if (rep === fixture.Fixture) {
+          rep = mockGetFixturePop(self._mock);
         }
-      });
+
+        Object.defineProperty(rep, 'name', {value: key, writable: false});
+
+        spyStaticMethod(cls, key, rep, {
+          argsAnnotation: self._cls.prototype[key],
+          extra: {
+            name: self._clsConstructorName + '.' + rep.name,
+            type: 'staticMethod',
+          },
+          origin: self._cls[key],
+          replacement: rep,
+          onCall: function (context, state) {
+            if (self._mock._history) {
+              self._mock._history.push(state);
+            }
+          }
+        });
+      } else {
+        rep = classMakerGetReplacement(
+          self._props[key],
+          key,
+          self._cls,
+          self._clsProtoCopy,
+          self._propsMetadata.extraProps
+        );
+
+        if (rep === fixture.Fixture) {
+          rep = mockGetFixturePop(self._mock);
+        }
+
+        Object.defineProperty(rep, 'name', {value: key, writable: false});
+
+        spyInstanceMethod(cls, key, rep, {
+          argsAnnotation: self._cls.prototype[key],
+          extra: {
+            name: self._clsConstructorName + '.' + rep.name,
+            type: 'method',
+          },
+          origin: self._cls.prototype[key],
+          replacement: rep,
+          onCall: function (context, state) {
+            if (self._mock._history) {
+              self._mock._history.push(state);
+            }
+          }
+        });
+      }
     });
 
     return cls;
   },
-  getPropReplacement: function (key) {
-    var prop = this._props[key];
-
-    if (prop === this._cls || prop === this._cls.COPY_OF) {
-      if (! (key in this._clsProtoCopy)) {
-        prop = Function;
-      } else {
-        return this._clsProtoCopy[key];
-      }
-    }
-
-    if (! (key in this._clsProtoCopy)) {
-      this._propsMetadata.extraProps.push(key);
-    }
-
-    if (prop === Function) {
-      var rep = function () {};
-
-      Object.defineProperty(rep, 'name', {value: key, writable: false});
-
-      return rep;
-    }
-
-    if (prop instanceof fixture.Fixture) {
-      var rep = prop.pop.bind(prop);
-
-      Object.defineProperty(rep, 'name', {value: key, writable: false});
-
-      return rep;
-    }
-
-    if (prop === fixture.Fixture) {
-      if (! this._mock._history._observer) {
-        throw new Error('Mock observer must be defined in linked history before "Fixture" reference can be used.');
-      }
-
-      var rep = this._mock._history._observer._fixture.pop.bind(this._mock._history._observer._fixture);
-
-      Object.defineProperty(rep, 'name', {value: key, writable: false});
-
-      return rep;
-    }
-
-    if (prop instanceof Function) {
-      var rep = prop;
-
-      Object.defineProperty(rep, 'name', {value: key, writable: false});
-
-      return rep;
-    }
-
-    rep = function () { return prop; };
-
-    Object.defineProperty(rep, 'name', {value: key, writable: false});
-
-    return rep;
-  },
 };
+
+function mockGetFixturePop(mock) {
+  if (! mock._fixturePop) {
+    throw new Error('Mock observer must be defined in linked history before "Fixture" reference can be used');
+  }
+
+  return mock._fixturePop;
+}
+
+function classMakerGetReplacement(prop, key, cls, clsProps, extraProps) {
+  if (prop === cls || prop === cls.COPY_OF) {
+    if (! (key in clsProps)) {
+      prop = Function;
+    } else {
+      return clsProps[key];
+    }
+  }
+
+  if (! (key in clsProps)) {
+    extraProps.push(key);
+  }
+
+  if (prop === Function) {
+    return function () {};
+  }
+
+  if (prop === fixture.Fixture) {
+    return fixture.Fixture;
+  }
+
+  if (prop instanceof fixture.Fixture) {
+    return prop.pop.bind(prop);
+  }
+
+  if (prop instanceof Function) {
+    return prop;
+  }
+
+  return function () { return prop; };
+}
 
 module.exports = {
   Mock: Mock,
+  StaticMethod: StaticMethod,
 };
 
 var copyConstructor = require('./instance').copyConstructor;
 var copyPrototype = require('./instance').copyPrototype;
 var fixture = require('./fixture');
-var spyCallable = require('./spy').spyCallable;
-var spyClassCallable = require('./spy').spyClassCallable;
+var spyStaticMethod = require('./spy').spyStaticMethod;
+var spyFunction = require('./spy').spyFunction;
+var spyInstanceMethod = require('./spy').spyInstanceMethod;

@@ -2,13 +2,13 @@ const unitsnap = require('..');
 const spy = require('../src/spy');
 
 describe('Spy', () => {
-  describe('when spies on callable', () => {
+  describe('when spies on function', () => {
     it('should use arguments annotations in ES5 declaration', () => {
       function Es5Class(a, b, c) {
 
       }
 
-      const spied = spy.spyCallable(Es5Class);
+      const spied = spy.spyFunction(Es5Class);
 
       spied(1, 2, 3, 4, 5);
 
@@ -20,7 +20,7 @@ describe('Spy', () => {
 
       };
 
-      const spied = spy.spyCallable(es6);
+      const spied = spy.spyFunction(es6);
 
       spied(1, 2, 3, 4, 5);
 
@@ -32,7 +32,7 @@ describe('Spy', () => {
 
       };
 
-      const spied = spy.spyCallable(es6);
+      const spied = spy.spyFunction(es6);
 
       spied(1, 2, 3, 4, 5);
 
@@ -44,7 +44,7 @@ describe('Spy', () => {
         constructor(a, b, c) {}
       }
 
-      const Spied = spy.spyCallable(Es6Class, void 0, true);
+      const Spied = spy.spyFunction(Es6Class, void 0, true);
 
       const spied = new Spied(1, 2, 3, 4, 5);
 
@@ -60,7 +60,7 @@ describe('Spy', () => {
         constructor(a, b, c) { super(); }
       }
 
-      const Spied = spy.spyCallable(Es6, void 0, true);
+      const Spied = spy.spyFunction(Es6, void 0, true);
 
       const spied = new Spied(1, 2, 3, 4, 5);
 
@@ -72,7 +72,7 @@ describe('Spy', () => {
         return Promise.resolve(1);
       }
 
-      const spied = spy.spyCallable(async);
+      const spied = spy.spyFunction(async);
 
       spied().then((result) => {
         expect(result).toBe(1);
@@ -88,7 +88,7 @@ describe('Spy', () => {
         return Promise.reject(1);
       }
 
-      const spied = spy.spyCallable(async);
+      const spied = spy.spyFunction(async);
 
       spied().catch((result) => {
         expect(result).toBe(1);
@@ -100,7 +100,7 @@ describe('Spy', () => {
     });
   });
 
-  describe('when spies on class callable', () => {
+  describe('when spies on static method', () => {
     it('should use arguments annotations in ES5 declaration', () => {
       function Es5Class(a, b, c) {
 
@@ -112,7 +112,7 @@ describe('Spy', () => {
         }
       };
 
-      const Spied = spy.spyClassCallable(Es5Class, 'a');
+      const Spied = spy.spyInstanceMethod(Es5Class, 'a');
 
       const spied = new Spied();
 
@@ -128,7 +128,7 @@ describe('Spy', () => {
         }
       }
 
-      const Spied = spy.spyClassCallable(Es6Class, 'a');
+      const Spied = spy.spyInstanceMethod(Es6Class, 'a');
 
       const spied = new Spied();
 
@@ -144,7 +144,7 @@ describe('Spy', () => {
         }
       }
 
-      const Spied = spy.spyClassCallable(Es7Class, 'a');
+      const Spied = spy.spyInstanceMethod(Es7Class, 'a');
 
       const spied = new Spied();
 

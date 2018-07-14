@@ -82,7 +82,7 @@ function regexParseAll(rgx, str) {
   return matches;
 }
 
-function spyCallable(callable, options, asConstructor) {
+function spyFunction(callable, options, asConstructor) {
   if (! (callable instanceof Function)) {
     throw new Error('Callable fn must be callable');
   }
@@ -125,7 +125,7 @@ function spyCallable(callable, options, asConstructor) {
     try {
       if (options && options.onCall) {
         options.onCall(this, Object.assign(
-          spyCallableCreateArgsReport(callable, this, originalCallable, options),
+          spyFunctionCreateArgsReport(callable, this, originalCallable, options),
           options.extra || {}
         )); // context, fn
       }
@@ -152,7 +152,7 @@ function spyCallable(callable, options, asConstructor) {
 
             if (options && options.onCall) {
               options.onCall(this, Object.assign(
-                spyCallableCreateResultReport(callable, this, originalCallable, options),
+                spyFunctionCreateResultReport(callable, this, originalCallable, options),
                 options.extra || {}
               )); // context, fn
             }
@@ -167,7 +167,7 @@ function spyCallable(callable, options, asConstructor) {
 
             if (options && options.onCall) {
               options.onCall(this, Object.assign(
-                spyCallableCreateResultReport(callable, this, originalCallable, options),
+                spyFunctionCreateResultReport(callable, this, originalCallable, options),
                 options.extra || {}
               )); // context, fn
             }
@@ -197,7 +197,7 @@ function spyCallable(callable, options, asConstructor) {
     } finally {
       if (options && options.onCall) {
         options.onCall(this, Object.assign(
-          spyCallableCreateResultReport(callable, this, originalCallable, options),
+          spyFunctionCreateResultReport(callable, this, originalCallable, options),
           { result: asConstructor ? void 0 : callable.RESULT }, options.extra || {}
         )); // context, fn
       }
@@ -220,7 +220,7 @@ function spyCallable(callable, options, asConstructor) {
   return callable;
 }
 
-function spyCallableCreateArgsReport(callable, context, originalCallable, options) {
+function spyFunctionCreateArgsReport(callable, context, originalCallable, options) {
   return {
     args: callable.ARGS,
     callsCount: callable.CALLS_COUNT,
@@ -235,7 +235,7 @@ function spyCallableCreateArgsReport(callable, context, originalCallable, option
   };
 }
 
-function spyCallableCreateResultReport(callable, context, originalCallable, options) {
+function spyFunctionCreateResultReport(callable, context, originalCallable, options) {
   return {
     callsCount: callable.CALLS_COUNT,
     context: context,
@@ -250,7 +250,13 @@ function spyCallableCreateResultReport(callable, context, originalCallable, opti
   };
 }
 
-function spyClassCallable(cls, key, rep, options) {
+function spyStaticMethod(cls, key, rep, options) {
+  cls[key] = spyFunction(rep || cls[key], options);
+
+  return cls;
+}
+
+function spyInstanceMethod(cls, key, rep, options) {
   if (! rep) {
     rep = cls.prototype[key];
   }
@@ -270,7 +276,7 @@ function spyClassCallable(cls, key, rep, options) {
       name: options && options.name || (cls.prototype.constructor.name + '.' + rep.name),
     }, options.extra);
 
-    this[key] = spyCallable(rep, options);
+    this[key] = spyFunction(rep, options);
 
     return this[key].apply(this, arguments);
   };
@@ -289,10 +295,18 @@ function spyClassCallable(cls, key, rep, options) {
   return cls;
 }
 
+function spyInstanceProperty(cls, key, repGetter, repSetter, options) {
+  cls[key] = spyFunction(rep || cls[key], options);
+
+  return cls;
+}
+
 module.exports = {
   getFunctionArgNames: getFunctionArgNames,
-  spyCallable: spyCallable,
-  spyClassCallable: spyClassCallable,
+  spyStaticMethod: spyStaticMethod,
+  spyFunction: spyFunction,
+  spyInstanceMethod: spyInstanceMethod,
+  spyInstanceProperty: spyInstanceProperty,
 };
 
 var instance = require('./instance');

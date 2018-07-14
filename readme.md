@@ -415,6 +415,26 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
 * **spy(function)** - spies on a single function
 
+##### Static method
+
+```
+const StaticMethod = require('unitsnap.js').StaticMethod;
+
+class A {
+    static x() {
+
+    }
+}
+
+const mock = new Mock(history);
+
+const Mocked = mock.by({
+    x: StaticMethod(Function),
+});
+
+Mocked.x();
+```
+
 ### Fixture
 
 ```javascript
