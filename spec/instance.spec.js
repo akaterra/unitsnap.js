@@ -38,6 +38,96 @@ describe('instance', () => {
     expect(PrototypeCopy).toEqual(Clazz.prototype);
   });
 
+  it('should copy scope of ES5 declaration', () => {
+    function A() {
+
+    }
+
+    A.prototype = {
+      a: function () {
+
+      }
+    };
+
+    function B() {
+
+    }
+
+    B.prototype = Object.create(A, {
+      b: function () {
+
+      },
+      x: function () {
+
+      },
+    });
+
+    function C() {
+
+    }
+
+    C.prototype = Object.create(B, {
+      c: function () {
+
+      },
+      y: function () {
+
+      },
+    });
+
+    const ScopyCopy = instance.copyScope(C);
+
+    expect(ScopyCopy).toEqual({
+      a: A.prototype.a,
+      b: B.prototype.b,
+      c: C.prototype.c,
+      x: B.prototype.x,
+      y: C.prototype.y,
+    });
+  });
+
+  it('should copy scope of ES6 declaration', () => {
+    class A {
+      a() {
+
+      }
+      x() {
+
+      }
+      y() {
+
+      }
+    }
+
+    class B extends A {
+      b() {
+
+      }
+      x() {
+
+      }
+    }
+
+    class C extends B {
+      c() {
+
+      }
+      y() {
+
+      }
+    }
+
+    const ScopyCopy = instance.copyScope(C);
+
+    expect(ScopyCopy).toEqual({
+      a: A.prototype.a,
+      b: B.prototype.b,
+      c: C.prototype.c,
+      x: B.prototype.x,
+      y: C.prototype.y,
+    });
+  });
+
   describe('when calls constructor', () => {
     it('should call with arguments', () => {
       const args = [];

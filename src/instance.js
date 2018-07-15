@@ -92,8 +92,29 @@ function copyPrototype(cls) {
   }, new Prototype());
 }
 
+function copyScope(cls) {
+  var scope = {};
+
+  while (true) {
+    cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
+
+    if (cls && cls !== Object && Object.getOwnPropertyNames(cls)) {
+      Object.getOwnPropertyNames(cls).forEach(function (key) {
+        if (! (key in scope)) {
+          scope[key] = cls[key];
+        }
+      });
+    } else {
+      break;
+    }
+  }
+
+  return scope;
+}
+
 module.exports = {
   callConstructor: callConstructor,
   copyConstructor: copyConstructor,
   copyPrototype: copyPrototype,
+  copyScope: copyScope,
 };

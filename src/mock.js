@@ -86,6 +86,7 @@ function ClassMaker(mock, cls, props) {
   }, {});
   this._clsProtoCopy = copyPrototype(cls);
   this._clsProtoHasOwnConstructor = cls.prototype.hasOwnProperty('constructor');
+  this._clsScope = copyScope(cls);
   this._mock = mock;
 
   if (! props) {
@@ -118,7 +119,7 @@ ClassMaker.prototype = {
         self._props.constructor,
         'constructor',
         self._cls,
-        self._clsProtoCopy,
+        self._clsScope,
         self._propsMetadata
       );
 
@@ -210,7 +211,7 @@ ClassMaker.prototype = {
           self._props[key],
           key,
           self._cls,
-          self._clsProtoCopy,
+          self._clsScope,
           self._propsMetadata.extraProps
         );
 
@@ -288,6 +289,7 @@ module.exports = {
 
 var copyConstructor = require('./instance').copyConstructor;
 var copyPrototype = require('./instance').copyPrototype;
+var copyScope = require('./instance').copyScope;
 var fixture = require('./fixture');
 var spyStaticMethod = require('./spy').spyStaticMethod;
 var spyFunction = require('./spy').spyFunction;
