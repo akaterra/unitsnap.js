@@ -30,7 +30,7 @@ function ClassOfType(cls) {
 
 ClassOfType.prototype = {
   check: function (value) {
-    return value !== void 0 && value !== null && Object.getPrototypeOf(value).constructor === this._cls;
+    return value !== void 0 && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls;
   },
   serialize: function () {
     return {$$data: this._cls.prototype.constructor.name, $$type: 'classOf'};

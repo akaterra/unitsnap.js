@@ -60,7 +60,7 @@ Fixture.prototype = {
   },
   throwOnClassOf: function (cls) {
     return this.throwOnCallback(function (value) {
-      return value !== void 0 && value !== null && Object.getPrototypeOf(value).constructor === cls;
+      return value !== void 0 && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === cls;
     });
   },
   throwOnInstanceOf: function (cls) {
