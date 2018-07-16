@@ -1,6 +1,0 @@
-.env
-.idea/
-dist/
-coverage/
-node_modules/
-snapshots/

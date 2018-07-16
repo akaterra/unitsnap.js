@@ -1,3 +1,17 @@
+function getPropertyDescriptorWithType(obj, key) {
+  var descriptor = Object.getOwnPropertyDescriptor(obj, key);
+
+  if (descriptor) {
+    if (descriptor.hasOwnProperty('get') || descriptor.hasOwnProperty('set')) {
+      descriptor.type = 'getterSetter';
+    } else if (descriptor.hasOwnProperty('value')) {
+      descriptor.type = descriptor.value instanceof Function ? 'function' : 'value';
+    }
+  }
+
+  return descriptor;
+}
+
 function callConstructor(cls, context, a) {
   var c;
 
@@ -86,7 +100,17 @@ function copyPrototype(cls) {
   Prototype.prototype = Object.getPrototypeOf(cls.prototype);
 
   return Object.getOwnPropertyNames(cls.prototype).reduce(function (acc, key) {
-    acc[key] = cls.prototype[key];
+    var descriptor = getPropertyDescriptorWithType(cls.prototype, key);
+
+    switch (descriptor.type) {
+      case 'getterSetter':
+        Object.defineProperty(acc, key, descriptor);
+
+        break;
+
+      default:
+        acc[key] = cls.prototype[key];
+    }
 
     return acc;
   }, new Prototype());
@@ -98,7 +122,7 @@ function copyScope(cls) {
   while (true) {
     cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
 
-    if (cls && cls !== Object && Object.getOwnPropertyNames(cls)) {
+    if (cls && cls !== Object) {
       Object.getOwnPropertyNames(cls).forEach(function (key) {
         if (! (key in scope)) {
           scope[key] = cls[key];
@@ -113,6 +137,7 @@ function copyScope(cls) {
 }
 
 module.exports = {
+  getPropertyType: getPropertyDescriptorWithType,
   callConstructor: callConstructor,
   copyConstructor: copyConstructor,
   copyPrototype: copyPrototype,

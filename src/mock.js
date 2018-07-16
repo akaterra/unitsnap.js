@@ -84,8 +84,6 @@ function ClassMaker(mock, cls, props) {
 
     return acc;
   }, {});
-  this._clsProtoCopy = copyPrototype(cls);
-  this._clsProtoHasOwnConstructor = cls.prototype.hasOwnProperty('constructor');
   this._clsScope = copyScope(cls);
   this._mock = mock;
 
@@ -287,6 +285,7 @@ module.exports = {
   StaticMethod: StaticMethod,
 };
 
+var getPropertyType = require('./instance').getPropertyType;
 var copyConstructor = require('./instance').copyConstructor;
 var copyPrototype = require('./instance').copyPrototype;
 var copyScope = require('./instance').copyScope;
