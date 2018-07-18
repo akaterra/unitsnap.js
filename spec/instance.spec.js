@@ -93,17 +93,15 @@ describe('instance', () => {
 
       const ScopyCopy = instance.copyScope(C);
 
-      expect(ScopyCopy).toEqual({
-        a: A.prototype.a,
-        b: B.prototype.b,
-        c: C.prototype.c,
-        x: B.prototype.x,
-        y: C.prototype.y,
-      });
+      expect(ScopyCopy.a).toBe(A.prototype.a);
+      expect(ScopyCopy.b).toBe(B.prototype.b);
+      expect(ScopyCopy.c).toBe(C.prototype.c);
+      expect(ScopyCopy.x).toBe(B.prototype.x);
+      expect(ScopyCopy.y).toBe(C.prototype.y);
     });
   });
 
-  describe('when uses ES5 notation', () => {
+  describe('when uses ES6 notation', () => {
     it('should copy constructor', () => {
       const Copy = instance.copyConstructor(Es6);
 
@@ -153,13 +151,11 @@ describe('instance', () => {
 
       const ScopyCopy = instance.copyScope(C);
 
-      expect(ScopyCopy).toEqual({
-        a: A.prototype.a,
-        b: B.prototype.b,
-        c: C.prototype.c,
-        x: B.prototype.x,
-        y: C.prototype.y,
-      });
+      expect(ScopyCopy.a).toBe(A.prototype.a);
+      expect(ScopyCopy.b).toBe(B.prototype.b);
+      expect(ScopyCopy.c).toBe(C.prototype.c);
+      expect(ScopyCopy.x).toBe(B.prototype.x);
+      expect(ScopyCopy.y).toBe(C.prototype.y);
     });
   });
 
@@ -195,42 +191,42 @@ describe('instance', () => {
 
   describe('when calls constructor copy', () => {
     it('should be instance of original class', () => {
-      function Clazz() {
+      function Cls() {
         this.args = Array.prototype.slice.call(arguments);
         this.context = this;
 
         return this;
       }
 
-      const copy = new (instance.copyConstructor(Clazz))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+      const copy = new (instance.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-      expect(copy instanceof Clazz).toBeTruthy();
+      expect(copy instanceof Cls).toBeTruthy();
     });
 
     it('should call with arguments', () => {
-      function Clazz() {
+      function Cls() {
         this.args = Array.prototype.slice.call(arguments);
         this.context = this;
 
         return this;
       }
 
-      const copy = new (instance.copyConstructor(Clazz))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+      const copy = new (instance.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
       expect(copy.args).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     });
 
     it('should returns another "this"', () => {
-      function Clazz() {
+      function Cls() {
         this.args = Array.prototype.slice.call(arguments);
         this.context = this;
 
-        return Clazz;
+        return Cls;
       }
 
-      const copy = new (instance.copyConstructor(Clazz))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+      const copy = new (instance.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-      expect(copy).toBe(Clazz);
+      expect(copy).toBe(Cls);
     });
   });
 });

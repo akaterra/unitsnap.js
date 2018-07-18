@@ -24,7 +24,7 @@ Mock.prototype = {
 
     clazz.RESTORE = function () {
       Object.assign(cls, maker._clsProps);
-      Object.assign(cls.prototype, maker._clsProto);
+      Object.assign(cls.prototype, maker._clsPropsProto);
 
       maker._propsMetadata.extraClassProps.forEach(function (key) { delete cls[key]; });
       maker._propsMetadata.extraProps.forEach(function (key) { delete cls.prototype[key]; });
@@ -79,12 +79,8 @@ function ClassMaker(mock, cls, props) {
 
     return acc;
   }, {});
-  this._clsProto = Object.getOwnPropertyNames(cls.prototype).reduce(function (acc, key) {
-    acc[key] = cls.prototype[key];
-
-    return acc;
-  }, {});
-  this._clsScope = copyScope(cls);
+  this._clsPropsProto = copyScope(cls.prototype, {enumerable: true}, 1);
+  this._clsScope = copyScope(cls.prototype);
   this._mock = mock;
 
   if (! props) {
@@ -285,7 +281,6 @@ module.exports = {
   StaticMethod: StaticMethod,
 };
 
-var getPropertyType = require('./instance').getPropertyType;
 var copyConstructor = require('./instance').copyConstructor;
 var copyPrototype = require('./instance').copyPrototype;
 var copyScope = require('./instance').copyScope;
