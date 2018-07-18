@@ -112,7 +112,7 @@ describe('Spy', () => {
         }
       };
 
-      const Spied = spy.spyInstanceMethod(Es5Class, 'a');
+      const Spied = spy.spyMethod(Es5Class, 'a');
 
       const spied = new Spied();
 
@@ -128,7 +128,7 @@ describe('Spy', () => {
         }
       }
 
-      const Spied = spy.spyInstanceMethod(Es6Class, 'a');
+      const Spied = spy.spyMethod(Es6Class, 'a');
 
       const spied = new Spied();
 
@@ -144,7 +144,7 @@ describe('Spy', () => {
         }
       }
 
-      const Spied = spy.spyInstanceMethod(Es7Class, 'a');
+      const Spied = spy.spyMethod(Es7Class, 'a');
 
       const spied = new Spied();
 

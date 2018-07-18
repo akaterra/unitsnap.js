@@ -24,9 +24,9 @@ Mock.prototype = {
 
     clazz.RESTORE = function () {
       Object.assign(cls, maker._clsProps);
-      Object.assign(cls.prototype, maker._clsPropsProto);
-
       maker._propsMetadata.extraClassProps.forEach(function (key) { delete cls[key]; });
+
+      Object.assign(cls.prototype, maker._clsProtoProps);
       maker._propsMetadata.extraProps.forEach(function (key) { delete cls.prototype[key]; });
 
       delete cls.RESTORE;
@@ -55,11 +55,27 @@ Mock.prototype = {
   },
 };
 
+function Property(descriptor) {
+  if (! (this instanceof Property)) {
+    return new Property(descriptor);
+  } else {
+    this.descriptor = descriptor;
+  }
+}
+
 function StaticMethod(value) {
   if (! (this instanceof StaticMethod)) {
     return new StaticMethod(value);
   } else {
     this.value = value;
+  }
+}
+
+function StaticProperty(descriptor) {
+  if (! (this instanceof StaticProperty)) {
+    return new StaticProperty(descriptor);
+  } else {
+    this.descriptor = descriptor;
   }
 }
 
@@ -79,8 +95,9 @@ function ClassMaker(mock, cls, props) {
 
     return acc;
   }, {});
-  this._clsPropsProto = copyScope(cls.prototype, {enumerable: true}, 1);
-  this._clsScope = copyScope(cls.prototype);
+  this._clsProtoProps = copyScope(cls.prototype, {enumerable: true}, 1);
+  this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype, {enumerable: true}, 1);
+  this._clsProtoScope = copyScope(cls.prototype);
   this._mock = mock;
 
   if (! props) {
@@ -91,10 +108,24 @@ function ClassMaker(mock, cls, props) {
 
   this._props = Array.isArray(props)
     ? props.reduce(function (acc, key) {
-      acc[key] = cls;
+      if (key in this._clsProtoPropsDescriptors) {
+        var descriptor = this._clsProtoPropsDescriptors[key];
+
+        switch (descriptor.type) {
+          case 'function':
+            acc[key] = cls;
+
+            break;
+
+          default:
+            acc[key] = new Property(descriptor);
+        }
+      } else {
+        acc[key] = cls;
+      }
 
       return acc;
-    }, {})
+    }.bind(this), {})
     : props;
 
   this._propsMetadata = { extraClassProps: [], extraProps: [] };
@@ -113,7 +144,7 @@ ClassMaker.prototype = {
         self._props.constructor,
         'constructor',
         self._cls,
-        self._clsScope,
+        self._clsProtoScope,
         self._propsMetadata
       );
 
@@ -129,7 +160,7 @@ ClassMaker.prototype = {
           if (self._mock._history) {
             self._mock._history.push(state);
           }
-        }
+        },
       }, true);
     } else {
       cls = copyConstructor(cls);
@@ -198,14 +229,14 @@ ClassMaker.prototype = {
             if (self._mock._history) {
               self._mock._history.push(state);
             }
-          }
+          },
         });
       } else {
         rep = classMakerGetReplacement(
           self._props[key],
           key,
           self._cls,
-          self._clsScope,
+          self._clsProtoScope,
           self._propsMetadata.extraProps
         );
 
@@ -215,7 +246,7 @@ ClassMaker.prototype = {
 
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
-        spyInstanceMethod(cls, key, rep, {
+        spyMethod(cls, key, rep, {
           argsAnnotation: self._cls.prototype[key],
           extra: {
             name: self._clsConstructorName + '.' + rep.name,
@@ -227,7 +258,7 @@ ClassMaker.prototype = {
             if (self._mock._history) {
               self._mock._history.push(state);
             }
-          }
+          },
         });
       }
     });
@@ -278,13 +309,16 @@ function classMakerGetReplacement(prop, key, cls, clsProps, extraProps) {
 
 module.exports = {
   Mock: Mock,
+  Property: Property,
   StaticMethod: StaticMethod,
+  StaticProperty: StaticProperty,
 };
 
 var copyConstructor = require('./instance').copyConstructor;
 var copyPrototype = require('./instance').copyPrototype;
 var copyScope = require('./instance').copyScope;
+var copyScopeDescriptors = require('./instance').copyScopeDescriptors;
 var fixture = require('./fixture');
 var spyStaticMethod = require('./spy').spyStaticMethod;
 var spyFunction = require('./spy').spyFunction;
-var spyInstanceMethod = require('./spy').spyInstanceMethod;
+var spyMethod = require('./spy').spyMethod;

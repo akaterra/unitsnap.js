@@ -250,13 +250,7 @@ function spyFunctionCreateResultReport(callable, context, originalCallable, opti
   };
 }
 
-function spyStaticMethod(cls, key, rep, options) {
-  cls[key] = spyFunction(rep || cls[key], options);
-
-  return cls;
-}
-
-function spyInstanceMethod(cls, key, rep, options) {
+function spyMethod(cls, key, rep, options) {
   if (! rep) {
     rep = cls.prototype[key];
   }
@@ -295,7 +289,13 @@ function spyInstanceMethod(cls, key, rep, options) {
   return cls;
 }
 
-function spyInstanceProperty(cls, key, repGetter, repSetter, options) {
+function spyProperty(cls, key, repGetter, repSetter, options) {
+  cls[key] = spyFunction(rep || cls[key], options);
+
+  return cls;
+}
+
+function spyStaticMethod(cls, key, rep, options) {
   cls[key] = spyFunction(rep || cls[key], options);
 
   return cls;
@@ -305,8 +305,8 @@ module.exports = {
   getFunctionArgNames: getFunctionArgNames,
   spyStaticMethod: spyStaticMethod,
   spyFunction: spyFunction,
-  spyInstanceMethod: spyInstanceMethod,
-  spyInstanceProperty: spyInstanceProperty,
+  spyMethod: spyMethod,
+  spyProperty: spyProperty,
 };
 
 var instance = require('./instance');

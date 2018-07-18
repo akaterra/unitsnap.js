@@ -120,7 +120,7 @@ function copyScope(cls, options, maxDepth) {
 
     if (cls) {
       Object.getOwnPropertyNames(cls).forEach(function (key) {
-        if (! scope.hasOwnProperty(key)) {
+        if (! Object.prototype.hasOwnProperty.call(scope, key)) {
           var descriptor = getDescriptorAndType(cls, key);
 
           if (options) {
@@ -156,7 +156,7 @@ function copyScopeDescriptors(cls, options, maxDepth) {
 
     if (cls) {
       Object.getOwnPropertyNames(cls).forEach(function (key) {
-        if (! scope.hasOwnProperty(key)) {
+        if (! Object.prototype.hasOwnProperty.call(scope, key)) {
           var descriptor = getDescriptorAndType(cls, key);
 
           if (options) {
