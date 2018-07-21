@@ -1,41 +1,42 @@
 var FN_ARGUMENT_NAMES = /([^\s,]+)/g;
 var FN_ES5_DECLARATION = /^(async\s*|)function\s*(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
-var FN_ES6_CLASS_CONSTRUCTOR_DECLARATION = /^class\s*(\w*).*[\r\n\s]*\{[\r\n\s]*(public\s*|protected\s*|private\s*|)constructor\s*\((.*)\)[\r\n\s]*\{/g;
-var FN_ES6_CLASS_METHOD_DECLARATION = /^(public\s*|protected\s*|private\s*|)(async\s*|)(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
+var FN_ES6_CLASS_CONSTRUCTOR_DECLARATION = /^class\s*(\w*).*[\r\n\s]*\{[\r\n\s]*()constructor\s*\((.*)\)[\r\n\s]*\{/g;
+var FN_ES6_CLASS_METHOD_DECLARATION = /^(static\s*|)(async\s*|)(get\s*|set\s*|)(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
 var FN_ES6_DECLARATION = /^(async\s*|)\(?(.*?)\)?\s*=>/g;
 var FN_STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 
-function getFunctionArgNames(func) {
+function parseFunctionAnnotation(func) {
   var fnStr = func.toString().replace(FN_STRIP_COMMENTS, '');
   var fnArgStr = null;
   var fnName = null;
+  var matches;
 
   if (fnStr.substr(0, 8) === 'function') {
-    var matches = regexParseAll(FN_ES5_DECLARATION, fnStr);
+    matches = regexExecAll(FN_ES5_DECLARATION, fnStr);
 
     if (matches.length) {
       fnArgStr = matches[3];
       fnName = matches[2];
     }
   } else if (new RegExp(FN_ES6_DECLARATION).test(fnStr)) {
-    var matches = regexParseAll(FN_ES6_DECLARATION, fnStr);
+    matches = regexExecAll(FN_ES6_DECLARATION, fnStr);
 
     if (matches.length) {
       fnArgStr = matches[2];
       fnName = null;
     }
   } else if (new RegExp(FN_ES6_CLASS_METHOD_DECLARATION).test(fnStr)) {
-    var matches = regexParseAll(FN_ES6_CLASS_METHOD_DECLARATION, fnStr);
+    matches = regexExecAll(FN_ES6_CLASS_METHOD_DECLARATION, fnStr);
 
     if (matches.length) {
-      fnArgStr = matches[4];
-      fnName = matches[3];
+      fnArgStr = matches[5];
+      fnName = matches[4];
     }
   } else if (fnStr.substr(0, 5) === 'class') {
 
     // es6 class, search for constructor
     while (fnStr.substr(0, 5) === 'class') {
-      var matches = regexParseAll(FN_ES6_CLASS_CONSTRUCTOR_DECLARATION, fnStr);
+      matches = regexExecAll(FN_ES6_CLASS_CONSTRUCTOR_DECLARATION, fnStr);
 
       if (matches.length) {
         fnArgStr = matches[3];
@@ -69,7 +70,7 @@ function getFunctionArgNames(func) {
   return result;
 }
 
-function regexParseAll(rgx, str) {
+function regexExecAll(rgx, str) {
   rgx = new RegExp(rgx, 'mg');
 
   var matches = [];
@@ -94,12 +95,12 @@ function spyOnFunction(callable, options, asConstructor) {
     if (Array.isArray(options.argsAnnotation)) {
       originalCallableAnnotation = options.argsAnnotation;
     } else if (options.argsAnnotation instanceof Function) {
-      originalCallableAnnotation = getFunctionArgNames(options.argsAnnotation);
+      originalCallableAnnotation = parseFunctionAnnotation(options.argsAnnotation);
     } else {
       throw new Error('Spy argsAnnotation must be callable or list of arguments');
     }
   } else {
-    originalCallableAnnotation = getFunctionArgNames(callable);
+    originalCallableAnnotation = parseFunctionAnnotation(callable);
   }
 
   if (options && options.onCall !== void 0) {
@@ -251,6 +252,7 @@ function spyOnFunctionCreateResultReport(callable, context, originalCallable, op
 }
 
 function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
+  var initialObj = obj;
   var objIsClass = obj instanceof Function;
 
   if (objIsClass && bypassClass !== true) {
@@ -265,6 +267,10 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
     options.extra = {};
   }
 
+  if (! repDescriptor) {
+    repDescriptor = Object.getOwnPropertyDescriptor(obj, key);
+  }
+
   if (repDescriptor instanceof Function) {
     repDescriptor = {value: repDescriptor};
   }
@@ -272,13 +278,14 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
   var descriptor = instance.getPropertyType(obj, key);
 
   if (! descriptor.descriptor) {
-    descriptor = {
-      descriptor: Object.assign({}, repDescriptor),
-      type: 'function',
-    };
+    descriptor = {descriptor: Object.assign({}, repDescriptor), type: 'function'};
   }
 
-  descriptor.descriptor.configurable = descriptor.descriptor.writable = true;
+  descriptor.descriptor.configurable = true;
+
+  if (descriptor.type !== 'getterSetter') {
+    descriptor.descriptor.writeable = true;
+  }
 
   switch (descriptor.type) {
     case 'getterSetter':
@@ -392,7 +399,7 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
 
   Object.defineProperty(obj, key, descriptor);
 
-  return obj;
+  return initialObj;
 }
 
 function spyOnMethod(cls, key, rep, options) {
@@ -402,7 +409,7 @@ function spyOnMethod(cls, key, rep, options) {
 }
 
 function spyOnStaticDescriptor(cls, key, repDescriptor, options) {
-  spyOnDescriptor(cls, key, repDescriptor, options, true);
+  spyOnDescriptor(cls, key, repDescriptor || Object.getOwnPropertyDescriptor(cls, key), options, true);
 
   return cls;
 }
@@ -414,7 +421,7 @@ function spyOnStaticMethod(cls, key, rep, options) {
 }
 
 module.exports = {
-  getFunctionArgNames: getFunctionArgNames,
+  getFunctionArgNames: parseFunctionAnnotation,
   spyOnFunction: spyOnFunction,
 
   spyOnDescriptor: spyOnDescriptor,

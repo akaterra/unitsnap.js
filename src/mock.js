@@ -203,7 +203,52 @@ ClassMaker.prototype = {
       var rep;
 
       if (self._props[key] instanceof Property) {
+        var repDescriptor = {
 
+        };
+
+        if (self._props[key].get) {
+          repDescriptor.get = classMakerGetReplacement(
+            self._props[key].get,
+            key,
+            self._cls,
+            self._clsProtoScope,
+            self._propsMetadata.extraProps
+          );
+
+          if (repDescriptor.get === fixture.Fixture) {
+            repDescriptor.get = mockGetFixturePop(self._mock);
+          }
+        }
+
+        if (self._props[key].set) {
+          repDescriptor.set = classMakerGetReplacement(
+            self._props[key].set,
+            key,
+            self._cls,
+            self._clsProtoScope,
+            self._propsMetadata.extraProps
+          );
+
+          if (repDescriptor.set === fixture.Fixture) {
+            repDescriptor.set = mockGetFixturePop(self._mock);
+          }
+        }
+
+        spyOnDescriptor(cls, key, repDescriptor, {
+          // argsAnnotation: self._cls.prototype[key],
+          extra: {
+            name: self._clsConstructorName + '.' + key,
+            type: 'property',
+          },
+          origin: self._cls[key],
+          replacement: rep,
+          onCall: function (context, state) {
+            if (self._mock._history) {
+              self._mock._history.push(state);
+            }
+          },
+        });
       } else if (self._props[key] instanceof StaticMethod) {
         rep = classMakerGetReplacement(
           self._props[key].value,
@@ -321,6 +366,7 @@ var copyPrototype = require('./instance').copyPrototype;
 var copyScope = require('./instance').copyScope;
 var copyScopeDescriptors = require('./instance').copyScopeDescriptors;
 var fixture = require('./fixture');
-var spyOnStaticMethod = require('./spy').spyOnStaticMethod;
+var spyOnDescriptor = require('./spy').spyOnDescriptor;
 var spyOnFunction = require('./spy').spyOnFunction;
 var spyOnMethod = require('./spy').spyOnMethod;
+var spyOnStaticMethod = require('./spy').spyOnStaticMethod;
