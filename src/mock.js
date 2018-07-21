@@ -39,7 +39,7 @@ Mock.prototype = {
   spy: function (fn) {
     var self = this;
 
-    return spyFunction(fn, {
+    return spyOnFunction(fn, {
       argsAnnotation: fn,
       extra: {
         name: fn.name,
@@ -148,7 +148,7 @@ ClassMaker.prototype = {
         self._propsMetadata
       );
 
-      cls = spyFunction(copyConstructor(rep), {
+      cls = spyOnFunction(copyConstructor(rep), {
         argsAnnotation: self._cls,
         extra: {
           name: this._clsConstructorName,
@@ -202,7 +202,9 @@ ClassMaker.prototype = {
 
       var rep;
 
-      if (self._props[key] instanceof StaticMethod) {
+      if (self._props[key] instanceof Property) {
+
+      } else if (self._props[key] instanceof StaticMethod) {
         rep = classMakerGetReplacement(
           self._props[key].value,
           key,
@@ -217,7 +219,7 @@ ClassMaker.prototype = {
 
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
-        spyStaticMethod(cls, key, rep, {
+        spyOnStaticMethod(cls, key, rep, {
           argsAnnotation: self._cls.prototype[key],
           extra: {
             name: self._clsConstructorName + '.' + rep.name,
@@ -246,7 +248,7 @@ ClassMaker.prototype = {
 
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
-        spyMethod(cls, key, rep, {
+        spyOnMethod(cls, key, rep, {
           argsAnnotation: self._cls.prototype[key],
           extra: {
             name: self._clsConstructorName + '.' + rep.name,
@@ -319,6 +321,6 @@ var copyPrototype = require('./instance').copyPrototype;
 var copyScope = require('./instance').copyScope;
 var copyScopeDescriptors = require('./instance').copyScopeDescriptors;
 var fixture = require('./fixture');
-var spyStaticMethod = require('./spy').spyStaticMethod;
-var spyFunction = require('./spy').spyFunction;
-var spyMethod = require('./spy').spyMethod;
+var spyOnStaticMethod = require('./spy').spyOnStaticMethod;
+var spyOnFunction = require('./spy').spyOnFunction;
+var spyOnMethod = require('./spy').spyOnMethod;

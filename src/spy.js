@@ -82,7 +82,7 @@ function regexParseAll(rgx, str) {
   return matches;
 }
 
-function spyFunction(callable, options, asConstructor) {
+function spyOnFunction(callable, options, asConstructor) {
   if (! (callable instanceof Function)) {
     throw new Error('Callable fn must be callable');
   }
@@ -125,7 +125,7 @@ function spyFunction(callable, options, asConstructor) {
     try {
       if (options && options.onCall) {
         options.onCall(this, Object.assign(
-          spyFunctionCreateArgsReport(callable, this, originalCallable, options),
+          spyOnFunctionCreateArgsReport(callable, this, originalCallable, options),
           options.extra || {}
         )); // context, fn
       }
@@ -152,7 +152,7 @@ function spyFunction(callable, options, asConstructor) {
 
             if (options && options.onCall) {
               options.onCall(this, Object.assign(
-                spyFunctionCreateResultReport(callable, this, originalCallable, options),
+                spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
                 options.extra || {}
               )); // context, fn
             }
@@ -167,7 +167,7 @@ function spyFunction(callable, options, asConstructor) {
 
             if (options && options.onCall) {
               options.onCall(this, Object.assign(
-                spyFunctionCreateResultReport(callable, this, originalCallable, options),
+                spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
                 options.extra || {}
               )); // context, fn
             }
@@ -197,7 +197,7 @@ function spyFunction(callable, options, asConstructor) {
     } finally {
       if (options && options.onCall) {
         options.onCall(this, Object.assign(
-          spyFunctionCreateResultReport(callable, this, originalCallable, options),
+          spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
           { result: asConstructor ? void 0 : callable.RESULT }, options.extra || {}
         )); // context, fn
       }
@@ -220,7 +220,7 @@ function spyFunction(callable, options, asConstructor) {
   return callable;
 }
 
-function spyFunctionCreateArgsReport(callable, context, originalCallable, options) {
+function spyOnFunctionCreateArgsReport(callable, context, originalCallable, options) {
   return {
     args: callable.ARGS,
     callsCount: callable.CALLS_COUNT,
@@ -235,7 +235,7 @@ function spyFunctionCreateArgsReport(callable, context, originalCallable, option
   };
 }
 
-function spyFunctionCreateResultReport(callable, context, originalCallable, options) {
+function spyOnFunctionCreateResultReport(callable, context, originalCallable, options) {
   return {
     callsCount: callable.CALLS_COUNT,
     context: context,
@@ -250,63 +250,178 @@ function spyFunctionCreateResultReport(callable, context, originalCallable, opti
   };
 }
 
-function spyMethod(cls, key, rep, options) {
-  if (! rep) {
-    rep = cls.prototype[key];
+function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
+  var objIsClass = obj instanceof Function;
+
+  if (objIsClass && bypassClass !== true) {
+    obj = obj.prototype;
   }
 
-  var clsMethod = cls.prototype[key];
+  if (! options) {
+    options = {};
+  }
 
-  cls.prototype[key] = function () {
-    if (! options) {
-      options = {};
-    }
+  if (! options.extra) {
+    options.extra = {};
+  }
 
-    if (! options.extra) {
-      options.extra = {};
-    }
+  if (repDescriptor instanceof Function) {
+    repDescriptor = {value: repDescriptor};
+  }
 
-    options.extra = Object.assign({
-      name: options && options.name || (cls.prototype.constructor.name + '.' + rep.name),
-    }, options.extra);
+  var descriptor = instance.getPropertyType(obj, key);
 
-    this[key] = spyFunction(rep, options);
+  if (! descriptor.descriptor) {
+    descriptor = {
+      descriptor: Object.assign({}, repDescriptor),
+      type: 'function',
+    };
+  }
 
-    return this[key].apply(this, arguments);
-  };
+  descriptor.descriptor.configurable = descriptor.descriptor.writable = true;
 
-  cls.prototype[key].ARGS = {'*': []};
-  cls.prototype[key].CALLS_COUNT = 0;
-  cls.prototype[key].EXCEPTIONS_COUNT = 0;
-  cls.prototype[key].EXCEPTION = void 0;
-  cls.prototype[key].IS_ASYNC = false;
-  cls.prototype[key].IS_ASYNC_PENDING = false;
-  cls.prototype[key].IS_EXCEPTION = false;
-  cls.prototype[key].ORIGIN = options && options.origin || clsMethod;
-  cls.prototype[key].REPLACEMENT = options && options.replacement || rep;
-  cls.prototype[key].RESULT = void 0;
+  switch (descriptor.type) {
+    case 'getterSetter':
+      descriptor = descriptor.descriptor;
+
+      if (repDescriptor.get) {
+        descriptor.get = (function (descriptor) {
+          return function () {
+            descriptor.get = spyOnFunction(repDescriptor.get, Object.assign({}, options, {
+              extra: Object.assign({}, options.extra, {
+                name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[get]',
+              }),
+            }));
+
+            if (repDescriptor.set) {
+              descriptor.set = spyOnFunction(repDescriptor.set, Object.assign({}, options, {
+                extra: Object.assign({}, options.extra, {
+                  name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[set]',
+                }),
+              }));
+            }
+
+            Object.defineProperty(this, key, descriptor);
+
+            return this[key];
+          }
+        })(descriptor);
+
+        descriptor.get.ARGS = {'*': []};
+        descriptor.get.CALLS_COUNT = 0;
+        descriptor.get.EXCEPTIONS_COUNT = 0;
+        descriptor.get.EXCEPTION = void 0;
+        descriptor.get.IS_ASYNC = false;
+        descriptor.get.IS_ASYNC_PENDING = false;
+        descriptor.get.IS_EXCEPTION = false;
+        descriptor.get.ORIGIN = options && options.origin;
+        descriptor.get.REPLACEMENT = options && options.replacement;
+        descriptor.get.RESULT = void 0;
+      }
+
+      if (repDescriptor.set) {
+        descriptor.set = (function (descriptor) {
+          return function (val) {
+            descriptor.set = spyOnFunction(repDescriptor.set, Object.assign({}, options, {
+              extra: Object.assign({}, options.extra, {
+                name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[set]',
+              }),
+            }));
+
+            if (repDescriptor.get) {
+              descriptor.get = spyOnFunction(repDescriptor.get, Object.assign({}, options, {
+                extra: Object.assign({}, options.extra, {
+                  name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[get]',
+                }),
+              }));
+            }
+
+            Object.defineProperty(this, key, descriptor);
+
+            this[key] = val;
+          }
+        })(descriptor);
+
+        descriptor.set.ARGS = {'*': []};
+        descriptor.set.CALLS_COUNT = 0;
+        descriptor.set.EXCEPTIONS_COUNT = 0;
+        descriptor.set.EXCEPTION = void 0;
+        descriptor.set.IS_ASYNC = false;
+        descriptor.set.IS_ASYNC_PENDING = false;
+        descriptor.set.IS_EXCEPTION = false;
+        descriptor.set.ORIGIN = options && options.origin;
+        descriptor.set.REPLACEMENT = options && options.replacement;
+        descriptor.set.RESULT = void 0;
+      }
+
+      break;
+
+    case 'function':
+      descriptor = descriptor.descriptor;
+
+      descriptor.value = (function (descriptor) {
+        return function () {
+          descriptor.value = spyOnFunction(repDescriptor.value, Object.assign({}, options, {
+            extra: Object.assign({
+              name: (objIsClass ? obj.constructor.name + '.' : '') + key,
+            }, options.extra),
+          }));
+
+          Object.defineProperty(this, key, descriptor);
+
+          return this[key].apply(this, arguments);
+        }
+      })(descriptor);
+
+      descriptor.value.ARGS = {'*': []};
+      descriptor.value.CALLS_COUNT = 0;
+      descriptor.value.EXCEPTIONS_COUNT = 0;
+      descriptor.value.EXCEPTION = void 0;
+      descriptor.value.IS_ASYNC = false;
+      descriptor.value.IS_ASYNC_PENDING = false;
+      descriptor.value.IS_EXCEPTION = false;
+      descriptor.value.ORIGIN = options && options.origin;
+      descriptor.value.REPLACEMENT = options && options.replacement;
+      descriptor.value.RESULT = void 0;
+
+      break;
+
+    default:
+      descriptor = descriptor.descriptor;
+  }
+
+  Object.defineProperty(obj, key, descriptor);
+
+  return obj;
+}
+
+function spyOnMethod(cls, key, rep, options) {
+  spyOnDescriptor(cls, key, rep || cls.prototype[key], options);
 
   return cls;
 }
 
-function spyProperty(cls, key, repGetter, repSetter, options) {
-  cls[key] = spyFunction(rep || cls[key], options);
+function spyOnStaticDescriptor(cls, key, repDescriptor, options) {
+  spyOnDescriptor(cls, key, repDescriptor, options, true);
 
   return cls;
 }
 
-function spyStaticMethod(cls, key, rep, options) {
-  cls[key] = spyFunction(rep || cls[key], options);
+function spyOnStaticMethod(cls, key, rep, options) {
+  spyOnDescriptor(cls, key, rep || cls[key], options, true);
 
   return cls;
 }
 
 module.exports = {
   getFunctionArgNames: getFunctionArgNames,
-  spyStaticMethod: spyStaticMethod,
-  spyFunction: spyFunction,
-  spyMethod: spyMethod,
-  spyProperty: spyProperty,
+  spyOnFunction: spyOnFunction,
+
+  spyOnDescriptor: spyOnDescriptor,
+  spyOnMethod: spyOnMethod,
+
+  spyOnStaticDescriptor: spyOnStaticDescriptor,
+  spyOnStaticMethod: spyOnStaticMethod,
 };
 
 var instance = require('./instance');

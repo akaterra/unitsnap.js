@@ -8,7 +8,7 @@ describe('Spy', () => {
 
       }
 
-      const spied = spy.spyFunction(Es5Class);
+      const spied = spy.spyOnFunction(Es5Class);
 
       spied(1, 2, 3, 4, 5);
 
@@ -20,7 +20,7 @@ describe('Spy', () => {
 
       };
 
-      const spied = spy.spyFunction(es6);
+      const spied = spy.spyOnFunction(es6);
 
       spied(1, 2, 3, 4, 5);
 
@@ -32,7 +32,7 @@ describe('Spy', () => {
 
       };
 
-      const spied = spy.spyFunction(es6);
+      const spied = spy.spyOnFunction(es6);
 
       spied(1, 2, 3, 4, 5);
 
@@ -44,7 +44,7 @@ describe('Spy', () => {
         constructor(a, b, c) {}
       }
 
-      const Spied = spy.spyFunction(Es6Class, void 0, true);
+      const Spied = spy.spyOnFunction(Es6Class, void 0, true);
 
       const spied = new Spied(1, 2, 3, 4, 5);
 
@@ -60,7 +60,7 @@ describe('Spy', () => {
         constructor(a, b, c) { super(); }
       }
 
-      const Spied = spy.spyFunction(Es6, void 0, true);
+      const Spied = spy.spyOnFunction(Es6, void 0, true);
 
       const spied = new Spied(1, 2, 3, 4, 5);
 
@@ -72,7 +72,7 @@ describe('Spy', () => {
         return Promise.resolve(1);
       }
 
-      const spied = spy.spyFunction(async);
+      const spied = spy.spyOnFunction(async);
 
       spied().then((result) => {
         expect(result).toBe(1);
@@ -88,7 +88,7 @@ describe('Spy', () => {
         return Promise.reject(1);
       }
 
-      const spied = spy.spyFunction(async);
+      const spied = spy.spyOnFunction(async);
 
       spied().catch((result) => {
         expect(result).toBe(1);
@@ -100,57 +100,61 @@ describe('Spy', () => {
     });
   });
 
-  describe('when spies on static method', () => {
-    it('should use arguments annotations in ES5 declaration', () => {
-      function Es5Class(a, b, c) {
+  // describe('when spies on static method', () => {
+  //   it('should use arguments annotations in ES5 declaration', () => {
+  //     function Es5Class(a, b, c) {
+  //
+  //     }
+  //
+  //     Es5Class.prototype = {
+  //       a: function (a, b, c) {
+  //
+  //       }
+  //     };
+  //
+  //     const Spied = spy.spyOnMethod(Es5Class, 'a');
+  //
+  //     const spied = new Spied();
+  //
+  //     spied.a(1, 2, 3, 4, 5);
+  //
+  //     expect(spied.a.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
+  //   });
+  //
+  //   it('should use arguments annotations in ES6 declaration', () => {
+  //     class Es6Class {
+  //       a(a, b, c) {
+  //
+  //       }
+  //     }
+  //
+  //     const Spied = spy.spyOnMethod(Es6Class, 'a');
+  //
+  //     const spied = new Spied();
+  //
+  //     spied.a(1, 2, 3, 4, 5);
+  //
+  //     expect(spied.a.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
+  //   });
+  //
+  //   it('should use arguments annotations in async ES7 declaration', async () => {
+  //     class Es7Class {
+  //       async a(a, b, c) {
+  //
+  //       }
+  //     }
+  //
+  //     const Spied = spy.spyOnMethod(Es7Class, 'a');
+  //
+  //     const spied = new Spied();
+  //
+  //     await spied.a(1, 2, 3, 4, 5);
+  //
+  //     expect(spied.a.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
+  //   });
+  // });
 
-      }
-      
-      Es5Class.prototype = {
-        a: function (a, b, c) {
-          
-        }
-      };
+  describe('when spies on descriptor', () => {
 
-      const Spied = spy.spyMethod(Es5Class, 'a');
-
-      const spied = new Spied();
-
-      spied.a(1, 2, 3, 4, 5);
-
-      expect(spied.a.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
-    });
-
-    it('should use arguments annotations in ES6 declaration', () => {
-      class Es6Class {
-        a(a, b, c) {
-
-        }
-      }
-
-      const Spied = spy.spyMethod(Es6Class, 'a');
-
-      const spied = new Spied();
-
-      spied.a(1, 2, 3, 4, 5);
-
-      expect(spied.a.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
-    });
-
-    it('should use arguments annotations in async ES7 declaration', async () => {
-      class Es7Class {
-        async a(a, b, c) {
-
-        }
-      }
-
-      const Spied = spy.spyMethod(Es7Class, 'a');
-
-      const spied = new Spied();
-
-      await spied.a(1, 2, 3, 4, 5);
-
-      expect(spied.a.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
-    });
   });
 });
