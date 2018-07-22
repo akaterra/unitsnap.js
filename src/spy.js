@@ -100,7 +100,7 @@ function spyOnFunction(callable, options, asConstructor) {
       throw new Error('Spy argsAnnotation must be callable or list of arguments');
     }
   } else {
-    originalCallableAnnotation = parseFunctionAnnotation(callable);
+    originalCallableAnnotation = parseFunctionAnnotation(options && options.origin || callable);
   }
 
   if (options && options.onCall !== void 0) {

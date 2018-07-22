@@ -761,7 +761,7 @@ describe('Mock', () => {
         time: history._entries[11].time,
         type: 'getter',
       }, {
-        args: {'*': [1]},
+        args: {'*': [], value: 1},
         callsCount: 1,
         comment: 'comment',
         context: history._entries[12].context,
@@ -1424,7 +1424,7 @@ describe('Mock', () => {
         time: history._entries[11].time,
         type: 'getter',
       }, {
-        args: {'*': [1]},
+        args: {'*': [], value: 1},
         callsCount: 1,
         comment: 'comment',
         context: history._entries[12].context,
