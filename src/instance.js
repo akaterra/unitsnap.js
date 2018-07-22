@@ -144,8 +144,6 @@ function copyScopeDescriptors(cls, options, maxDepth) {
   var scope = {};
 
   while (true) {
-    cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
-
     if (maxDepth !== void 0) {
       maxDepth -= 1;
 
@@ -169,6 +167,8 @@ function copyScopeDescriptors(cls, options, maxDepth) {
     } else {
       break;
     }
+
+    cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
   }
 
   return scope;

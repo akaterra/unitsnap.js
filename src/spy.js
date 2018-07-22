@@ -294,17 +294,17 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
       if (repDescriptor.get) {
         descriptor.get = (function (descriptor) {
           return function () {
-            descriptor.get = spyOnFunction(repDescriptor.get, Object.assign({}, options, {
-              extra: Object.assign({}, options.extra, {
+            descriptor.get = spyOnFunction(repDescriptor.get, Object.assign({}, options, options.get || {}, {
+              extra: Object.assign({
                 name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[get]',
-              }),
+              }, options.extra, options.get && options.get.extra || {}),
             }));
 
             if (repDescriptor.set) {
-              descriptor.set = spyOnFunction(repDescriptor.set, Object.assign({}, options, {
-                extra: Object.assign({}, options.extra, {
+              descriptor.set = spyOnFunction(repDescriptor.set, Object.assign({}, options, options.set || {}, {
+                extra: Object.assign({
                   name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[set]',
-                }),
+                }, options.extra, options.set && options.set.extra || {}),
               }));
             }
 
@@ -321,25 +321,25 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
         descriptor.get.IS_ASYNC = false;
         descriptor.get.IS_ASYNC_PENDING = false;
         descriptor.get.IS_EXCEPTION = false;
-        descriptor.get.ORIGIN = options && options.origin;
-        descriptor.get.REPLACEMENT = options && options.replacement;
+        descriptor.get.ORIGIN = options && options.get && options.get.origin;
+        descriptor.get.REPLACEMENT = options && options.get && options.get.replacement;
         descriptor.get.RESULT = void 0;
       }
 
       if (repDescriptor.set) {
         descriptor.set = (function (descriptor) {
           return function (val) {
-            descriptor.set = spyOnFunction(repDescriptor.set, Object.assign({}, options, {
-              extra: Object.assign({}, options.extra, {
+            descriptor.set = spyOnFunction(repDescriptor.set, Object.assign({}, options, options.set || {}, {
+              extra: Object.assign({
                 name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[set]',
-              }),
+              }, options.extra, options.set && options.set.extra || {}),
             }));
 
             if (repDescriptor.get) {
-              descriptor.get = spyOnFunction(repDescriptor.get, Object.assign({}, options, {
-                extra: Object.assign({}, options.extra, {
+              descriptor.get = spyOnFunction(repDescriptor.get, Object.assign({}, options, options.get || {}, {
+                extra: Object.assign({
                   name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[get]',
-                }),
+                }, options.extra, options.get && options.get.extra || {}),
               }));
             }
 
@@ -356,8 +356,8 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
         descriptor.set.IS_ASYNC = false;
         descriptor.set.IS_ASYNC_PENDING = false;
         descriptor.set.IS_EXCEPTION = false;
-        descriptor.set.ORIGIN = options && options.origin;
-        descriptor.set.REPLACEMENT = options && options.replacement;
+        descriptor.set.ORIGIN = options && options.set && options.set.origin;
+        descriptor.set.REPLACEMENT = options && options.set && options.set.replacement;
         descriptor.set.RESULT = void 0;
       }
 

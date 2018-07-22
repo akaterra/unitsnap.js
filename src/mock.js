@@ -23,10 +23,16 @@ Mock.prototype = {
     var clazz = maker.makePrototypeFor(cls, true);
 
     clazz.RESTORE = function () {
-      Object.assign(cls, maker._clsProps);
+      // class properties
+      Object.keys(maker._clsProps).forEach(function (key) {
+        Object.defineProperty(cls, key, maker._clsPropsDescriptors[key].descriptor);
+      });
       maker._propsMetadata.extraClassProps.forEach(function (key) { delete cls[key]; });
 
-      Object.assign(cls.prototype, maker._clsProtoProps);
+      // instance properties
+      Object.keys(maker._clsProtoProps).forEach(function (key) {
+        Object.defineProperty(cls.prototype, key, maker._clsProtoPropsDescriptors[key].descriptor);
+      });
       maker._propsMetadata.extraProps.forEach(function (key) { delete cls.prototype[key]; });
 
       delete cls.RESTORE;
@@ -57,11 +63,24 @@ Mock.prototype = {
 
 function Property(descriptor) {
   if (! (this instanceof Property)) {
-    return new Property(descriptor);
+    return new Property(descriptor || {});
   } else {
     this.descriptor = descriptor;
   }
 }
+
+Property.prototype = {
+  get: function (get) {
+    this.descriptor.get = get;
+
+    return this;
+  },
+  set: function (set) {
+    this.descriptor.set = set;
+
+    return this;
+  },
+};
 
 function StaticMethod(value) {
   if (! (this instanceof StaticMethod)) {
@@ -73,11 +92,24 @@ function StaticMethod(value) {
 
 function StaticProperty(descriptor) {
   if (! (this instanceof StaticProperty)) {
-    return new StaticProperty(descriptor);
+    return new StaticProperty(descriptor || {});
   } else {
     this.descriptor = descriptor;
   }
 }
+
+StaticProperty.prototype = {
+  get: function (get) {
+    this.descriptor.get = get;
+
+    return this;
+  },
+  set: function (set) {
+    this.descriptor.set = set;
+
+    return this;
+  },
+};
 
 var classNativeProps = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
 
@@ -88,13 +120,15 @@ function ClassMaker(mock, cls, props) {
 
   this._cls = cls;
   this._clsConstructorName = cls.prototype.hasOwnProperty('constructor') ? cls.prototype.constructor.name : cls.name;
-  this._clsProps = Object.getOwnPropertyNames(cls).filter(function (key) {
-      return classNativeProps.indexOf(key) === - 1;
+  this._clsProps = copyScope(cls, {enumerable: true}, 1);
+  this._clsProps = Object.keys(this._clsProps).filter(function (key) {
+    return classNativeProps.indexOf(key) === - 1;
   }).reduce(function (acc, key) {
-    acc[key] = cls[key];
+    Object.defineProperty(acc, key, Object.getOwnPropertyDescriptor(this._clsProps, key));
 
     return acc;
-  }, {});
+  }.bind(this), {});
+  this._clsPropsDescriptors = copyScopeDescriptors(cls, {enumerable: true}, 1);
   this._clsProtoProps = copyScope(cls.prototype, {enumerable: true}, 1);
   this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype, {enumerable: true}, 1);
   this._clsProtoScope = copyScope(cls.prototype);
@@ -203,13 +237,11 @@ ClassMaker.prototype = {
       var rep;
 
       if (self._props[key] instanceof Property) {
-        var repDescriptor = {
+        var repDescriptor = {};
 
-        };
-
-        if (self._props[key].get) {
+        if (self._props[key].descriptor.get) {
           repDescriptor.get = classMakerGetReplacement(
-            self._props[key].get,
+            self._props[key].descriptor.get,
             key,
             self._cls,
             self._clsProtoScope,
@@ -221,9 +253,9 @@ ClassMaker.prototype = {
           }
         }
 
-        if (self._props[key].set) {
+        if (self._props[key].descriptor.set) {
           repDescriptor.set = classMakerGetReplacement(
-            self._props[key].set,
+            self._props[key].descriptor.set,
             key,
             self._cls,
             self._clsProtoScope,
@@ -236,13 +268,22 @@ ClassMaker.prototype = {
         }
 
         spyOnDescriptor(cls, key, repDescriptor, {
-          // argsAnnotation: self._cls.prototype[key],
-          extra: {
-            name: self._clsConstructorName + '.' + key,
-            type: 'property',
+          get: {
+            extra: {
+              name: self._clsConstructorName + '.' + key,
+              type: 'getter',
+            },
+            origin: self._clsProtoPropsDescriptors[key].descriptor.get,
+            replacement: self._props[key].descriptor.get,
           },
-          origin: self._cls[key],
-          replacement: rep,
+          set: {
+            extra: {
+              name: self._clsConstructorName + '.' + key,
+              type: 'setter',
+            },
+            origin: self._clsProtoPropsDescriptors[key].descriptor.set,
+            replacement: self._props[key].descriptor.set,
+          },
           onCall: function (context, state) {
             if (self._mock._history) {
               self._mock._history.push(state);
@@ -265,12 +306,11 @@ ClassMaker.prototype = {
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
         spyOnStaticMethod(cls, key, rep, {
-          argsAnnotation: self._cls.prototype[key],
           extra: {
-            name: self._clsConstructorName + '.' + rep.name,
+            name: self._clsConstructorName + '.' + key,
             type: 'staticMethod',
           },
-          origin: self._cls[key],
+          origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.value,
           replacement: rep,
           onCall: function (context, state) {
             if (self._mock._history) {
@@ -294,12 +334,11 @@ ClassMaker.prototype = {
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
         spyOnMethod(cls, key, rep, {
-          argsAnnotation: self._cls.prototype[key],
           extra: {
-            name: self._clsConstructorName + '.' + rep.name,
+            name: self._clsConstructorName + '.' + key,
             type: 'method',
           },
-          origin: self._cls.prototype[key],
+          origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.value,
           replacement: rep,
           onCall: function (context, state) {
             if (self._mock._history) {
