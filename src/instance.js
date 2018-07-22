@@ -1,3 +1,23 @@
+function getAncestors(cls) {
+  if (! cls) {
+    return [];
+  }
+
+  var ancestors = [cls];
+
+  while (true) {
+    cls = Object.getPrototypeOf(cls);
+
+    if (cls && cls instanceof Function) {
+      ancestors.push(cls);
+    } else {
+      break;
+    }
+  }
+
+  return ancestors;
+}
+
 function getDescriptorAndType(obj, key) {
   var descriptor = Object.getOwnPropertyDescriptor(obj, key);
 
@@ -175,6 +195,7 @@ function copyScopeDescriptors(cls, options, maxDepth) {
 }
 
 module.exports = {
+  getAncestors: getAncestors,
   getPropertyType: getDescriptorAndType,
   callConstructor: callConstructor,
   copyConstructor: copyConstructor,

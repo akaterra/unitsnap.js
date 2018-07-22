@@ -421,7 +421,7 @@ function spyOnStaticMethod(cls, key, rep, options) {
 }
 
 module.exports = {
-  getFunctionArgNames: parseFunctionAnnotation,
+  parseFunctionAnnotation: parseFunctionAnnotation,
   spyOnFunction: spyOnFunction,
 
   spyOnDescriptor: spyOnDescriptor,

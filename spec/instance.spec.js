@@ -229,4 +229,28 @@ describe('instance', () => {
       expect(copy).toBe(Cls);
     });
   });
+
+  it('should get ancestors', () => {
+    class A {
+      constructor() {
+
+      }
+    }
+
+    class B extends A {
+
+    }
+
+    class C extends B {
+      constructor() {
+        super();
+      }
+    }
+
+    expect(instance.getAncestors(C)).toEqual([
+      C,
+      B,
+      A,
+    ]);
+  });
 });

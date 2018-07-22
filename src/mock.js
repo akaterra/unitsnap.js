@@ -362,7 +362,7 @@ function mockGetFixturePop(mock) {
 }
 
 function classMakerGetReplacement(prop, key, cls, clsProps, extraProps) {
-  if (prop === cls || prop === cls.COPY_OF) {
+  if (getAncestors(cls).indexOf(prop) !== - 1 || getAncestors(cls.COPY_OF).indexOf(prop) !== - 1) {
     if (! (key in clsProps)) {
       prop = Function;
     } else {
@@ -400,6 +400,7 @@ module.exports = {
   StaticProperty: StaticProperty,
 };
 
+var getAncestors = require('./instance').getAncestors;
 var copyConstructor = require('./instance').copyConstructor;
 var copyPrototype = require('./instance').copyPrototype;
 var copyScope = require('./instance').copyScope;
