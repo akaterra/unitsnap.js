@@ -271,10 +271,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Single mock:
 
     ```javascript
-    const Mock = require('unitsnap.js).Mock;
-    const Property = require('unitsnap.js).Property;
-    const StaticMethod = require('unitsnap.js).StaticMethod;
-    const StaticProperty = require('unitsnap.js).StaticProperty;
+    const Mock = require('unitsnap.js').Mock;
+    const Property = require('unitsnap.js').Property;
+    const StaticMethod = require('unitsnap.js').StaticMethod;
+    const StaticProperty = require('unitsnap.js').StaticProperty;
 
     const mock = new Mock(history);
 
@@ -306,10 +306,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Mock in context of observer:
 
     ```javascript
-    const Observer = require('unitsnap.js).Observer;
-    const Property = require('unitsnap.js).Property;
-    const StaticMethod = require('unitsnap.js).StaticMethod;
-    const StaticProperty = require('unitsnap.js).StaticProperty;
+    const Observer = require('unitsnap.js').Observer;
+    const Property = require('unitsnap.js').Property;
+    const StaticMethod = require('unitsnap.js').StaticMethod;
+    const StaticProperty = require('unitsnap.js').StaticProperty;
 
     const observer = new Observer();
 
@@ -363,10 +363,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Mock by entire class:
 
     ```javascript
-    const Mock = require('unitsnap.js).Mock;
-    const Property = require('unitsnap.js).Property;
-    const StaticMethod = require('unitsnap.js).StaticMethod;
-    const StaticProperty = require('unitsnap.js).StaticProperty;
+    const Mock = require('unitsnap.js').Mock;
+    const Property = require('unitsnap.js').Property;
+    const StaticMethod = require('unitsnap.js').StaticMethod;
+    const StaticProperty = require('unitsnap.js').StaticProperty;
 
     const mock = new Mock(history);
 
@@ -384,10 +384,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Single mock with a custom props:
 
     ```javascript
-    const Mock = require('unitsnap.js).Mock;
-    const Property = require('unitsnap.js).Property;
-    const StaticMethod = require('unitsnap.js).StaticMethod;
-    const StaticProperty = require('unitsnap.js).StaticProperty;
+    const Mock = require('unitsnap.js').Mock;
+    const Property = require('unitsnap.js').Property;
+    const StaticMethod = require('unitsnap.js').StaticMethod;
+    const StaticProperty = require('unitsnap.js').StaticProperty;
 
     const mock = new Mock(history);
 
@@ -420,10 +420,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Mock with a custom props in the Observer's context:
 
     ```javascript
-    const Observer = require('unitsnap.js).Observer;
-    const Property = require('unitsnap.js).Property;
-    const StaticMethod = require('unitsnap.js).StaticMethod;
-    const StaticProperty = require('unitsnap.js).StaticProperty;
+    const Observer = require('unitsnap.js').Observer;
+    const Property = require('unitsnap.js').Property;
+    const StaticMethod = require('unitsnap.js').StaticMethod;
+    const StaticProperty = require('unitsnap.js').StaticProperty;
 
     const observer = new Observer();
 
