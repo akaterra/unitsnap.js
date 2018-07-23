@@ -11,6 +11,10 @@ describe('Mock', () => {
     constructor(p) {
 
     }
+
+    m() {
+
+    }
   }
 
   class B extends A {
@@ -271,6 +275,30 @@ describe('Mock', () => {
         expect(E.REPLACEMENT).toBe(f);
       });
 
+      it('should override methods with spy', () => {
+        const E = new mock.Mock(history).by(B, {c: f});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(E.prototype.c.ORIGIN).toBe(B.prototype.c);
+        expect(E.prototype.c.REPLACEMENT).toBe(f);
+      });
+
+      it('should override methods of parent class with spy', () => {
+        const E = new mock.Mock(history).by(B, {m: f});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(E.prototype.m.ORIGIN).toBe(A.prototype.m);
+        expect(E.prototype.m.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static methods with spy', () => {
+        const E = new mock.Mock(history).by(B, {c: mock.StaticMethod(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(E.c.ORIGIN).toBe(B.c);
+        expect(E.c.REPLACEMENT).toBe(f);
+      });
+
       it('should override properties with spy on single getter', () => {
         const E = new mock.Mock(history).by(B, {d: mock.Property().get(f)});
 
@@ -333,22 +361,6 @@ describe('Mock', () => {
         expect(E.a).toBe(B.a);
         expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
         expect(Object.getOwnPropertyDescriptor(E, 'd').set.REPLACEMENT).toBe(f);
-      });
-
-      it('should override methods with spy', () => {
-        const E = new mock.Mock(history).by(B, {c: f});
-
-        expect(E.prototype.a).toBe(B.prototype.a);
-        expect(E.prototype.c.ORIGIN).toBe(B.prototype.c);
-        expect(E.prototype.c.REPLACEMENT).toBe(f);
-      });
-
-      it('should override static methods with spy', () => {
-        const E = new mock.Mock(history).by(B, {c: mock.StaticMethod(f)});
-
-        expect(E.a).toBe(B.a);
-        expect(E.c.ORIGIN).toBe(B.c);
-        expect(E.c.REPLACEMENT).toBe(f);
       });
 
       it('should stub methods marked as Function', () => {
@@ -1187,6 +1199,13 @@ describe('Mock', () => {
         expect(E.prototype.c.REPLACEMENT).toBe(f);
       });
 
+      it('should override methods of parent class with spy', () => {
+        const E = new mock.Mock(history).override(B, {m: f});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(E.prototype.m.ORIGIN).toBe(A.prototype.m);
+        expect(E.prototype.m.REPLACEMENT).toBe(f);
+      });
 
       it('should override static methods with spy', () => {
         const E = new mock.Mock(history).override(B, {c: mock.StaticMethod(f)});
