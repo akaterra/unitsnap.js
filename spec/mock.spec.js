@@ -33,9 +33,59 @@ describe('Mock', () => {
     set d(value) {
 
     }
-  }
 
-  B.a = B.b = B.c = _ => f;
+    get e() {
+      return 1;
+    }
+
+    set e(value) {
+
+    }
+
+    get f() {
+      return 1;
+    }
+
+    set f(value) {
+
+    }
+
+    static a() {
+
+    }
+
+    static b() {
+
+    }
+
+    static c() {
+
+    }
+
+    static get d() {
+      return 1;
+    }
+
+    static set d(value) {
+
+    }
+
+    static get e() {
+      return 1;
+    }
+
+    static set e(value) {
+
+    }
+
+    static get f() {
+      return 1;
+    }
+
+    static set f(value) {
+
+    }
+  }
 
   function C() {
 
@@ -61,6 +111,12 @@ describe('Mock', () => {
 
   const bProperties = Object.getOwnPropertyNames(B).reduce((acc, key) => {
     acc[key] = B[key];
+
+    return acc;
+  }, {});
+
+  const bPropertiesDescriptors = Object.getOwnPropertyNames(B).reduce((acc, key) => {
+    acc[key] = Object.getOwnPropertyDescriptor(B, key);
 
     return acc;
   }, {});
@@ -245,6 +301,38 @@ describe('Mock', () => {
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on single getter', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().get(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on single setter', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on getter of getter/setter pair', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().get(f).set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on setter of getter/setter pair', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().get(f).set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.REPLACEMENT).toBe(f);
       });
 
       it('should override methods with spy', () => {
@@ -532,6 +620,7 @@ describe('Mock', () => {
         a: mock.StaticMethod(Function),
         c: B,
         d: mock.Property().get(1).set(Function),
+        e: mock.StaticProperty().get(1).set(Function),
         x: Function,
       });
 
@@ -550,6 +639,8 @@ describe('Mock', () => {
         E.a();
         e.d;
         e.d = 1;
+        E.e;
+        E.e = 1;
       } catch (e) {
 
       }
@@ -794,6 +885,74 @@ describe('Mock', () => {
         tags: void 0,
         time: history._entries[13].time,
         type: 'setter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[14].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.e',
+        origin: history._entries[14].origin,
+        replacement: history._entries[14].replacement,
+        tags: void 0,
+        time: history._entries[14].time,
+        type: 'staticGetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[15].context,
+        epoch: 'epoch',
+        exception: history._entries[15].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.e',
+        origin: history._entries[15].origin,
+        replacement: history._entries[15].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[15].time,
+        type: 'staticGetter',
+      }, {
+        args: {'*': [], value: 1},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[16].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.e',
+        origin: history._entries[16].origin,
+        replacement: history._entries[16].replacement,
+        tags: void 0,
+        time: history._entries[16].time,
+        type: 'staticSetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[17].context,
+        epoch: 'epoch',
+        exception: history._entries[17].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.e',
+        origin: history._entries[17].origin,
+        replacement: history._entries[17].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[17].time,
+        type: 'staticSetter',
       }]);
     });
 
@@ -886,6 +1045,15 @@ describe('Mock', () => {
         expect(E.prototype.c.REPLACEMENT).toBe(f);
       });
 
+
+      it('should override static methods with spy', () => {
+        const E = new mock.Mock(history).override(B, {c: mock.StaticMethod(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(E.c.ORIGIN).toBe(bProperties.c);
+        expect(E.c.REPLACEMENT).toBe(f);
+      });
+
       it('should override properties with spy on single getter', () => {
         const E = new mock.Mock(history).override(B, {d: mock.Property().get(f)});
 
@@ -918,12 +1086,36 @@ describe('Mock', () => {
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.REPLACEMENT).toBe(f);
       });
 
-      it('should override static methods with spy', () => {
-        const E = new mock.Mock(history).override(B, {c: mock.StaticMethod(f)});
+      it('should override static properties with spy on single getter', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().get(f)});
 
         expect(E.a).toBe(B.a);
-        expect(E.c.ORIGIN).toBe(bProperties.c);
-        expect(E.c.REPLACEMENT).toBe(f);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(bPropertiesDescriptors.d.get);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on single setter', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(bPropertiesDescriptors.d.set);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on getter of getter/setter pair', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().get(f).set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(bPropertiesDescriptors.d.get);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on setter of getter/setter pair', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().get(f).set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(bPropertiesDescriptors.d.set);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.REPLACEMENT).toBe(f);
       });
 
       it('should stub methods marked as Function', () => {
@@ -1193,6 +1385,7 @@ describe('Mock', () => {
         a: mock.StaticMethod(Function),
         c: B,
         d: mock.Property().get(1).set(Function),
+        e: mock.StaticProperty().get(1).set(Function),
         x: Function,
       });
 
@@ -1213,6 +1406,8 @@ describe('Mock', () => {
         E.a();
         e.d;
         e.d = 1;
+        E.e;
+        E.e = 1;
       } catch (e) {
 
       }
@@ -1457,6 +1652,74 @@ describe('Mock', () => {
         tags: void 0,
         time: history._entries[13].time,
         type: 'setter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[14].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.e',
+        origin: history._entries[14].origin,
+        replacement: history._entries[14].replacement,
+        tags: void 0,
+        time: history._entries[14].time,
+        type: 'staticGetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[15].context,
+        epoch: 'epoch',
+        exception: history._entries[15].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.e',
+        origin: history._entries[15].origin,
+        replacement: history._entries[15].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[15].time,
+        type: 'staticGetter',
+      }, {
+        args: {'*': [], value: 1},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[16].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.e',
+        origin: history._entries[16].origin,
+        replacement: history._entries[16].replacement,
+        tags: void 0,
+        time: history._entries[16].time,
+        type: 'staticSetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[17].context,
+        epoch: 'epoch',
+        exception: history._entries[17].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.e',
+        origin: history._entries[17].origin,
+        replacement: history._entries[17].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[17].time,
+        type: 'staticSetter',
       }]);
     });
 

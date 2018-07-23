@@ -281,6 +281,10 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
     descriptor = {descriptor: Object.assign({}, repDescriptor), type: 'function'};
   }
 
+  if (descriptor.descriptor.configurable === false) {
+    throw new Error('Descriptor is not configurable: ' + key);
+  }
+
   descriptor.descriptor.configurable = true;
 
   if (descriptor.type !== 'getterSetter') {

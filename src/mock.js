@@ -200,7 +200,9 @@ ClassMaker.prototype = {
       cls = copyConstructor(cls);
     }
 
-    Object.assign(cls, self._clsProps);
+    Object.keys(self._clsProps).forEach(function (key) {
+      Object.defineProperty(cls, key, self._clsPropsDescriptors[key].descriptor);
+    });
 
     Object.defineProperty(cls, 'name', {value: this._cls.name, writable: false});
 
@@ -235,9 +237,64 @@ ClassMaker.prototype = {
       }
 
       var rep;
+      var repDescriptor;
 
-      if (self._props[key] instanceof Property) {
-        var repDescriptor = {};
+      if (self._props[key] instanceof StaticProperty) {
+        repDescriptor = {};
+
+        if (self._props[key].descriptor.get) {
+          repDescriptor.get = classMakerGetReplacement(
+            self._props[key].descriptor.get,
+            key,
+            self._cls,
+            self._clsProps,
+            self._propsMetadata.extraClassProps
+          );
+
+          if (repDescriptor.get === fixture.Fixture) {
+            repDescriptor.get = mockGetFixturePop(self._mock);
+          }
+        }
+
+        if (self._props[key].descriptor.set) {
+          repDescriptor.set = classMakerGetReplacement(
+            self._props[key].descriptor.set,
+            key,
+            self._cls,
+            self._clsProps,
+            self._propsMetadata.extraClassProps
+          );
+
+          if (repDescriptor.set === fixture.Fixture) {
+            repDescriptor.set = mockGetFixturePop(self._mock);
+          }
+        }
+
+        spyOnStaticDescriptor(cls, key, repDescriptor, {
+          get: {
+            extra: {
+              name: self._clsConstructorName + '.' + key,
+              type: 'staticGetter',
+            },
+            origin: self._clsPropsDescriptors[key].descriptor.get,
+            replacement: self._props[key].descriptor.get,
+          },
+          set: {
+            extra: {
+              name: self._clsConstructorName + '.' + key,
+              type: 'staticSetter',
+            },
+            origin: self._clsPropsDescriptors[key].descriptor.set,
+            replacement: self._props[key].descriptor.set,
+          },
+          onCall: function (context, state) {
+            if (self._mock._history) {
+              self._mock._history.push(state);
+            }
+          },
+        });
+      } else if (self._props[key] instanceof Property) {
+        repDescriptor = {};
 
         if (self._props[key].descriptor.get) {
           repDescriptor.get = classMakerGetReplacement(
@@ -407,6 +464,7 @@ var copyScope = require('./instance').copyScope;
 var copyScopeDescriptors = require('./instance').copyScopeDescriptors;
 var fixture = require('./fixture');
 var spyOnDescriptor = require('./spy').spyOnDescriptor;
+var spyOnStaticDescriptor = require('./spy').spyOnStaticDescriptor;
 var spyOnFunction = require('./spy').spyOnFunction;
 var spyOnMethod = require('./spy').spyOnMethod;
 var spyOnStaticMethod = require('./spy').spyOnStaticMethod;
