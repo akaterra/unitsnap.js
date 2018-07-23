@@ -87,7 +87,10 @@ module.exports = {
   Mock: mock.Mock,
   Observer: Observer,
   Snapshot: snapshot.Snapshot,
+
+  Property: mock.Property,
   StaticMethod: mock.StaticMethod,
+  StaticProperty: mock.StaticProperty,
 
   create: function () {
     return new Observer();
