@@ -3,7 +3,7 @@ const unitsnap = require('..');
 describe('some suite', () => {
   const observer = unitsnap.default;
 
-  observer.config().snapshot.setFsProvider(__dirname);
+  observer.config().snapshot.setFsProvider(__dirname).includeName();
 
   beforeAll(() => unitsnap.extendJasmine());
   beforeEach(() => observer.begin());
@@ -46,7 +46,7 @@ describe('some suite', () => {
 
   it('some spec 2', () => {
     class A {
-      b(x) {
+      c(x) {
         return 1;
       }
     }
@@ -54,7 +54,7 @@ describe('some suite', () => {
     const Mock = observer.by(A);
     const mock = new Mock();
 
-    mock.b(111);
+    mock.c(222);
 
     if (process) {
       process.env.SAVE_SNAPSHOT = '1';

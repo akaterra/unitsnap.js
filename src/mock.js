@@ -23,10 +23,16 @@ Mock.prototype = {
     var clazz = maker.makePrototypeFor(cls, true);
 
     clazz.RESTORE = function () {
-      Object.assign(cls, maker._clsProps);
-      Object.assign(cls.prototype, maker._clsProto);
+      // class properties
+      Object.keys(maker._clsProps).forEach(function (key) {
+        Object.defineProperty(cls, key, maker._clsPropsDescriptors[key].descriptor);
+      });
+      maker._propsMetadata.extraStaticProps.forEach(function (key) { delete cls[key]; });
 
-      maker._propsMetadata.extraClassProps.forEach(function (key) { delete cls[key]; });
+      // instance properties
+      Object.keys(maker._clsProtoProps).forEach(function (key) {
+        Object.defineProperty(cls.prototype, key, maker._clsProtoPropsDescriptors[key].descriptor);
+      });
       maker._propsMetadata.extraProps.forEach(function (key) { delete cls.prototype[key]; });
 
       delete cls.RESTORE;
@@ -39,7 +45,7 @@ Mock.prototype = {
   spy: function (fn) {
     var self = this;
 
-    return spyFunction(fn, {
+    return spyOnFunction(fn, {
       argsAnnotation: fn,
       extra: {
         name: fn.name,
@@ -55,6 +61,27 @@ Mock.prototype = {
   },
 };
 
+function Property(descriptor) {
+  if (! (this instanceof Property)) {
+    return new Property(descriptor || {});
+  } else {
+    this.descriptor = descriptor;
+  }
+}
+
+Property.prototype = {
+  get: function (get) {
+    this.descriptor.get = get;
+
+    return this;
+  },
+  set: function (set) {
+    this.descriptor.set = set;
+
+    return this;
+  },
+};
+
 function StaticMethod(value) {
   if (! (this instanceof StaticMethod)) {
     return new StaticMethod(value);
@@ -62,6 +89,27 @@ function StaticMethod(value) {
     this.value = value;
   }
 }
+
+function StaticProperty(descriptor) {
+  if (! (this instanceof StaticProperty)) {
+    return new StaticProperty(descriptor || {});
+  } else {
+    this.descriptor = descriptor;
+  }
+}
+
+StaticProperty.prototype = {
+  get: function (get) {
+    this.descriptor.get = get;
+
+    return this;
+  },
+  set: function (set) {
+    this.descriptor.set = set;
+
+    return this;
+  },
+};
 
 var classNativeProps = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
 
@@ -72,21 +120,18 @@ function ClassMaker(mock, cls, props) {
 
   this._cls = cls;
   this._clsConstructorName = cls.prototype.hasOwnProperty('constructor') ? cls.prototype.constructor.name : cls.name;
-  this._clsProps = Object.getOwnPropertyNames(cls).filter(function (key) {
-      return classNativeProps.indexOf(key) === - 1;
+  this._clsProps = copyScope(cls, {enumerable: true}, 1);
+  this._clsProps = Object.keys(this._clsProps).filter(function (key) {
+    return classNativeProps.indexOf(key) === - 1;
   }).reduce(function (acc, key) {
-    acc[key] = cls[key];
+    Object.defineProperty(acc, key, Object.getOwnPropertyDescriptor(this._clsProps, key));
 
     return acc;
-  }, {});
-  this._clsProto = Object.getOwnPropertyNames(cls.prototype).reduce(function (acc, key) {
-    acc[key] = cls.prototype[key];
-
-    return acc;
-  }, {});
-  this._clsProtoCopy = copyPrototype(cls);
-  this._clsProtoHasOwnConstructor = cls.prototype.hasOwnProperty('constructor');
-  this._clsScope = copyScope(cls);
+  }.bind(this), {});
+  this._clsPropsDescriptors = copyScopeDescriptors(cls, {}, 1);
+  this._clsProtoProps = copyScope(cls.prototype, {enumerable: true}, 1);
+  this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype, {}, 1);
+  this._clsProtoScope = copyScope(cls.prototype);
   this._mock = mock;
 
   if (! props) {
@@ -97,13 +142,27 @@ function ClassMaker(mock, cls, props) {
 
   this._props = Array.isArray(props)
     ? props.reduce(function (acc, key) {
-      acc[key] = cls;
+      if (key in this._clsProtoPropsDescriptors) {
+        var descriptor = this._clsProtoPropsDescriptors[key];
+
+        switch (descriptor.type) {
+          case 'function':
+            acc[key] = cls;
+
+            break;
+
+          default:
+            acc[key] = new Property(descriptor);
+        }
+      } else {
+        acc[key] = cls;
+      }
 
       return acc;
-    }, {})
+    }.bind(this), {})
     : props;
 
-  this._propsMetadata = { extraClassProps: [], extraProps: [] };
+  this._propsMetadata = { extraStaticProps: [], extraProps: [] };
 }
 
 ClassMaker.prototype = {
@@ -119,11 +178,11 @@ ClassMaker.prototype = {
         self._props.constructor,
         'constructor',
         self._cls,
-        self._clsScope,
+        self._clsProtoScope,
         self._propsMetadata
       );
 
-      cls = spyFunction(copyConstructor(rep), {
+      cls = spyOnFunction(copyConstructor(rep), {
         argsAnnotation: self._cls,
         extra: {
           name: this._clsConstructorName,
@@ -135,13 +194,15 @@ ClassMaker.prototype = {
           if (self._mock._history) {
             self._mock._history.push(state);
           }
-        }
+        },
       }, true);
     } else {
       cls = copyConstructor(cls);
     }
 
-    Object.assign(cls, self._clsProps);
+    Object.keys(self._clsProps).forEach(function (key) {
+      Object.defineProperty(cls, key, self._clsPropsDescriptors[key].descriptor);
+    });
 
     Object.defineProperty(cls, 'name', {value: this._cls.name, writable: false});
 
@@ -176,15 +237,144 @@ ClassMaker.prototype = {
       }
 
       var rep;
+      var repDescriptor;
 
-      if (self._props[key] instanceof StaticMethod) {
+      if (self._props[key] instanceof StaticProperty) {
+        repDescriptor = {};
+
+        if (self._props[key].descriptor.get) {
+          repDescriptor.get = classMakerGetReplacement(
+            self._props[key].descriptor.get,
+            key,
+            self._cls,
+            self._clsProps,
+            self._propsMetadata.extraStaticProps
+          );
+
+          if (repDescriptor.get === self._cls) {
+            repDescriptor.get = self._clsPropsDescriptors[key].descriptor.get;
+          }
+
+          if (repDescriptor.get === fixture.Fixture) {
+            repDescriptor.get = mockGetFixturePop(self._mock);
+          }
+        }
+
+        if (self._props[key].descriptor.set) {
+          repDescriptor.set = classMakerGetReplacement(
+            self._props[key].descriptor.set,
+            key,
+            self._cls,
+            self._clsProps,
+            self._propsMetadata.extraStaticProps
+          );
+
+          if (repDescriptor.set === self._cls) {
+            repDescriptor.set = self._clsPropsDescriptors[key].descriptor.set;
+          }
+
+          if (repDescriptor.set === fixture.Fixture) {
+            repDescriptor.set = mockGetFixturePop(self._mock);
+          }
+        }
+
+        spyOnStaticDescriptor(cls, key, repDescriptor, {
+          get: {
+            extra: {
+              name: self._clsConstructorName + '.' + key,
+              type: 'staticGetter',
+            },
+            origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.get,
+            replacement: self._props[key].descriptor.get,
+          },
+          set: {
+            extra: {
+              name: self._clsConstructorName + '.' + key,
+              type: 'staticSetter',
+            },
+            origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.set,
+            replacement: self._props[key].descriptor.set,
+          },
+          onCall: function (context, state) {
+            if (self._mock._history) {
+              self._mock._history.push(state);
+            }
+          },
+        });
+      } else if (self._props[key] instanceof Property) {
+        repDescriptor = {};
+
+        if (self._props[key].descriptor.get) {
+          repDescriptor.get = classMakerGetReplacement(
+            self._props[key].descriptor.get,
+            key,
+            self._cls,
+            self._clsProtoScope,
+            self._propsMetadata.extraProps
+          );
+
+          if (repDescriptor.get === self._cls) {
+            repDescriptor.get = self._clsProtoPropsDescriptors[key].descriptor.get;
+          }
+
+          if (repDescriptor.get === fixture.Fixture) {
+            repDescriptor.get = mockGetFixturePop(self._mock);
+          }
+        }
+
+        if (self._props[key].descriptor.set) {
+          repDescriptor.set = classMakerGetReplacement(
+            self._props[key].descriptor.set,
+            key,
+            self._cls,
+            self._clsProtoScope,
+            self._propsMetadata.extraProps
+          );
+
+          if (repDescriptor.set === self._cls) {
+            repDescriptor.set = self._clsProtoPropsDescriptors[key].descriptor.set;
+          }
+
+          if (repDescriptor.set === fixture.Fixture) {
+            repDescriptor.set = mockGetFixturePop(self._mock);
+          }
+        }
+
+        spyOnDescriptor(cls, key, repDescriptor, {
+          get: {
+            extra: {
+              name: self._clsConstructorName + '.' + key,
+              type: 'getter',
+            },
+            origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.get,
+            replacement: self._props[key].descriptor.get,
+          },
+          set: {
+            extra: {
+              name: self._clsConstructorName + '.' + key,
+              type: 'setter',
+            },
+            origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.set,
+            replacement: self._props[key].descriptor.set,
+          },
+          onCall: function (context, state) {
+            if (self._mock._history) {
+              self._mock._history.push(state);
+            }
+          },
+        });
+      } else if (self._props[key] instanceof StaticMethod) {
         rep = classMakerGetReplacement(
           self._props[key].value,
           key,
           self._cls,
           self._clsProps,
-          self._propsMetadata.extraClassProps
+          self._propsMetadata.extraStaticProps
         );
+
+        if (rep === self._cls) {
+          rep = self._clsPropsDescriptors[key].descriptor.value;
+        }
 
         if (rep === fixture.Fixture) {
           rep = mockGetFixturePop(self._mock);
@@ -192,28 +382,31 @@ ClassMaker.prototype = {
 
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
-        spyStaticMethod(cls, key, rep, {
-          argsAnnotation: self._cls.prototype[key],
+        spyOnStaticMethod(cls, key, rep, {
           extra: {
-            name: self._clsConstructorName + '.' + rep.name,
+            name: self._clsConstructorName + '.' + key,
             type: 'staticMethod',
           },
-          origin: self._cls[key],
+          origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.value,
           replacement: rep,
           onCall: function (context, state) {
             if (self._mock._history) {
               self._mock._history.push(state);
             }
-          }
+          },
         });
       } else {
         rep = classMakerGetReplacement(
           self._props[key],
           key,
           self._cls,
-          self._clsScope,
+          self._clsProtoScope,
           self._propsMetadata.extraProps
         );
+
+        if (rep === self._cls) {
+          rep = self._clsProtoPropsDescriptors[key].descriptor.value;
+        }
 
         if (rep === fixture.Fixture) {
           rep = mockGetFixturePop(self._mock);
@@ -221,19 +414,18 @@ ClassMaker.prototype = {
 
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
-        spyInstanceMethod(cls, key, rep, {
-          argsAnnotation: self._cls.prototype[key],
+        spyOnMethod(cls, key, rep, {
           extra: {
-            name: self._clsConstructorName + '.' + rep.name,
+            name: self._clsConstructorName + '.' + key,
             type: 'method',
           },
-          origin: self._cls.prototype[key],
+          origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.value,
           replacement: rep,
           onCall: function (context, state) {
             if (self._mock._history) {
               self._mock._history.push(state);
             }
-          }
+          },
         });
       }
     });
@@ -250,16 +442,16 @@ function mockGetFixturePop(mock) {
   return mock._fixturePop;
 }
 
-function classMakerGetReplacement(prop, key, cls, clsProps, extraProps) {
-  if (prop === cls || prop === cls.COPY_OF) {
-    if (! (key in clsProps)) {
+function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
+  if (getAncestors(obj).indexOf(prop) !== - 1 || getAncestors(obj.COPY_OF).indexOf(prop) !== - 1) {
+    if (! (key in objProps)) {
       prop = Function;
     } else {
-      return clsProps[key];
+      return obj; // as reference to object self-defined property
     }
   }
 
-  if (! (key in clsProps)) {
+  if (! (key in objProps)) {
     extraProps.push(key);
   }
 
@@ -284,13 +476,19 @@ function classMakerGetReplacement(prop, key, cls, clsProps, extraProps) {
 
 module.exports = {
   Mock: Mock,
+  Property: Property,
   StaticMethod: StaticMethod,
+  StaticProperty: StaticProperty,
 };
 
+var getAncestors = require('./instance').getAncestors;
 var copyConstructor = require('./instance').copyConstructor;
 var copyPrototype = require('./instance').copyPrototype;
 var copyScope = require('./instance').copyScope;
+var copyScopeDescriptors = require('./instance').copyScopeDescriptors;
 var fixture = require('./fixture');
-var spyStaticMethod = require('./spy').spyStaticMethod;
-var spyFunction = require('./spy').spyFunction;
-var spyInstanceMethod = require('./spy').spyInstanceMethod;
+var spyOnDescriptor = require('./spy').spyOnDescriptor;
+var spyOnStaticDescriptor = require('./spy').spyOnStaticDescriptor;
+var spyOnFunction = require('./spy').spyOnFunction;
+var spyOnMethod = require('./spy').spyOnMethod;
+var spyOnStaticMethod = require('./spy').spyOnStaticMethod;

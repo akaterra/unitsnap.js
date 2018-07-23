@@ -2,129 +2,160 @@ const unitsnap = require('..');
 const instance = require('../src/instance');
 
 describe('instance', () => {
-  it('should copy constructor', () => {
-    function Clazz () {
+  function Es5 () {
 
-    }
+  }
 
-    Clazz.prototype = {
-      a: 1,
-      b: 2,
-      c: 3,
-    };
+  Es5.prototype = {
+    a: 1,
+    b: 2,
+    c: 3,
+  };
 
-    const ClazzCopy = instance.copyConstructor(Clazz);
+  Object.defineProperty(Es5.prototype, 'x', {
+    get: function () {
+      return 1;
+    },
+    set: function (value) {
 
-    expect(ClazzCopy).not.toBe(Clazz);
-    expect(ClazzCopy instanceof Function).toBeTruthy();
-    expect(ClazzCopy.prototype).toBe(Clazz.prototype);
+    },
+    enumerable: true,
   });
 
-  it('should copy prototype', () => {
-    function Clazz () {
+  class Es6 {
+    get x() {
+      return 1;
+    }
+    set x(value) {
 
     }
+  }
 
-    Clazz.prototype = {
-      a: 1,
-      b: 2,
-      c: 3,
-    };
-
-    const PrototypeCopy = instance.copyPrototype(Clazz);
-
-    expect(PrototypeCopy).not.toBe(Clazz.prototype);
-    expect(PrototypeCopy instanceof Object).toBeTruthy();
-    expect(PrototypeCopy).toEqual(Clazz.prototype);
+  Object.assign(Es6.prototype, {
+    a: 1,
+    b: 2,
+    c: 3,
   });
 
-  it('should copy scope of ES5 declaration', () => {
-    function A() {
+  describe('when uses ES5 notation', () => {
+    it('should copy constructor', () => {
+      const Copy = instance.copyConstructor(Es5);
 
-    }
+      expect(Copy).not.toBe(Es5);
+      expect(Copy instanceof Function).toBeTruthy();
+      expect(Copy.prototype).toBe(Es5.prototype);
+    });
 
-    A.prototype = {
-      a: function () {
+    it('should copy prototype', () => {
+      const Copy = instance.copyPrototype(Es5);
+
+      expect(Copy).not.toBe(Es5.prototype);
+      expect(Copy instanceof Object).toBeTruthy();
+      expect(Copy).toEqual(Es5.prototype);
+    });
+
+    it('should copy scope', () => {
+      function A() {
 
       }
-    };
 
-    function B() {
+      A.prototype = {
+        a: function () {
 
-    }
+        }
+      };
 
-    B.prototype = Object.create(A, {
-      b: function () {
+      function B() {
 
-      },
-      x: function () {
+      }
 
-      },
-    });
+      B.prototype = Object.create(A, {
+        b: function () {
 
-    function C() {
+        },
+        x: function () {
 
-    }
+        },
+      });
 
-    C.prototype = Object.create(B, {
-      c: function () {
+      function C() {
 
-      },
-      y: function () {
+      }
 
-      },
-    });
+      C.prototype = Object.create(B, {
+        c: function () {
 
-    const ScopyCopy = instance.copyScope(C);
+        },
+        y: function () {
 
-    expect(ScopyCopy).toEqual({
-      a: A.prototype.a,
-      b: B.prototype.b,
-      c: C.prototype.c,
-      x: B.prototype.x,
-      y: C.prototype.y,
+        },
+      });
+
+      const ScopyCopy = instance.copyScope(C);
+
+      expect(ScopyCopy.a).toBe(A.prototype.a);
+      expect(ScopyCopy.b).toBe(B.prototype.b);
+      expect(ScopyCopy.c).toBe(C.prototype.c);
+      expect(ScopyCopy.x).toBe(B.prototype.x);
+      expect(ScopyCopy.y).toBe(C.prototype.y);
     });
   });
 
-  it('should copy scope of ES6 declaration', () => {
-    class A {
-      a() {
+  describe('when uses ES6 notation', () => {
+    it('should copy constructor', () => {
+      const Copy = instance.copyConstructor(Es6);
 
+      expect(Copy).not.toBe(Es6);
+      expect(Copy instanceof Function).toBeTruthy();
+      expect(Copy.prototype).toBe(Es6.prototype);
+    });
+
+    it('should copy prototype', () => {
+      const Copy = instance.copyPrototype(Es6);
+
+      expect(Copy).not.toBe(Es6.prototype);
+      expect(Copy instanceof Object).toBeTruthy();
+      expect(Copy).toEqual(Es6.prototype);
+    });
+
+    it('should copy scope', () => {
+      class A {
+        a() {
+
+        }
+        x() {
+
+        }
+        y() {
+
+        }
       }
-      x() {
 
+      class B extends A {
+        b() {
+
+        }
+        x() {
+
+        }
       }
-      y() {
 
+      class C extends B {
+        c() {
+
+        }
+        y() {
+
+        }
       }
-    }
 
-    class B extends A {
-      b() {
+      const ScopyCopy = instance.copyScope(C);
 
-      }
-      x() {
-
-      }
-    }
-
-    class C extends B {
-      c() {
-
-      }
-      y() {
-
-      }
-    }
-
-    const ScopyCopy = instance.copyScope(C);
-
-    expect(ScopyCopy).toEqual({
-      a: A.prototype.a,
-      b: B.prototype.b,
-      c: C.prototype.c,
-      x: B.prototype.x,
-      y: C.prototype.y,
+      expect(ScopyCopy.a).toBe(A.prototype.a);
+      expect(ScopyCopy.b).toBe(B.prototype.b);
+      expect(ScopyCopy.c).toBe(C.prototype.c);
+      expect(ScopyCopy.x).toBe(B.prototype.x);
+      expect(ScopyCopy.y).toBe(C.prototype.y);
     });
   });
 
@@ -160,42 +191,66 @@ describe('instance', () => {
 
   describe('when calls constructor copy', () => {
     it('should be instance of original class', () => {
-      function Clazz() {
+      function Cls() {
         this.args = Array.prototype.slice.call(arguments);
         this.context = this;
 
         return this;
       }
 
-      const copy = new (instance.copyConstructor(Clazz))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+      const copy = new (instance.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-      expect(copy instanceof Clazz).toBeTruthy();
+      expect(copy instanceof Cls).toBeTruthy();
     });
 
     it('should call with arguments', () => {
-      function Clazz() {
+      function Cls() {
         this.args = Array.prototype.slice.call(arguments);
         this.context = this;
 
         return this;
       }
 
-      const copy = new (instance.copyConstructor(Clazz))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+      const copy = new (instance.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
       expect(copy.args).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     });
 
     it('should returns another "this"', () => {
-      function Clazz() {
+      function Cls() {
         this.args = Array.prototype.slice.call(arguments);
         this.context = this;
 
-        return Clazz;
+        return Cls;
       }
 
-      const copy = new (instance.copyConstructor(Clazz))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+      const copy = new (instance.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-      expect(copy).toBe(Clazz);
+      expect(copy).toBe(Cls);
     });
+  });
+
+  it('should get ancestors', () => {
+    class A {
+      constructor() {
+
+      }
+    }
+
+    class B extends A {
+
+    }
+
+    class C extends B {
+      constructor() {
+        super();
+      }
+    }
+
+    expect(instance.getAncestors(C)).toEqual([
+      C,
+      B,
+      A,
+    ]);
   });
 });
