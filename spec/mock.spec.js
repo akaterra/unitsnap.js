@@ -622,6 +622,8 @@ describe('Mock', () => {
         d: mock.Property().get(1).set(Function),
         e: mock.StaticProperty().get(1).set(Function),
         x: Function,
+        y: mock.Property().get(1).set(Function),
+        z: mock.StaticProperty().get(1).set(Function),
       });
 
       const e = new E(1);
@@ -641,6 +643,10 @@ describe('Mock', () => {
         e.d = 1;
         E.e;
         E.e = 1;
+        e.y;
+        e.y = 1;
+        E.z;
+        E.z = 1;
       } catch (e) {
 
       }
@@ -952,6 +958,142 @@ describe('Mock', () => {
         result: void 0,
         tags: void 0,
         time: history._entries[17].time,
+        type: 'staticSetter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.y',
+        origin: history._entries[18].origin,
+        replacement: 1,
+        tags: void 0,
+        time: history._entries[18].time,
+        type: 'getter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        exception: history._entries[19].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.y',
+        origin: history._entries[19].origin,
+        replacement: history._entries[19].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[19].time,
+        type: 'getter',
+      }, {
+        args: {'*': [1]},
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.y',
+        origin: history._entries[20].origin,
+        replacement: history._entries[20].replacement,
+        tags: void 0,
+        time: history._entries[20].time,
+        type: 'setter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        exception: history._entries[21].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.y',
+        origin: history._entries[21].origin,
+        replacement: history._entries[21].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[21].time,
+        type: 'setter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.z',
+        origin: history._entries[22].origin,
+        replacement: 1,
+        tags: void 0,
+        time: history._entries[22].time,
+        type: 'staticGetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        exception: history._entries[23].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.z',
+        origin: history._entries[23].origin,
+        replacement: history._entries[23].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[23].time,
+        type: 'staticGetter',
+      }, {
+        args: {'*': [1]},
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.z',
+        origin: history._entries[24].origin,
+        replacement: history._entries[24].replacement,
+        tags: void 0,
+        time: history._entries[24].time,
+        type: 'staticSetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        exception: history._entries[25].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.z',
+        origin: history._entries[25].origin,
+        replacement: history._entries[25].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[25].time,
         type: 'staticSetter',
       }]);
     });
@@ -1387,6 +1529,8 @@ describe('Mock', () => {
         d: mock.Property().get(1).set(Function),
         e: mock.StaticProperty().get(1).set(Function),
         x: Function,
+        y: mock.Property().get(1).set(Function),
+        z: mock.StaticProperty().get(1).set(Function),
       });
 
       const e = new E(1);
@@ -1408,6 +1552,10 @@ describe('Mock', () => {
         e.d = 1;
         E.e;
         E.e = 1;
+        e.y;
+        e.y = 1;
+        E.z;
+        E.z = 1;
       } catch (e) {
 
       }
@@ -1720,6 +1868,142 @@ describe('Mock', () => {
         tags: void 0,
         time: history._entries[17].time,
         type: 'staticSetter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.y',
+        origin: history._entries[18].origin,
+        replacement: 1,
+        tags: void 0,
+        time: history._entries[18].time,
+        type: 'getter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        exception: history._entries[19].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.y',
+        origin: history._entries[19].origin,
+        replacement: history._entries[19].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[19].time,
+        type: 'getter',
+      }, {
+        args: {'*': [1]},
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.y',
+        origin: history._entries[20].origin,
+        replacement: history._entries[20].replacement,
+        tags: void 0,
+        time: history._entries[20].time,
+        type: 'setter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        exception: history._entries[21].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.y',
+        origin: history._entries[21].origin,
+        replacement: history._entries[21].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[21].time,
+        type: 'setter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.z',
+        origin: history._entries[22].origin,
+        replacement: 1,
+        tags: void 0,
+        time: history._entries[22].time,
+        type: 'staticGetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        exception: history._entries[23].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.z',
+        origin: history._entries[23].origin,
+        replacement: history._entries[23].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[23].time,
+        type: 'staticGetter',
+      }, {
+        args: {'*': [1]},
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.z',
+        origin: history._entries[24].origin,
+        replacement: history._entries[24].replacement,
+        tags: void 0,
+        time: history._entries[24].time,
+        type: 'staticSetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        exception: history._entries[25].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.z',
+        origin: history._entries[25].origin,
+        replacement: history._entries[25].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[25].time,
+        type: 'staticSetter',
       }]);
     });
 
@@ -1738,10 +2022,18 @@ describe('Mock', () => {
     });
 
     it('should RESTORE overridden props by dictionary of props', () => {
-      const E = new mock.Mock(history).override(B, {a: B, b: mock.StaticMethod(B), x: f}).RESTORE();
+      const E = new mock.Mock(history).override(B, {
+        a: B,
+        b: mock.StaticMethod(B),
+        d: mock.Property(),
+        e: mock.StaticProperty(),
+        x: f
+      }).RESTORE();
 
       expect(E.prototype.a).toBe(bPrototype.a);
       expect(E.b).toBe(bProperties.b);
+      expect(Object.getOwnPropertyDescriptor(E.prototype, 'd')).toEqual(bPrototypeDescriptors.d);
+      expect(Object.getOwnPropertyDescriptor(E, 'e')).toEqual(bPropertiesDescriptors.e);
       expect(E.prototype.x).toBeUndefined();
     });
 

@@ -278,7 +278,14 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
   var descriptor = instance.getPropertyType(obj, key);
 
   if (! descriptor.descriptor) {
-    descriptor = {descriptor: Object.assign({}, repDescriptor), type: 'function'};
+    descriptor = {
+      descriptor: Object.assign({}, repDescriptor),
+      type: repDescriptor.get || repDescriptor.set
+        ? 'getterSetter'
+        : 'function'
+    };
+  } else {
+    descriptor.descriptor = Object.assign({}, descriptor.descriptor);
   }
 
   if (descriptor.descriptor.configurable === false) {

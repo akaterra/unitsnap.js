@@ -27,7 +27,7 @@ Mock.prototype = {
       Object.keys(maker._clsProps).forEach(function (key) {
         Object.defineProperty(cls, key, maker._clsPropsDescriptors[key].descriptor);
       });
-      maker._propsMetadata.extraClassProps.forEach(function (key) { delete cls[key]; });
+      maker._propsMetadata.extraStaticProps.forEach(function (key) { delete cls[key]; });
 
       // instance properties
       Object.keys(maker._clsProtoProps).forEach(function (key) {
@@ -128,9 +128,9 @@ function ClassMaker(mock, cls, props) {
 
     return acc;
   }.bind(this), {});
-  this._clsPropsDescriptors = copyScopeDescriptors(cls, {enumerable: true}, 1);
+  this._clsPropsDescriptors = copyScopeDescriptors(cls, {}, 1);
   this._clsProtoProps = copyScope(cls.prototype, {enumerable: true}, 1);
-  this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype, {enumerable: true}, 1);
+  this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype, {}, 1);
   this._clsProtoScope = copyScope(cls.prototype);
   this._mock = mock;
 
@@ -162,7 +162,7 @@ function ClassMaker(mock, cls, props) {
     }.bind(this), {})
     : props;
 
-  this._propsMetadata = { extraClassProps: [], extraProps: [] };
+  this._propsMetadata = { extraStaticProps: [], extraProps: [] };
 }
 
 ClassMaker.prototype = {
@@ -248,8 +248,12 @@ ClassMaker.prototype = {
             key,
             self._cls,
             self._clsProps,
-            self._propsMetadata.extraClassProps
+            self._propsMetadata.extraStaticProps
           );
+
+          if (repDescriptor.get === self._cls) {
+            repDescriptor.get = self._clsPropsDescriptors[key].descriptor.get;
+          }
 
           if (repDescriptor.get === fixture.Fixture) {
             repDescriptor.get = mockGetFixturePop(self._mock);
@@ -262,8 +266,12 @@ ClassMaker.prototype = {
             key,
             self._cls,
             self._clsProps,
-            self._propsMetadata.extraClassProps
+            self._propsMetadata.extraStaticProps
           );
+
+          if (repDescriptor.set === self._cls) {
+            repDescriptor.set = self._clsPropsDescriptors[key].descriptor.set;
+          }
 
           if (repDescriptor.set === fixture.Fixture) {
             repDescriptor.set = mockGetFixturePop(self._mock);
@@ -276,7 +284,7 @@ ClassMaker.prototype = {
               name: self._clsConstructorName + '.' + key,
               type: 'staticGetter',
             },
-            origin: self._clsPropsDescriptors[key].descriptor.get,
+            origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.get,
             replacement: self._props[key].descriptor.get,
           },
           set: {
@@ -284,7 +292,7 @@ ClassMaker.prototype = {
               name: self._clsConstructorName + '.' + key,
               type: 'staticSetter',
             },
-            origin: self._clsPropsDescriptors[key].descriptor.set,
+            origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.set,
             replacement: self._props[key].descriptor.set,
           },
           onCall: function (context, state) {
@@ -305,6 +313,10 @@ ClassMaker.prototype = {
             self._propsMetadata.extraProps
           );
 
+          if (repDescriptor.get === self._cls) {
+            repDescriptor.get = self._clsProtoPropsDescriptors[key].descriptor.get;
+          }
+
           if (repDescriptor.get === fixture.Fixture) {
             repDescriptor.get = mockGetFixturePop(self._mock);
           }
@@ -319,6 +331,10 @@ ClassMaker.prototype = {
             self._propsMetadata.extraProps
           );
 
+          if (repDescriptor.set === self._cls) {
+            repDescriptor.set = self._clsProtoPropsDescriptors[key].descriptor.set;
+          }
+
           if (repDescriptor.set === fixture.Fixture) {
             repDescriptor.set = mockGetFixturePop(self._mock);
           }
@@ -330,7 +346,7 @@ ClassMaker.prototype = {
               name: self._clsConstructorName + '.' + key,
               type: 'getter',
             },
-            origin: self._clsProtoPropsDescriptors[key].descriptor.get,
+            origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.get,
             replacement: self._props[key].descriptor.get,
           },
           set: {
@@ -338,7 +354,7 @@ ClassMaker.prototype = {
               name: self._clsConstructorName + '.' + key,
               type: 'setter',
             },
-            origin: self._clsProtoPropsDescriptors[key].descriptor.set,
+            origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.set,
             replacement: self._props[key].descriptor.set,
           },
           onCall: function (context, state) {
@@ -353,8 +369,12 @@ ClassMaker.prototype = {
           key,
           self._cls,
           self._clsProps,
-          self._propsMetadata.extraClassProps
+          self._propsMetadata.extraStaticProps
         );
+
+        if (rep === self._cls) {
+          rep = self._clsPropsDescriptors[key].descriptor.value;
+        }
 
         if (rep === fixture.Fixture) {
           rep = mockGetFixturePop(self._mock);
@@ -383,6 +403,10 @@ ClassMaker.prototype = {
           self._clsProtoScope,
           self._propsMetadata.extraProps
         );
+
+        if (rep === self._cls) {
+          rep = self._clsProtoPropsDescriptors[key].descriptor.value;
+        }
 
         if (rep === fixture.Fixture) {
           rep = mockGetFixturePop(self._mock);
@@ -418,16 +442,16 @@ function mockGetFixturePop(mock) {
   return mock._fixturePop;
 }
 
-function classMakerGetReplacement(prop, key, cls, clsProps, extraProps) {
-  if (getAncestors(cls).indexOf(prop) !== - 1 || getAncestors(cls.COPY_OF).indexOf(prop) !== - 1) {
-    if (! (key in clsProps)) {
+function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
+  if (getAncestors(obj).indexOf(prop) !== - 1 || getAncestors(obj.COPY_OF).indexOf(prop) !== - 1) {
+    if (! (key in objProps)) {
       prop = Function;
     } else {
-      return clsProps[key];
+      return obj; // as reference to object self-defined property
     }
   }
 
-  if (! (key in clsProps)) {
+  if (! (key in objProps)) {
     extraProps.push(key);
   }
 
