@@ -515,7 +515,25 @@ describe('Snapshot', () => {
       }]);
     });
 
-    it('should serialize stopping on circular references', () => {
+    it('should serialize stopping on circular references in arrays', () => {
+      const result = {
+        a: [
+
+        ]
+      };
+
+      result.a.push(result);
+
+      const e = new unitsnap.Snapshot([{
+        result: result,
+      }]);
+
+      expect(e.serialize()).toEqual([{
+        args: void 0, result: {a:['[[ Circular ! ]]']},
+      }]);
+    });
+
+    it('should serialize stopping on circular references in objects', () => {
       const result = {
         a: {
 
@@ -531,7 +549,7 @@ describe('Snapshot', () => {
       expect(e.serialize()).toEqual([{
         args: void 0, result: {a:{result: '[[ Circular ! ]]'}},
       }]);
-    })
+    });
   });
 
   it('should create filter linked to observer', () => {

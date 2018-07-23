@@ -25,9 +25,67 @@ describe('Mock', () => {
     c(a) {
       throw new Error('error');
     }
-  }
 
-  B.a = B.b = B.c = _ => f;
+    get d() {
+      return 1;
+    }
+
+    set d(value) {
+
+    }
+
+    get e() {
+      return 1;
+    }
+
+    set e(value) {
+
+    }
+
+    get f() {
+      return 1;
+    }
+
+    set f(value) {
+
+    }
+
+    static a() {
+
+    }
+
+    static b() {
+
+    }
+
+    static c() {
+
+    }
+
+    static get d() {
+      return 1;
+    }
+
+    static set d(value) {
+
+    }
+
+    static get e() {
+      return 1;
+    }
+
+    static set e(value) {
+
+    }
+
+    static get f() {
+      return 1;
+    }
+
+    static set f(value) {
+
+    }
+  }
 
   function C() {
 
@@ -57,8 +115,20 @@ describe('Mock', () => {
     return acc;
   }, {});
 
+  const bPropertiesDescriptors = Object.getOwnPropertyNames(B).reduce((acc, key) => {
+    acc[key] = Object.getOwnPropertyDescriptor(B, key);
+
+    return acc;
+  }, {});
+
   const bPrototype = Object.getOwnPropertyNames(B.prototype).reduce((acc, key) => {
     acc[key] = B.prototype[key];
+
+    return acc;
+  }, {});
+
+  const bPrototypeDescriptors = Object.getOwnPropertyNames(B.prototype).reduce((acc, key) => {
+    acc[key] = Object.getOwnPropertyDescriptor(B.prototype, key);
 
     return acc;
   }, {});
@@ -199,6 +269,70 @@ describe('Mock', () => {
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(E.ORIGIN).toBe(B);
         expect(E.REPLACEMENT).toBe(f);
+      });
+
+      it('should override properties with spy on single getter', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.Property().get(f)});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override properties with spy on single setter', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.Property().set(f)});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.REPLACEMENT).toBe(f);
+      });
+
+      it('should override properties with spy on getter of getter/setter pair', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.Property().get(f).set(f)});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override properties with spy on setter of getter/setter pair', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.Property().get(f).set(f)});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on single getter', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().get(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on single setter', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on getter of getter/setter pair', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().get(f).set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on setter of getter/setter pair', () => {
+        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().get(f).set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.REPLACEMENT).toBe(f);
       });
 
       it('should override methods with spy', () => {
@@ -481,7 +615,16 @@ describe('Mock', () => {
     it('should spy on exception of call', () => {
       history.begin('epoch', 'comment');
 
-      const E = new mock.Mock(history).by(B, {constructor: Function, a: mock.StaticMethod(Function), c: B, x: Function});
+      const E = new mock.Mock(history).by(B, {
+        constructor: Function,
+        a: mock.StaticMethod(Function),
+        c: B,
+        d: mock.Property().get(1).set(Function),
+        e: mock.StaticProperty().get(1).set(Function),
+        x: Function,
+        y: mock.Property().get(1).set(Function),
+        z: mock.StaticProperty().get(1).set(Function),
+      });
 
       const e = new E(1);
 
@@ -495,12 +638,15 @@ describe('Mock', () => {
 
       try {
         e.x();
-      } catch (e) {
-
-      }
-
-      try {
         E.a();
+        e.d;
+        e.d = 1;
+        E.e;
+        E.e = 1;
+        e.y;
+        e.y = 1;
+        E.z;
+        E.z = 1;
       } catch (e) {
 
       }
@@ -677,6 +823,278 @@ describe('Mock', () => {
         tags: void 0,
         time: history._entries[9].time,
         type: 'staticMethod',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[10].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.d',
+        origin: history._entries[10].origin,
+        replacement: history._entries[10].replacement,
+        tags: void 0,
+        time: history._entries[10].time,
+        type: 'getter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[11].context,
+        epoch: 'epoch',
+        exception: history._entries[11].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.d',
+        origin: history._entries[11].origin,
+        replacement: history._entries[11].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[11].time,
+        type: 'getter',
+      }, {
+        args: {'*': [], value: 1},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[12].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.d',
+        origin: history._entries[12].origin,
+        replacement: history._entries[12].replacement,
+        tags: void 0,
+        time: history._entries[12].time,
+        type: 'setter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[13].context,
+        epoch: 'epoch',
+        exception: history._entries[13].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.d',
+        origin: history._entries[13].origin,
+        replacement: history._entries[13].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[13].time,
+        type: 'setter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[14].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.e',
+        origin: history._entries[14].origin,
+        replacement: history._entries[14].replacement,
+        tags: void 0,
+        time: history._entries[14].time,
+        type: 'staticGetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[15].context,
+        epoch: 'epoch',
+        exception: history._entries[15].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.e',
+        origin: history._entries[15].origin,
+        replacement: history._entries[15].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[15].time,
+        type: 'staticGetter',
+      }, {
+        args: {'*': [], value: 1},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[16].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.e',
+        origin: history._entries[16].origin,
+        replacement: history._entries[16].replacement,
+        tags: void 0,
+        time: history._entries[16].time,
+        type: 'staticSetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[17].context,
+        epoch: 'epoch',
+        exception: history._entries[17].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.e',
+        origin: history._entries[17].origin,
+        replacement: history._entries[17].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[17].time,
+        type: 'staticSetter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.y',
+        origin: history._entries[18].origin,
+        replacement: 1,
+        tags: void 0,
+        time: history._entries[18].time,
+        type: 'getter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        exception: history._entries[19].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.y',
+        origin: history._entries[19].origin,
+        replacement: history._entries[19].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[19].time,
+        type: 'getter',
+      }, {
+        args: {'*': [1]},
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.y',
+        origin: history._entries[20].origin,
+        replacement: history._entries[20].replacement,
+        tags: void 0,
+        time: history._entries[20].time,
+        type: 'setter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        exception: history._entries[21].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.y',
+        origin: history._entries[21].origin,
+        replacement: history._entries[21].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[21].time,
+        type: 'setter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.z',
+        origin: history._entries[22].origin,
+        replacement: 1,
+        tags: void 0,
+        time: history._entries[22].time,
+        type: 'staticGetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        exception: history._entries[23].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.z',
+        origin: history._entries[23].origin,
+        replacement: history._entries[23].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[23].time,
+        type: 'staticGetter',
+      }, {
+        args: {'*': [1]},
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.z',
+        origin: history._entries[24].origin,
+        replacement: history._entries[24].replacement,
+        tags: void 0,
+        time: history._entries[24].time,
+        type: 'staticSetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        exception: history._entries[25].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.z',
+        origin: history._entries[25].origin,
+        replacement: history._entries[25].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[25].time,
+        type: 'staticSetter',
       }]);
     });
 
@@ -769,12 +1187,77 @@ describe('Mock', () => {
         expect(E.prototype.c.REPLACEMENT).toBe(f);
       });
 
+
       it('should override static methods with spy', () => {
         const E = new mock.Mock(history).override(B, {c: mock.StaticMethod(f)});
 
         expect(E.a).toBe(B.a);
         expect(E.c.ORIGIN).toBe(bProperties.c);
         expect(E.c.REPLACEMENT).toBe(f);
+      });
+
+      it('should override properties with spy on single getter', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.Property().get(f)});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.ORIGIN).toBe(bPrototypeDescriptors.d.get);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override properties with spy on single setter', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.Property().set(f)});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(bPrototypeDescriptors.d.set);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.REPLACEMENT).toBe(f);
+      });
+
+      it('should override properties with spy on getter of getter/setter pair', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.Property().get(f).set(f)});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.ORIGIN).toBe(bPrototypeDescriptors.d.get);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override properties with spy on setter of getter/setter pair', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.Property().get(f).set(f)});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(bPrototypeDescriptors.d.set);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on single getter', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().get(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(bPropertiesDescriptors.d.get);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on single setter', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(bPropertiesDescriptors.d.set);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on getter of getter/setter pair', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().get(f).set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(bPropertiesDescriptors.d.get);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').get.REPLACEMENT).toBe(f);
+      });
+
+      it('should override static properties with spy on setter of getter/setter pair', () => {
+        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().get(f).set(f)});
+
+        expect(E.a).toBe(B.a);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(bPropertiesDescriptors.d.set);
+        expect(Object.getOwnPropertyDescriptor(E, 'd').set.REPLACEMENT).toBe(f);
       });
 
       it('should stub methods marked as Function', () => {
@@ -814,7 +1297,7 @@ describe('Mock', () => {
 
         expect(E.prototype.a).toBe(bPrototype.a);
         expect(E.prototype.c.ORIGIN).toBe(bPrototype.c);
-        expect(E.prototype.c  instanceof Function).toBeTruthy();
+        expect(E.prototype.c instanceof Function).toBeTruthy();
       });
 
       it('should set static methods marked as class prototype props', () => {
@@ -1039,7 +1522,16 @@ describe('Mock', () => {
     });
 
     it('should spy on exception of call', () => {
-      const E = new mock.Mock(history).override(B, {constructor: Function, a: mock.StaticMethod(Function), c: B, x: Function});
+      const E = new mock.Mock(history).override(B, {
+        constructor: Function,
+        a: mock.StaticMethod(Function),
+        c: B,
+        d: mock.Property().get(1).set(Function),
+        e: mock.StaticProperty().get(1).set(Function),
+        x: Function,
+        y: mock.Property().get(1).set(Function),
+        z: mock.StaticProperty().get(1).set(Function),
+      });
 
       const e = new E(1);
 
@@ -1055,12 +1547,15 @@ describe('Mock', () => {
 
       try {
         e.x();
-      } catch (e) {
-
-      }
-
-      try {
         E.a();
+        e.d;
+        e.d = 1;
+        E.e;
+        E.e = 1;
+        e.y;
+        e.y = 1;
+        E.z;
+        E.z = 1;
       } catch (e) {
 
       }
@@ -1237,6 +1732,278 @@ describe('Mock', () => {
         tags: void 0,
         time: history._entries[9].time,
         type: 'staticMethod',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[10].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.d',
+        origin: history._entries[10].origin,
+        replacement: history._entries[10].replacement,
+        tags: void 0,
+        time: history._entries[10].time,
+        type: 'getter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[11].context,
+        epoch: 'epoch',
+        exception: history._entries[11].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.d',
+        origin: history._entries[11].origin,
+        replacement: history._entries[11].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[11].time,
+        type: 'getter',
+      }, {
+        args: {'*': [], value: 1},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[12].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.d',
+        origin: history._entries[12].origin,
+        replacement: history._entries[12].replacement,
+        tags: void 0,
+        time: history._entries[12].time,
+        type: 'setter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[13].context,
+        epoch: 'epoch',
+        exception: history._entries[13].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.d',
+        origin: history._entries[13].origin,
+        replacement: history._entries[13].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[13].time,
+        type: 'setter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[14].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.e',
+        origin: history._entries[14].origin,
+        replacement: history._entries[14].replacement,
+        tags: void 0,
+        time: history._entries[14].time,
+        type: 'staticGetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[15].context,
+        epoch: 'epoch',
+        exception: history._entries[15].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.e',
+        origin: history._entries[15].origin,
+        replacement: history._entries[15].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[15].time,
+        type: 'staticGetter',
+      }, {
+        args: {'*': [], value: 1},
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[16].context,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.e',
+        origin: history._entries[16].origin,
+        replacement: history._entries[16].replacement,
+        tags: void 0,
+        time: history._entries[16].time,
+        type: 'staticSetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: history._entries[17].context,
+        epoch: 'epoch',
+        exception: history._entries[17].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.e',
+        origin: history._entries[17].origin,
+        replacement: history._entries[17].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[17].time,
+        type: 'staticSetter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.y',
+        origin: history._entries[18].origin,
+        replacement: 1,
+        tags: void 0,
+        time: history._entries[18].time,
+        type: 'getter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        exception: history._entries[19].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.y',
+        origin: history._entries[19].origin,
+        replacement: history._entries[19].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[19].time,
+        type: 'getter',
+      }, {
+        args: {'*': [1]},
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.y',
+        origin: history._entries[20].origin,
+        replacement: history._entries[20].replacement,
+        tags: void 0,
+        time: history._entries[20].time,
+        type: 'setter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: e,
+        epoch: 'epoch',
+        exception: history._entries[21].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.y',
+        origin: history._entries[21].origin,
+        replacement: history._entries[21].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[21].time,
+        type: 'setter',
+      }, {
+        args: {'*': []},
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.z',
+        origin: history._entries[22].origin,
+        replacement: 1,
+        tags: void 0,
+        time: history._entries[22].time,
+        type: 'staticGetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        exception: history._entries[23].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.z',
+        origin: history._entries[23].origin,
+        replacement: history._entries[23].replacement,
+        result: 1,
+        tags: void 0,
+        time: history._entries[23].time,
+        type: 'staticGetter',
+      }, {
+        args: {'*': [1]},
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        //exception: history._entries[6].exception,
+        //exceptionsCount: 0,
+        //isAsync: false,
+        //isAsyncPending: false,
+        //isException: false,
+        name: 'B.z',
+        origin: history._entries[24].origin,
+        replacement: history._entries[24].replacement,
+        tags: void 0,
+        time: history._entries[24].time,
+        type: 'staticSetter',
+      }, {
+        callsCount: 1,
+        comment: 'comment',
+        context: E,
+        epoch: 'epoch',
+        exception: history._entries[25].exception,
+        exceptionsCount: 0,
+        isAsync: false,
+        isAsyncPending: false,
+        isException: false,
+        name: 'B.z',
+        origin: history._entries[25].origin,
+        replacement: history._entries[25].replacement,
+        result: void 0,
+        tags: void 0,
+        time: history._entries[25].time,
+        type: 'staticSetter',
       }]);
     });
 
@@ -1255,10 +2022,18 @@ describe('Mock', () => {
     });
 
     it('should RESTORE overridden props by dictionary of props', () => {
-      const E = new mock.Mock(history).override(B, {a: B, b: mock.StaticMethod(B), x: f}).RESTORE();
+      const E = new mock.Mock(history).override(B, {
+        a: B,
+        b: mock.StaticMethod(B),
+        d: mock.Property(),
+        e: mock.StaticProperty(),
+        x: f
+      }).RESTORE();
 
       expect(E.prototype.a).toBe(bPrototype.a);
       expect(E.b).toBe(bProperties.b);
+      expect(Object.getOwnPropertyDescriptor(E.prototype, 'd')).toEqual(bPrototypeDescriptors.d);
+      expect(Object.getOwnPropertyDescriptor(E, 'e')).toEqual(bPropertiesDescriptors.e);
       expect(E.prototype.x).toBeUndefined();
     });
 

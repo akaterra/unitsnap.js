@@ -1,3 +1,37 @@
+function getAncestors(cls) {
+  if (! cls) {
+    return [];
+  }
+
+  var ancestors = [cls];
+
+  while (true) {
+    cls = Object.getPrototypeOf(cls);
+
+    if (cls && cls instanceof Function) {
+      ancestors.push(cls);
+    } else {
+      break;
+    }
+  }
+
+  return ancestors;
+}
+
+function getDescriptorAndType(obj, key) {
+  var descriptor = Object.getOwnPropertyDescriptor(obj, key);
+
+  if (descriptor) {
+    if (descriptor.hasOwnProperty('get') || descriptor.hasOwnProperty('set')) {
+      return {descriptor: descriptor, type: 'getterSetter'};
+    } else if (descriptor.hasOwnProperty('value')) {
+      return {descriptor: descriptor, type: descriptor.value instanceof Function ? 'function' : 'value'};
+    }
+  }
+
+  return {descriptor: descriptor, type: null};
+}
+
 function callConstructor(cls, context, a) {
   var c;
 
@@ -80,41 +114,92 @@ function copyConstructor(cls) {
   return Constructor;
 }
 
-function copyPrototype(cls) {
+function copyPrototype(cls, options) {
   var Prototype = function () {};
 
   Prototype.prototype = Object.getPrototypeOf(cls.prototype);
 
   return Object.getOwnPropertyNames(cls.prototype).reduce(function (acc, key) {
-    acc[key] = cls.prototype[key];
+    Object.defineProperty(acc, key, Object.assign(getDescriptorAndType(cls.prototype, key).descriptor, options || {}));
 
     return acc;
   }, new Prototype());
 }
 
-function copyScope(cls) {
+function copyScope(cls, options, maxDepth) {
   var scope = {};
 
   while (true) {
-    cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
+    if (maxDepth !== void 0) {
+      maxDepth -= 1;
 
-    if (cls && cls !== Object && Object.getOwnPropertyNames(cls)) {
+      if (maxDepth < 0) {
+        break;
+      }
+    }
+
+    if (cls) {
       Object.getOwnPropertyNames(cls).forEach(function (key) {
-        if (! (key in scope)) {
-          scope[key] = cls[key];
+        if (! Object.prototype.hasOwnProperty.call(scope, key)) {
+          var descriptor = getDescriptorAndType(cls, key);
+
+          if (options) {
+            Object.assign(descriptor.descriptor, options);
+          }
+
+          Object.defineProperty(scope, key, descriptor.descriptor);
         }
       });
     } else {
       break;
     }
+
+    cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
+  }
+
+  return scope;
+}
+
+function copyScopeDescriptors(cls, options, maxDepth) {
+  var scope = {};
+
+  while (true) {
+    if (maxDepth !== void 0) {
+      maxDepth -= 1;
+
+      if (maxDepth < 0) {
+        break;
+      }
+    }
+
+    if (cls) {
+      Object.getOwnPropertyNames(cls).forEach(function (key) {
+        if (! Object.prototype.hasOwnProperty.call(scope, key)) {
+          var descriptor = getDescriptorAndType(cls, key);
+
+          if (options) {
+            Object.assign(descriptor.descriptor, options);
+          }
+
+          scope[key] = descriptor;
+        }
+      });
+    } else {
+      break;
+    }
+
+    cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
   }
 
   return scope;
 }
 
 module.exports = {
+  getAncestors: getAncestors,
+  getPropertyType: getDescriptorAndType,
   callConstructor: callConstructor,
   copyConstructor: copyConstructor,
   copyPrototype: copyPrototype,
   copyScope: copyScope,
+  copyScopeDescriptors: copyScopeDescriptors,
 };
