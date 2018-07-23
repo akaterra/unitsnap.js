@@ -128,9 +128,9 @@ function ClassMaker(mock, cls, props) {
 
     return acc;
   }.bind(this), {});
-  this._clsPropsDescriptors = copyScopeDescriptors(cls, {}, 1);
+  this._clsPropsDescriptors = copyScopeDescriptors(cls);
   this._clsProtoProps = copyScope(cls.prototype, {enumerable: true}, 1);
-  this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype, {}, 1);
+  this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype);
   this._clsProtoScope = copyScope(cls.prototype);
   this._mock = mock;
 
