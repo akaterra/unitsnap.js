@@ -152,10 +152,12 @@ function spyOnFunction(callable, options, asConstructor) {
             callable.RESULT = result;
 
             if (options && options.onCall) {
-              options.onCall(this, Object.assign(
-                spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
-                options.extra || {}
-              )); // context, fn
+              if (options.exclude !== true) {
+                options.onCall(this, Object.assign(
+                  spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
+                  options.extra || {}
+                )); // context, fn
+              }
             }
 
             return result;
@@ -167,10 +169,12 @@ function spyOnFunction(callable, options, asConstructor) {
             callable.RESULT = void 0;
 
             if (options && options.onCall) {
-              options.onCall(this, Object.assign(
-                spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
-                options.extra || {}
-              )); // context, fn
+              if (options.exclude !== true) {
+                options.onCall(this, Object.assign(
+                  spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
+                  options.extra || {}
+                )); // context, fn
+              }
             }
 
             throw error;
@@ -197,10 +201,15 @@ function spyOnFunction(callable, options, asConstructor) {
       throw e;
     } finally {
       if (options && options.onCall) {
-        options.onCall(this, Object.assign(
-          spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
-          { result: asConstructor ? void 0 : callable.RESULT }, options.extra || {}
-        )); // context, fn
+        if (options.exclude !== true) {
+          options.onCall(this, Object.assign(
+            spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
+            {
+              result: asConstructor ? void 0 : callable.RESULT
+            },
+            options.extra || {}
+          )); // context, fn
+        }
       }
     }
   };
