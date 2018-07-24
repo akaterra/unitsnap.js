@@ -184,7 +184,7 @@ function ClassMaker(mock, cls, props) {
             break;
 
           default:
-            acc[key] = new Property(descriptor);
+            acc[key] = new Property(descriptor.descriptor);
         }
       } else {
         acc[key] = cls;
