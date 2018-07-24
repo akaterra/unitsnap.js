@@ -17,7 +17,7 @@ Then this result can be saved as a snapshot and compared with a snapshot of the 
   * [FixtureCallbackStrategy](#fixturecallbackstrategy)
   * [FixtureQueueStrategy](#fixturequeuestrategy)
   * [FixtureFsProvider (for Queue strategy)](#fixturefsprovider-for-queue-strategy)
-  * [FixturememoryProvider (for Queue strategy)](#fixturememoryprovider-for-queue-strategy)
+  * [FixtureMemoryProvider (for Queue strategy)](#fixturememoryprovider-for-queue-strategy)
 * [Filter](#filter)
 * [Snapshot](#snapshot)
   * [Value processors](#value-processors)
@@ -803,7 +803,7 @@ snapshot.load('test');
 
 ##### SnapshotMemoryProvider
 
-Memory provider allows to load and save temporary snapshot in memory.
+Memory provider allows to load and save temporary snapshot in the process memory.
 
 ```javascript
 snapshot.setMemoryProvider();
