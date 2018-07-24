@@ -125,10 +125,12 @@ function spyOnFunction(callable, options, asConstructor) {
 
     try {
       if (options && options.onCall) {
-        options.onCall(this, Object.assign(
-          spyOnFunctionCreateArgsReport(callable, this, originalCallable, options),
-          options.extra || {}
-        )); // context, fn
+        if (options.exclude !== true) {
+          options.onCall(this, Object.assign(
+            spyOnFunctionCreateArgsReport(callable, this, originalCallable, options),
+            options.extra || {}
+          )); // context, fn
+        }
       }
 
       if (asConstructor) {

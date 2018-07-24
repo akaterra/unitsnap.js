@@ -4,6 +4,34 @@ The library allows to use the taken or saved snapshot of the units observed duri
 The principle of this stands on the concept of the pure function which always has the same result of execution (may be partially for individual purposes).
 Then this result can be saved as a snapshot and compared with a snapshot of the same execution flow.
 
+### Contents
+
+* [Installation](#installation)
+* [Example of snapshot generation](#example-of-snapshot-generation)
+* [Example of snapshot assertion](#example-of-snapshot-assertion)
+* [Observer](#observer)
+* [History](#history)
+* [Mock](#mock)
+  * [Customization](#customization)
+* [Fixture](#fixture)
+  * [FixtureCallbackStrategy](#fixturecallbackstrategy)
+  * [FixtureQueueStrategy](#fixturequeuestrategy)
+  * [FixtureFsProvider (for Queue strategy)](#fixturefsprovider-for-queue-strategy)
+  * [FixturememoryProvider (for Queue strategy)](#fixturememoryprovider-for-queue-strategy)
+* [Filter](#filter)
+* [Snapshot](#snapshot)
+  * [Value processors](#value-processors)
+  * [Type helpers](#type-helpers)
+  * [SnapshotFsProvider](#snapshotfsprovider)
+  * [SnapshotMemoryProvider](#snapshotmemoryprovider)
+* [Jasmine matcher](#jasmine-matcher)
+
+### Installation
+
+```bash
+npm install unitsnap.js
+```
+
 ### Example of snapshot generation
 
 ```javascript
@@ -459,6 +487,8 @@ Besides, this mock can optionally be linked to the history so that the state of 
     The overridden props can be restored after by calling **RESTORE**:
 
     ```javascript
+    const Mock = require('unitsnap.js').Mock;
+
     const mock = new Mock(history);
 
     mock.override(A, {
@@ -473,24 +503,20 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
 * **spy(function)** - spies on a single function
 
-##### Static method
+##### Customization
 
-```
-const StaticMethod = require('unitsnap.js').StaticMethod;
+Properties can be customized with the **Custom** entity.
 
-class A {
-    static x() {
-
-    }
-}
+```javascript
+const Custom = require('unitsnap.js').Custom;
+const Mock = require('unitsnap.js').Mock;
 
 const mock = new Mock(history);
 
-const Mocked = mock.by({
-    x: StaticMethod(Function),
+const Mocked = mock.by(A, {
+    a: Custom(Function).argsAnnotation(['x', 'y', 'z']), // callee arguments with be named as "x", "y" and "z"
+    b: Custom(Function).exclude(), // will be excluded from history
 });
-
-Mocked.x();
 ```
 
 ### Fixture

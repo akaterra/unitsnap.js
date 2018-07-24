@@ -421,8 +421,8 @@ ClassMaker.prototype = {
           },
         });
       } else if (self._props[key] instanceof StaticMethod) {
-        if (self._props[key] instanceof Custom) {
-          custom = self._props[key];
+        if (self._props[key].value instanceof Custom) {
+          custom = self._props[key].value;
         }
 
         rep = classMakerGetReplacement(
