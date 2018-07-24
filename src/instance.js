@@ -127,6 +127,7 @@ function copyPrototype(cls, options) {
 }
 
 function copyScope(cls, options, maxDepth) {
+  var level = 0;
   var scope = {};
 
   while (true) {
@@ -142,6 +143,8 @@ function copyScope(cls, options, maxDepth) {
       Object.getOwnPropertyNames(cls).forEach(function (key) {
         if (! Object.prototype.hasOwnProperty.call(scope, key)) {
           var descriptor = getDescriptorAndType(cls, key);
+
+          descriptor.level = level;
 
           if (options) {
             Object.assign(descriptor.descriptor, options);
@@ -154,6 +157,7 @@ function copyScope(cls, options, maxDepth) {
       break;
     }
 
+    level += 1;
     cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
   }
 
@@ -161,6 +165,7 @@ function copyScope(cls, options, maxDepth) {
 }
 
 function copyScopeDescriptors(cls, options, maxDepth) {
+  var level = 0;
   var scope = {};
 
   while (true) {
@@ -177,6 +182,8 @@ function copyScopeDescriptors(cls, options, maxDepth) {
         if (! Object.prototype.hasOwnProperty.call(scope, key)) {
           var descriptor = getDescriptorAndType(cls, key);
 
+          descriptor.level = level;
+
           if (options) {
             Object.assign(descriptor.descriptor, options);
           }
@@ -188,6 +195,7 @@ function copyScopeDescriptors(cls, options, maxDepth) {
       break;
     }
 
+    level += 1;
     cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
   }
 

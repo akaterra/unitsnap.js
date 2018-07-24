@@ -1110,6 +1110,96 @@ describe('Mock', () => {
       }]);
     });
 
+    it('should spy with custom args annotation', () => {
+      history.begin('epoch', 'comment');
+
+      const custom = mock.Custom(function (a, b, c) { return 0; }).argsAnnotation(['x', 'y', 'z']);
+
+      const E = new mock.Mock(history).by(B, {
+        constructor: custom,
+        a: mock.StaticMethod(custom),
+        c: custom,
+        d: mock.Property().get(custom).set(custom),
+        e: mock.StaticProperty().get(custom).set(custom),
+        x: custom,
+        y: mock.Property().get(custom).set(custom),
+        z: mock.StaticProperty().get(custom).set(custom),
+      });
+
+      const e = new E(1, 2, 3);
+
+      try {
+        e.c(1, 2, 3);
+        e.x(1, 2, 3);
+        E.a(1, 2, 3);
+        e.d;
+        e.d = 1;
+        E.e;
+        E.e = 1;
+        e.y;
+        e.y = 1;
+        E.z;
+        E.z = 1;
+      } catch (e) {
+
+      }
+
+      history.end();
+
+      expect(history._entries[0].args).toEqual({'*': [], x: 1, y: 2, z: 3});
+      expect(history._entries[2].args).toEqual({'*': [], x: 1, y: 2, z: 3});
+      expect(history._entries[4].args).toEqual({'*': [], x: 1, y: 2, z: 3});
+      expect(history._entries[6].args).toEqual({'*': [], x: 1, y: 2, z: 3});
+      expect(history._entries[8].args).toEqual({'*': []});
+      expect(history._entries[10].args).toEqual({'*': [], x: 1});
+      expect(history._entries[12].args).toEqual({'*': []});
+      expect(history._entries[14].args).toEqual({'*': [], x: 1});
+      expect(history._entries[16].args).toEqual({'*': []});
+      expect(history._entries[18].args).toEqual({'*': [], x: 1});
+      expect(history._entries[20].args).toEqual({'*': []});
+      expect(history._entries[22].args).toEqual({'*': [], x: 1});
+    });
+
+    it('should spy with custom exclude from history', () => {
+      history.begin('epoch', 'comment');
+
+      const custom = mock.Custom(function (a, b, c) { return 0; }).exclude();
+
+      const E = new mock.Mock(history).by(B, {
+        constructor: custom,
+        a: mock.StaticMethod(custom),
+        c: custom,
+        d: mock.Property().get(custom).set(custom),
+        e: mock.StaticProperty().get(custom).set(custom),
+        x: custom,
+        y: mock.Property().get(custom).set(custom),
+        z: mock.StaticProperty().get(custom).set(custom),
+      });
+
+      const e = new E(1, 2, 3);
+
+      try {
+        e.c(1, 2, 3);
+        e.x(1, 2, 3);
+        E.a(1, 2, 3);
+        e.d;
+        e.d = 1;
+        E.e;
+        E.e = 1;
+        e.y;
+        e.y = 1;
+        E.z;
+        E.z = 1;
+      } catch (e) {
+
+      }
+
+      history.end();
+
+      expect(history._entries).toEqual([]);
+    });
+
+
     it('should return mocked primitive value', () => {
       const e = new (new mock.Mock(history.begin()).by(B, {c: 123}))();
 
@@ -2046,6 +2136,7 @@ describe('Mock', () => {
         b: mock.StaticMethod(B),
         d: mock.Property(),
         e: mock.StaticProperty(),
+        m: f,
         x: f
       }).RESTORE();
 
@@ -2053,6 +2144,7 @@ describe('Mock', () => {
       expect(E.b).toBe(bProperties.b);
       expect(Object.getOwnPropertyDescriptor(E.prototype, 'd')).toEqual(bPrototypeDescriptors.d);
       expect(Object.getOwnPropertyDescriptor(E, 'e')).toEqual(bPropertiesDescriptors.e);
+      expect(E.prototype.m).toBe(A.prototype.m);
       expect(E.prototype.x).toBeUndefined();
     });
 
