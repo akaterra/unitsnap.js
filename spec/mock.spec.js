@@ -210,7 +210,7 @@ describe('Mock', () => {
       expect(() => E.by(null)).toThrow();
     });
 
-    it('should from mock', () => {
+    it('should build mock', () => {
       const E = new mock.Mock(history).by(A);
 
       expect(E).not.toBe(A);
@@ -235,6 +235,12 @@ describe('Mock', () => {
         expect(E.prototype.a.ORIGIN).toBe(B.prototype.a);
         expect(E.prototype.b.ORIGIN).toBe(B.prototype.b);
         expect(E.prototype.c.ORIGIN).toBe(B.prototype.c);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'e').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'e').get);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'e').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'e').set);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'f').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'f').get);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'f').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'f').set);
       });
 
       it('should override constructor with spy', () => {
@@ -1263,6 +1269,12 @@ describe('Mock', () => {
         expect(E.prototype.a.ORIGIN).toBe(bPrototype.a);
         expect(E.prototype.b.ORIGIN).toBe(bPrototype.b);
         expect(E.prototype.c.ORIGIN).toBe(bPrototype.c);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.ORIGIN).toBe(bPrototypeDescriptors.d.get);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(bPrototypeDescriptors.d.set);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'e').get.ORIGIN).toBe(bPrototypeDescriptors.e.get);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'e').set.ORIGIN).toBe(bPrototypeDescriptors.e.set);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'f').get.ORIGIN).toBe(bPrototypeDescriptors.f.get);
+        expect(Object.getOwnPropertyDescriptor(E.prototype, 'f').set.ORIGIN).toBe(bPrototypeDescriptors.f.set);
       });
 
       it('should override props with spy', () => {
