@@ -570,7 +570,7 @@ fixture.setName('test'); // set fixture name that will be used as a part of file
 
 fixture.setQueueStrategy();
 
-fixture.setFsProvider(<fixtures dir>); // values from the <fixtures dir>/test.fixture.json will be loaded
+fixture.setFsProvider(__dirname); // values from the __dirname/test.fixture.json will be loaded
 ```
 
 ##### FixtureMemoryProvider (for Queue strategy)
@@ -582,7 +582,7 @@ fixture.setName('test'); // set fixture name that will be a key in the dictionar
 
 fixture.setQueueStrategy();
 
-fixture.setFsProvider({test: [1, 2, 3]}); // values by dictionary key "test" will be loaded
+fixture.setMemoryProvider({test: [1, 2, 3]}); // values by dictionary key "test" will be loaded
 ```
 
 ### Filter
