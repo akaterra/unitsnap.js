@@ -1,4 +1,3 @@
-import TypeHelper = UnitSnap.TypeHelper;
 declare module UnitSnap {
     // filter
     export interface Filter {
@@ -219,3 +218,4 @@ declare module UnitSnap {
     export interface NumberType extends TypeHelper {}
     export interface StringType extends TypeHelper {}
     export interface UndefinedType extends TypeHelper {}
+}

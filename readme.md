@@ -845,11 +845,11 @@ it('should do something', function () {
 ```
 
 Run Jasmine with the env variable **SAVE_SNAPSHOT**=1 telling to the matcher to save snapshots.
-The snapshot will be saved into the "\<__dirname>/test.snapshot.js" file.
+The snapshot will be saved into the "__dirname/test.snapshot.js" file.
 
 Be sure that the saved snapshot represents valid state of the execution flow.
 
-Run Jasmine usually now to assert the saved snapshot.
+Run Jasmine usually now to assert the saved snapshot (not existing snapshot will be auto saved instead).
 It will throw standard Jasmine **toEqual** error on mismatch.
 
 Example (see full example /spec/jasmine.spec.js):
@@ -878,7 +878,7 @@ describe('some suite', () => {
         
         mock.b(111);
 
-        expect(observer).toMatchSnapshot('some spec'); // saves or asserts the snapshot <__dirname>/some_spec.snapshot.json
+        expect(observer).toMatchSnapshot('some spec'); // saves or asserts the snapshot __dirname/some_spec.snapshot.json
     });
 });
 ```
