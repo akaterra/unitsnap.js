@@ -1,5 +1,5 @@
 // filter
-export interface Filter {
+export class Filter {
     new(): Filter;
     link(observer: Observer): this;
     unlink(): this;
@@ -14,7 +14,7 @@ export interface Filter {
     snapshot(): Snapshot;
 }
 // fixture
-export interface Fixture {
+export class Fixture {
     new(): Fixture;
     setName(name: string): this;
     setStrategy(strategy: FixtureCallbackStrategy|FixtureQueueStrategy): this;
@@ -25,33 +25,33 @@ export interface Fixture {
     pop(): any;
     push(...args: any[]): this;
     throwOnCallback(cb: (value: any) => boolean): this;
-    throwOnClassOf(cls: {new(): any }): this;
-    throwOnInstanceOf(cls: {new(): any }): this;
+    throwOnClassOf(cls: {new(...args: any[]): any }): this;
+    throwOnInstanceOf(cls: {new(...args: any[]): any }): this;
 }
-export interface FixtureCallbackStrategy {
+export class FixtureCallbackStrategy {
     new(cb: (...args: any[]) => any): FixtureCallbackStrategy;
     set(cb: (...args: any[]) => any): this;
     pop(): any;
     push(...args: any[]): this;
 }
-export interface FixtureQueueStrategy {
+export class FixtureQueueStrategy {
     new(values: any[]): FixtureQueueStrategy;
     set(values: any[]): this;
     pop(): any;
     push(...args: any[]): this;
 }
-export interface FixtureProvider {
+export abstract class FixtureProvider {
     setName(name: string): this;
     load(name: string): this;
 }
-export interface FixtureFsProvider extends FixtureProvider{
+export class FixtureFsProvider extends FixtureProvider{
     new(dir: string): FixtureFsProvider;
 }
-export interface FixtureMemoryProvider extends FixtureProvider {
+export class FixtureMemoryProvider extends FixtureProvider {
     new(values: any[]): FixtureMemoryProvider;
 }
 // history
-export interface History {
+export class History {
     new(): History;
     getCurrentEpoch(): null|HistoryEpoch;
     link(observer: Observer): this;
@@ -69,11 +69,11 @@ export interface HistoryEpoch {
     epoch: string;
 }
 // mock
-export interface Mock {
+export class Mock {
     new(history?: History): Mock;
-    by<T=object>(cls: {new(): T}, props?: (string[]|{[key: string]: any })): {new(): T};
-    from<T=object>(props: {[key: string]: any }): {new(): T};
-    override<T=object>(cls: {new(): T}, props?: (string[]|{[key: string]: any })): {new(): T};
+    by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any })): {new(...args: any[]): T};
+    from<T=object>(props: {[key: string]: any }): {new(...args: any[]): T};
+    override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any })): {new(...args: any[]): T};
     spy(fn: (...args) => any): (...args) => any;
 }
 export interface PropertyDescriptor {
@@ -102,15 +102,15 @@ export function Property(descriptor: Partial<PropertyDescriptor>): MockProperty;
 export function StaticProperty(descriptor: Partial<PropertyDescriptor>): MockProperty;
 export function StaticMethod(value?: any): MockMethod;
 // observer
-export interface Observer {
+export class Observer {
     new(): Observer;
     setName(name: string): this;
     config(): ObserverConfig;
     begin(epoch?: string, comment?: string): this;
     end(): this;
-    by<T=object>(cls: {new(): T}, props?: (string[]|{[key: string]: any })): {new(): T};
-    from<T=object>(props: {[key: string]: any }): {new(): T};
-    override<T=object>(cls: {new(): T}, props?: (string[]|{[key: string]: any })): {new(): T};
+    by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any })): {new(...args: any[]): T};
+    from<T=object>(props: {[key: string]: any }): {new(...args: any[]): T};
+    override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any })): {new(...args: any[]): T};
     spy(fn: (...args) => any): (...args) => any;
     push(...args: any[]): this;
     filter(): Filter;
@@ -122,7 +122,7 @@ export interface ObserverConfig {
     snapshot: Snapshot;
 }
 // snapshot
-export interface Snapshot {
+export class Snapshot {
     new(): Snapshot;
     setConfig(config: SnapshotConfig): this;
     setMapper(mapper: (state: State) => any): this;
@@ -131,8 +131,8 @@ export interface Snapshot {
     link(observer: Observer): this;
     unlink(): this;
     addProcessor(checker: (value: any) => boolean, serializer: (value: any) => any): this;
-    addClassOfProcessor(cls: {new(): T}, serializer?: (value: any) => any): this;
-    addInstanceOfProcessor(cls: {new(): T}, serializer?: (value: any) => any): this;
+    addClassOfProcessor(cls: {new(...args: any[]): any}, serializer?: (value: any) => any): this;
+    addInstanceOfProcessor(cls: {new(...args: any[]): any}, serializer?: (value: any) => any): this;
     addPathProcessor(path: string, serializer: (value: any) => any): this;
     addRegexPathProcessor(regex: RegExp, serializer: (value: any) => any): this;
     addUndefinedProcessor(serializer: (value: any) => any): this;
@@ -165,16 +165,16 @@ export interface SnapshotConfig {
     result: boolean;
     type: boolean;
 }
-export interface SnapshotProvider {
+export abstract class SnapshotProvider {
     exists(name: string): boolean;
     load(name: string): Partial<State>[];
     remove(name: string): this;
     save(name: string, snapshot: Partial<State>[]|Snapshot): this;
 }
-export interface SnapshotFsProvider extends SnapshotProvider {
+export class SnapshotFsProvider extends SnapshotProvider {
     new(dir: string): SnapshotFsProvider;
 }
-export interface SnapshotMemoryProvider extends SnapshotProvider {
+export class SnapshotMemoryProvider extends SnapshotProvider {
     new(values: {[key: string]: Partial<State>[]}): SnapshotMemoryProvider;
 }
 // state
@@ -201,23 +201,24 @@ export interface State {
     type: 'constructor'|'method'|'getter'|'setter'|'single'|'staticMethod'|'staticGetter'|'staticSetter';
 }
 // type helpers
-export interface TypeHelper<T=any> {
+export abstract class TypeHelper<T=any> {
     check(value: T): boolean;
     serialize(value: T): boolean;
 }
-export interface AnyType extends TypeHelper {}
-export interface BooleanType extends TypeHelper {}
-export interface ClassOfType extends TypeHelper {
-    new(value: {new(): any}): ClassOfType;
+export class AnyType extends TypeHelper {}
+export class BooleanType extends TypeHelper {}
+export class ClassOfType extends TypeHelper {
+    new(value: {new(...args: any[]): any}): ClassOfType;
 }
-export interface DateType extends TypeHelper {}
-export interface DateValue extends TypeHelper {}
-export interface InstanceOfType extends TypeHelper {
-    new(value: {new(): any}): InstanceOfType;
+export class DateType extends TypeHelper {}
+export class DateValue extends TypeHelper {}
+export class Ignore extends TypeHelper {}
+export class InstanceOfType extends TypeHelper {
+    new(value: {new(...args: any[]): any}): InstanceOfType;
 }
-export interface NumberType extends TypeHelper {}
-export interface StringType extends TypeHelper {}
-export interface UndefinedType extends TypeHelper {}
+export class NumberType extends TypeHelper {}
+export class StringType extends TypeHelper {}
+export class UndefinedType extends TypeHelper {}
 // index
 export function create(): Observer;
 export function extendJasmine();
