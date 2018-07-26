@@ -53,8 +53,8 @@ Fixture.prototype = {
 
     return this;
   },
-  throwOnCallback: function (fn) {
-    this._throwOn = fn;
+  throwOnCallback: function (cb) {
+    this._throwOn = cb;
 
     return this;
   },

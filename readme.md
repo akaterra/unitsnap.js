@@ -25,6 +25,7 @@ Then this result can be saved as a snapshot and compared with a snapshot of the 
   * [SnapshotFsProvider](#snapshotfsprovider)
   * [SnapshotMemoryProvider](#snapshotmemoryprovider)
 * [Jasmine matcher](#jasmine-matcher)
+* [Using with typescript-ioc](#using-with-typescript-ioc)
 
 ### Installation
 
@@ -508,7 +509,9 @@ Besides, this mock can optionally be linked to the history so that the state of 
 Properties can be customized with the **Custom** entity.
 
 ```javascript
+const ArgsAnnotation = require('unitsnap.js').ArgsAnnotation;
 const Custom = require('unitsnap.js').Custom;
+const Exclude = require('unitsnap.js').Exclude;
 const Mock = require('unitsnap.js').Mock;
 
 const mock = new Mock(history);
@@ -516,6 +519,8 @@ const mock = new Mock(history);
 const Mocked = mock.by(A, {
     a: Custom(Function).argsAnnotation(['x', 'y', 'z']), // callee arguments with be named as "x", "y" and "z"
     b: Custom(Function).exclude(), // will be excluded from history
+    c: ArgsAnnotation(Function, ['x', 'y', 'z']), // same as "a" field
+    d: Exclude(Function), // same as "b" field
 });
 ```
 
@@ -606,6 +611,8 @@ Then the snapshot over this subset of the historical entries can be created.
   ```javascript
   filter.not().epoch('excluded epoch'); // excludes all entries with "epoch" fields = "excluded epoch"
   ```
+
+* **notPromiseResult()** - adds "filter if result is not Promise", all entries having not Promise result will be taken.
 
 * **snapshot()** - create snapshot over the filtered historical entries.
 
@@ -838,14 +845,14 @@ it('should do something', function () {
 ```
 
 Run Jasmine with the env variable **SAVE_SNAPSHOT**=1 telling to the matcher to save snapshots.
-The snapshot will be saved into the "\<__dirname>/test.snapshot.js" file.
+The snapshot will be saved into the "__dirname/test.snapshot.json" file.
 
 Be sure that the saved snapshot represents valid state of the execution flow.
 
-Run Jasmine usually now to assert the saved snapshot.
+Run Jasmine usually now to assert the saved snapshot (not existing snapshot will be auto saved instead).
 It will throw standard Jasmine **toEqual** error on mismatch.
 
-Example (see full example /spec/example.spec.js):
+Example (see full example /spec/jasmine.spec.js):
 
 ```javascript
 const unitsnap = require('unitsnap.js');
@@ -871,7 +878,56 @@ describe('some suite', () => {
         
         mock.b(111);
 
-        expect(observer).toMatchSnapshot('some spec'); // saves or asserts the snapshot <__dirname>/some_spec.snapshot.json
+        expect(observer).toMatchSnapshot('some spec'); // saves or asserts the snapshot __dirname/some_spec.snapshot.json
     });
 });
+```
+
+### Using with typescript-ioc
+
+Next bootstrap code can be useful:
+
+```typescript
+import {Container, Scope} from 'typescript-ioc';
+
+export const unitsnapIoC = (observer) => {
+    const ioc = {
+        mocked: new Array<any>(),
+
+        // builds mock by baseCls or cls and registers it in IoC
+        by: (cls, props?, baseCls?) => {
+            const newCls = observer.by(baseCls || cls, props);
+
+            ioc.mocked.unshift([cls, Container.getType(cls), newCls]);
+
+            Container.bind(cls).scope(Scope.Singleton).to(newCls);
+
+            return ioc;
+        },
+
+        // builds mock by baseCls or cls and registers it in IoC
+        override: (cls, props?, baseCls?) => {
+            const newCls = observer.override(baseCls || cls, props);
+
+            ioc.mocked.unshift([cls, Container.getType(cls), newCls]);
+
+            Container.bind(cls).scope(Scope.Singleton).to(newCls);
+
+            return ioc;
+        },
+
+        // restores original association
+        restore: () => {
+            for (const cls of ioc.mocked) {
+                Container.bind(cls[0]).scope(Scope.Singleton).to(cls[1] || cls[0]);
+            }
+
+            ioc.mocked = [];
+
+            return ioc;
+        }
+    };
+
+    return ioc;
+};
 ```

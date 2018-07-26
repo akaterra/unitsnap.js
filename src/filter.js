@@ -24,12 +24,12 @@ Filter.prototype = {
 
     return this;
   },
-  custom: function (custom) {
-    if (custom !== void 0 && ! (custom instanceof Function)) {
+  custom: function (fn) {
+    if (fn !== void 0 && ! (fn instanceof Function)) {
       throw new Error('Filter "custom" must be callable');
     }
 
-    this._custom = [custom, notGetAndReset(this)];
+    this._custom = [fn, notGetAndReset(this)];
 
     return this;
   },
@@ -40,6 +40,11 @@ Filter.prototype = {
   },
   fn: function (fn) {
     this._fn = [fn, notGetAndReset(this)];
+
+    return this;
+  },
+  notPromiseResult: function () {
+    this._notPromiseResult = notGetAndReset(this);
 
     return this;
   },
@@ -68,6 +73,10 @@ Filter.prototype = {
       }
 
       if (this._fn !== void 0 && assert(this._fn[0] !== entry.origin && this._fn[0] !== entry.replacement, this._epoch[1])) {
+        return false;
+      }
+
+      if (this._notPromiseResult !== void 0 && assert(entry.result instanceof Promise, this._notPromiseResult)) {
         return false;
       }
 

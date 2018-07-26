@@ -3,6 +3,7 @@
   "version": "1.3.2",
   "description": "Library for snapshot based unit testing",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "coveralls": "node ./node_modules/.bin/istanbul cover --root src ./node_modules/.bin/jasmine JASMINE_CONFIG_PATH=jasmine.json",
     "test": "node $NODE_DEBUG_OPTION ./node_modules/.bin/jasmine JASMINE_CONFIG_PATH=jasmine.json"
