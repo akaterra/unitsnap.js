@@ -151,6 +151,7 @@ export interface Snapshot {
     includeType(flag?: boolean): this;
     isEnabled(flag: string): boolean;
     load(name?: string): Snapshot;
+    remove(name?: string): Snapshot;
     save(name?: string): this;
     serialize(): Partial<State>[];
 }
