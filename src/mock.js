@@ -74,10 +74,10 @@ Mock.prototype = {
 };
 
 function Property(descriptor) {
-  if (! (this instanceof Property)) {
-    return new Property(descriptor || {});
-  } else {
+  if (this instanceof Property) {
     this.descriptor = descriptor;
+  } else {
+    return new Property(descriptor || {});
   }
 }
 
@@ -95,18 +95,18 @@ Property.prototype = {
 };
 
 function StaticMethod(value) {
-  if (! (this instanceof StaticMethod)) {
-    return new StaticMethod(value);
-  } else {
+  if (this instanceof StaticMethod) {
     this.value = value;
+  } else {
+    return new StaticMethod(value || Function);
   }
 }
 
 function StaticProperty(descriptor) {
-  if (! (this instanceof StaticProperty)) {
-    return new StaticProperty(descriptor || {});
-  } else {
+  if (this instanceof StaticProperty) {
     this.descriptor = descriptor;
+  } else {
+    return new StaticProperty(descriptor || {});
   }
 }
 
@@ -125,7 +125,7 @@ StaticProperty.prototype = {
 
 function Custom(value) {
   if (! (this instanceof Custom)) {
-    return new Custom(value);
+    return new Custom(value || Function);
   } else {
     this.value = value;
   }
@@ -143,6 +143,26 @@ Custom.prototype = {
     return this;
   },
 };
+
+function ArgsAnnotation(value, argsAnnotation) {
+  if (value instanceof Custom) {
+    value = Custom(value.value);
+  }
+
+  return Custom(value).argsAnnotation(argsAnnotation);
+}
+
+function Exclude(value) {
+  if (value instanceof Custom) {
+    value = Custom(value.value);
+  }
+
+  return Custom(value).exclude();
+}
+
+function Initial() {
+
+}
 
 var classNativeProps = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
 
@@ -508,7 +528,7 @@ function mockGetFixturePop(mock) {
 }
 
 function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
-  if (getAncestors(obj).indexOf(prop) !== - 1 || getAncestors(obj.COPY_OF).indexOf(prop) !== - 1) {
+  if (prop === Initial || getAncestors(obj).indexOf(prop) !== - 1 || getAncestors(obj.COPY_OF).indexOf(prop) !== - 1) {
     if (! (key in objProps)) {
       prop = Function;
     } else {
@@ -540,7 +560,10 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
 }
 
 module.exports = {
+  ArgsAnnotation: ArgsAnnotation,
+  Exclude: Exclude,
   Custom: Custom,
+  Initial: Initial,
   Mock: Mock,
   Property: Property,
   StaticMethod: StaticMethod,

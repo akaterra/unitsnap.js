@@ -22,6 +22,10 @@ describe('Snapshot', () => {
       return this[name];
     }
 
+    remove(name) {
+      delete this[name];
+    }
+
     save(name, snapshot) {
       this[name] = snapshot._entries;
     }
@@ -615,6 +619,18 @@ describe('Snapshot', () => {
     expect(e.loadCopy()._processors).not.toBe(e._processors);
   });
 
+  it('should remove by self name', () => {
+    const e = new unitsnap.Snapshot([null]).setName('a').setProvider(new Provider({a: {}}));
+
+    expect(e.remove()._provider.a).toBeUndefined();
+  });
+
+  it('should remove by name', () => {
+    const e = new unitsnap.Snapshot([null]).setProvider(new Provider({a: {}}));
+
+    expect(e.remove('a')._provider.a).toBeUndefined();
+  });
+
   it('should save by self name', () => {
     const e = new unitsnap.Snapshot([null]).setName('a').setProvider(new Provider({}));
 
@@ -671,8 +687,16 @@ describe('Snapshot', () => {
 });
 
 describe('SnapshotFsProvider', () => {
+  it('should exist', () => {
+    expect(new snapshot.SnapshotFsProvider(__dirname + '/snapshots').exists('a')).toBeTruthy();
+  });
+
+  it('should not exist', () => {
+    expect(new snapshot.SnapshotFsProvider(__dirname + '/snapshots').exists('b')).toBeFalsy();
+  });
+
   it('should remove', () => {
-    const e = new snapshot.SnapshotFsProvider('./spec/snapshots');
+    const e = new snapshot.SnapshotFsProvider(__dirname + '/snapshots');
 
     e.save('test', new unitsnap.Snapshot([{}])).remove('test');
 
@@ -680,7 +704,7 @@ describe('SnapshotFsProvider', () => {
   });
 
   it('should save/load', () => {
-    const e = new snapshot.SnapshotFsProvider('./spec/snapshots');
+    const e = new snapshot.SnapshotFsProvider(__dirname + '/snapshots');
 
     e.save('test', new unitsnap.Snapshot([{}]));
 
@@ -688,7 +712,7 @@ describe('SnapshotFsProvider', () => {
   });
 
   it('should save/load arbitrary object', () => {
-    const e = new snapshot.SnapshotFsProvider('./spec/snapshots');
+    const e = new snapshot.SnapshotFsProvider(__dirname + '/snapshots');
 
     e.save('test', [{args: null, result: null}]);
 
@@ -697,6 +721,14 @@ describe('SnapshotFsProvider', () => {
 });
 
 describe('SnapshotMemoryProvider', () => {
+  it('should exist', () => {
+    expect(new snapshot.SnapshotMemoryProvider({a: []}).exists('a')).toBeTruthy();
+  });
+
+  it('should not exist', () => {
+    expect(new snapshot.SnapshotMemoryProvider({a: []}).exists('b')).toBeFalsy();
+  });
+
   it('should remove', () => {
     const e = new snapshot.SnapshotMemoryProvider();
 

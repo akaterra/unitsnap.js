@@ -1,9 +1,9 @@
 const unitsnap = require('..');
 
-describe('some suite', () => {
+describe('some suite 1', () => {
   const observer = unitsnap.default;
 
-  observer.config().snapshot.setFsProvider(__dirname).includeName();
+  observer.config().snapshot.setFsProvider(__dirname + '/snapshots').includeName();
 
   beforeAll(() => unitsnap.extendJasmine());
   beforeEach(() => observer.begin());
@@ -21,27 +21,26 @@ describe('some suite', () => {
 
     mock.b(111);
 
-    if (process) {
-      process.env.SAVE_SNAPSHOT = '1';
-    }
+    process.env.SAVE_SNAPSHOT = '1';
 
     expect(observer).toMatchSnapshot('some spec 1'); // saves the snapshot <__dirname>/some_spec.snapshot.json
 
-    if (process) {
-      process.env.SAVE_SNAPSHOT = '0';
-    }
+    process.env.SAVE_SNAPSHOT = '0';
 
     expect(observer).toMatchSnapshot('some spec 1'); // asserts the snapshot <__dirname>/some_spec.snapshot.json
   });
 });
 
-describe('some suite', () => {
+describe('some suite 2', () => {
   const observer = unitsnap.default;
 
-  observer.config().snapshot.setFsProvider(__dirname);
+  observer.config().snapshot.setFsProvider(__dirname + '/snapshots');
 
   beforeAll(() => unitsnap.extendJasmine());
-  beforeEach(() => observer.begin());
+  beforeEach(() => {
+    observer.begin()
+    observer.config().snapshot.remove('some spec 2');
+  });
   afterEach(() => observer.end());
 
   it('some spec 2', () => {
@@ -56,16 +55,8 @@ describe('some suite', () => {
 
     mock.c(222);
 
-    if (process) {
-      process.env.SAVE_SNAPSHOT = '1';
-    }
+    expect(observer).toMatchSnapshot('some spec 2'); // auto saves the snapshot __dirname/some_spec.snapshot.json
 
-    expect(observer).toMatchSnapshot('some spec 2'); // saves the snapshot <__dirname>/some_spec.snapshot.json
-
-    if (process) {
-      process.env.SAVE_SNAPSHOT = '0';
-    }
-
-    expect(observer).toMatchSnapshot('some spec 2'); // asserts the snapshot <__dirname>/some_spec.snapshot.json
+    expect(observer).toMatchSnapshot('some spec 2'); // asserts the snapshot __dirname/some_spec.snapshot.json
   });
 });

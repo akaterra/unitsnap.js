@@ -125,16 +125,14 @@ Snapshot.prototype = {
   assertSaved: function (name) {
     return this.assert(this.loadCopy(name));
   },
+  exists: function (name) {
+    return this._provider.exists(name || this._name);
+  },
   filter: function () {
     return new filter.Filter(this._entries).link(this._observer);
   },
   includeArgs: function (flag) {
     this._config.args = flag !== false;
-
-    return this;
-  },
-  includeIsAsync: function (flag) {
-    this._config.isAsync = flag !== false;
 
     return this;
   },
@@ -158,6 +156,11 @@ Snapshot.prototype = {
 
     return this;
   },
+  includeIsAsync: function (flag) {
+    this._config.isAsync = flag !== false;
+
+    return this;
+  },
   includeName: function (flag) {
     this._config.name = flag !== false;
 
@@ -168,8 +171,8 @@ Snapshot.prototype = {
 
     return this;
   },
-  isEnabled: function (key) {
-    return this._config[key] === true;
+  isEnabled: function (flag) {
+    return this._config[flag] === true;
   },
   load: function (name) {
     this._entries = this._provider.load(name || this._name);
@@ -183,6 +186,11 @@ Snapshot.prototype = {
       .setProvider(this._provider)
       .addProcessors([].concat(this._processors))
       .link(this._observer);
+  },
+  remove: function (name) {
+    this._provider.remove(name || this._name);
+
+    return this;
   },
   save: function (name) {
     this._provider.save(name || this._name, this);
@@ -343,13 +351,18 @@ function SnapshotFsProvider(dir) {
 }
 
 SnapshotFsProvider.prototype = {
+  exists: function (name) {
+    return name ? require('fs').existsSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json') : false;
+  },
   load: function (name) {
     var snapshot = JSON.parse(require('fs').readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json'));
 
     return snapshot;
   },
   remove: function (name) {
-    require('fs').unlinkSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
+    if (this.exists(name)) {
+      require('fs').unlinkSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
+    }
 
     return this;
   },
@@ -372,6 +385,9 @@ function SnapshotMemoryProvider(dictionary) {
 }
 
 SnapshotMemoryProvider.prototype = {
+  exists: function (name) {
+    return name in this._dictionary;
+  },
   load: function (name) {
     if (name in this._dictionary) {
       return this._dictionary[name];

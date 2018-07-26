@@ -13,9 +13,27 @@ module.exports.extendJasmine = function () {
           }
 
           if (actual instanceof module.exports.Snapshot) {
-            if (process && (('SAVE_SNAPSHOT' in process.env && process.env.SAVE_SNAPSHOT !== '0') || process.argv.find(function (argv) {
-              return argv === '--saveSnapshot' || argv === '--sn';
-            }))) {
+            var saveSnapshot = false;
+
+            if (typeof process !== 'undefined') {
+              saveSnapshot = 'SAVE_SNAPSHOT' in process.env && process.env.SAVE_SNAPSHOT !== '0';
+
+              if (! saveSnapshot) {
+                saveSnapshot = process.argv.find(function (argv) {
+                  return argv === '--saveSnapshot';
+                });
+              }
+            }
+
+            if (typeof window !== 'undefined' && ! saveSnapshot) {
+              saveSnapshot = window.SAVE_SNAPSHOT === true;
+            }
+
+            if (! saveSnapshot) {
+              saveSnapshot = ! actual.exists(typeof expected === 'string' ? expected : void 0);
+            }
+
+            if (saveSnapshot) {
               actual.save(typeof expected === 'string' ? expected : void 0);
 
               return {
