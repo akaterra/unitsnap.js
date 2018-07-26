@@ -81,7 +81,6 @@ module.exports = {
   StringType: typeHelpers.StringType,
   UndefinedType: typeHelpers.UndefinedType,
 
-  Custom: mock.Custom,
   Filter: filter.Filter,
   Fixture: fixture.Fixture,
   FixtureCallbackStrategy: fixture.FixtureCallbackStrategy,
@@ -94,6 +93,11 @@ module.exports = {
   Snapshot: snapshot.Snapshot,
   SnapshotFsProvider: snapshot.SnapshotFsProvider,
   SnapshotMemoryProvider: snapshot.SnapshotMemoryProvider,
+
+  ArgsAnnotation: mock.ArgsAnnotation,
+  Custom: mock.Custom,
+  Exclude: mock.Exclude,
+  Initial: mock.Initial,
 
   Property: mock.Property,
   StaticMethod: mock.StaticMethod,

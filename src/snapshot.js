@@ -125,6 +125,9 @@ Snapshot.prototype = {
   assertSaved: function (name) {
     return this.assert(this.loadCopy(name));
   },
+  exists: function (name) {
+    return this._provider.exists(name || this._name);
+  },
   filter: function () {
     return new filter.Filter(this._entries).link(this._observer);
   },
@@ -343,6 +346,9 @@ function SnapshotFsProvider(dir) {
 }
 
 SnapshotFsProvider.prototype = {
+  exists: function (name) {
+    return name ? require('fs').existsSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json') : false;
+  },
   load: function (name) {
     var snapshot = JSON.parse(require('fs').readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json'));
 
@@ -372,6 +378,9 @@ function SnapshotMemoryProvider(dictionary) {
 }
 
 SnapshotMemoryProvider.prototype = {
+  exists: function (name) {
+    return name in this._dictionary;
+  },
   load: function (name) {
     if (name in this._dictionary) {
       return this._dictionary[name];

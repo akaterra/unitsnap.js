@@ -46,6 +46,12 @@ describe('Filter', () => {
     expect(e.fn(f)._fn).toEqual([f, false]);
   });
 
+  it('should set noPromiseResult expectation', () => {
+    const e = new unitsnap.Filter([{}, {}, {}]);
+
+    expect(e.notPromiseResult()._notPromiseResult).toEqual(false);
+  });
+
   it('should set tags expectation', () => {
     const e = new unitsnap.Filter([{}, {}, {}]);
 
@@ -76,6 +82,12 @@ describe('Filter', () => {
     expect(e.not().fn(f)._fn).toEqual([f, true]);
   });
 
+  it('should set noPromiseResult disregard', () => {
+    const e = new unitsnap.Filter([{}, {}, {}]);
+
+    expect(e.not().notPromiseResult()._notPromiseResult).toEqual(true);
+  });
+
   it('should set tags disregard', () => {
     const e = new unitsnap.Filter([{}, {}, {}]);
 
@@ -102,42 +114,56 @@ describe('Filter', () => {
 
   it('should create snapshot with entries filtered by expectations', () => {
     const custom = (entry) => entry.a === 1;
+    const promise = Promise.resolve();
 
     const e = new unitsnap.Filter([{
       a: 1,
       context: null,
       epoch: 3,
       origin: custom,
+      result: promise,
       tags: [1, 2, 3],
     }, {
       a: null,
       context: 2,
       epoch: 3,
       origin: custom,
+      result: promise,
       tags: [1, 2, 3],
     }, {
       a: 1,
       context: 2,
       epoch: null,
       origin: custom,
+      result: promise,
       tags: [1, 2, 3],
     }, {
       a: 1,
       context: 2,
       epoch: 3,
       origin: null,
+      result: promise,
       tags: [1, 2, 3],
     }, {
       a: 1,
       context: 2,
       epoch: 3,
       origin: custom,
+      result: null,
       tags: [1],
+    }, {
+      a: 1,
+      context: 2,
+      epoch: 3,
+      origin: custom,
+      result: promise,
+      tags: [1, 2, 3],
     }, { // this one passes all expectations
       a: 1,
       context: 2,
       epoch: 3,
       origin: custom,
+      result: null,
       tags: [1, 2, 3],
     }]);
 
@@ -145,6 +171,7 @@ describe('Filter', () => {
     e.custom(custom);
     e.epoch(3);
     e.fn(custom);
+    e.notPromiseResult();
     e.tags(1, 2, 3);
 
     expect(e.snapshot()._entries).toEqual([{
@@ -152,49 +179,63 @@ describe('Filter', () => {
       context: 2,
       epoch: 3,
       origin: custom,
+      result: null,
       tags: [1, 2, 3],
     }]);
   });
 
-
   it('should create snapshot with entries filtered by disregard', () => {
     const custom = (entry) => entry.a === 1;
+    const promise = Promise.resolve();
 
     const e = new unitsnap.Filter([{
       a: 1,
       context: null,
       epoch: 3,
       origin: custom,
+      result: promise,
       tags: [1, 2, 3],
     }, {
       a: null,
       context: 2,
       epoch: 3,
       origin: custom,
+      result: promise,
       tags: [1, 2, 3],
     }, {
       a: 1,
       context: 2,
       epoch: null,
       origin: custom,
+      result: promise,
       tags: [1, 2, 3],
     }, {
       a: 1,
       context: 2,
       epoch: 3,
       origin: null,
+      result: promise,
       tags: [1, 2, 3],
     }, {
       a: 1,
       context: 2,
       epoch: 3,
       origin: custom,
+      result: null,
+      tags: [1, 2, 3],
+    }, {
+      a: 1,
+      context: 2,
+      epoch: 3,
+      origin: custom,
+      result: promise,
       tags: [1],
     }, { // this one passes all expectations
       a: null,
       context: null,
       epoch: null,
       origin: null,
+      result: promise,
       tags: [4, 5, 6],
     }]);
 
@@ -202,6 +243,7 @@ describe('Filter', () => {
     e.not().custom(custom);
     e.not().epoch(3);
     e.not().fn(custom);
+    e.not().notPromiseResult();
     e.not().tags(1, 2, 3);
 
     expect(e.snapshot()._entries).toEqual([{
@@ -209,63 +251,8 @@ describe('Filter', () => {
       context: null,
       epoch: null,
       origin: null,
+      result: promise,
       tags: [4, 5, 6],
-    }]);
-  });
-
-  it('should create snapshot with entries filtered by expectations', () => {
-    const custom = (entry) => entry.a === 1;
-
-    const e = new unitsnap.Filter([{
-      a: 1,
-      context: null,
-      epoch: 3,
-      origin: custom,
-      tags: [1, 2, 3],
-    }, {
-      a: null,
-      context: 2,
-      epoch: 3,
-      origin: custom,
-      tags: [1, 2, 3],
-    }, {
-      a: 1,
-      context: 2,
-      epoch: null,
-      origin: custom,
-      tags: [1, 2, 3],
-    }, {
-      a: 1,
-      context: 2,
-      epoch: 3,
-      origin: null,
-      tags: [1, 2, 3],
-    }, {
-      a: 1,
-      context: 2,
-      epoch: 3,
-      origin: custom,
-      tags: [1],
-    }, { // this one passes all expectations
-      a: 1,
-      context: 2,
-      epoch: 3,
-      origin: custom,
-      tags: [1, 2, 3],
-    }]);
-
-    e.context(1).ctx(2);
-    e.custom(custom);
-    e.epoch(3);
-    e.fn(custom);
-    e.tags(1, 2, 3);
-
-    expect(e.snapshot()._entries).toEqual([{
-      a: 1,
-      context: 2,
-      epoch: 3,
-      origin: custom,
-      tags: [1, 2, 3],
     }]);
   });
 

@@ -1,6 +1,26 @@
 const unitsnap = require('..');
 const mock = require('../src/mock');
 
+describe('Custom', () => {
+  describe('when uses ArgsAnnotation', () => {
+    it('should return Custom with enabled "argsAnnotation"', () => {
+      const e = mock.ArgsAnnotation(null, ['a']);
+
+      expect(e instanceof mock.Custom).toBeTruthy();
+      expect(e.argsAnnotation).toEqual(['a']);
+    });
+  });
+
+  describe('when uses Exclude', () => {
+    it('should return Custom with enabled "exclude"', () => {
+      const e = mock.Exclude();
+
+      expect(e instanceof mock.Custom).toBeTruthy();
+      expect(e.exclude).toBeTruthy();
+    });
+  });
+});
+
 describe('Mock', () => {
   const f = _ => _;
   const fixture = new unitsnap.Fixture();
