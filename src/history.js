@@ -27,23 +27,21 @@ History.prototype = {
 
     return this;
   },
+  end: function () {
+    if (this._epochs.length === 0) {
+      return this;
+    }
+
+    this._epochs.pop().callbacks.forEach(function (cb) {cb()});
+
+    return this;
+  },
   addOnEndCallback: function (cb) {
     var epoch = this.getCurrentEpoch();
 
     if (epoch) {
       epoch.callbacks.push(cb);
     }
-
-    return this;
-  },
-  end: function () {
-    if (this._epochs.length === 0) {
-      return this;
-    }
-
-    this._epochs.pop().callbacks.forEach(function (cb) {
-      cb();
-    });
 
     return this;
   },

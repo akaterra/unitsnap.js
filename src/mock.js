@@ -74,10 +74,10 @@ Mock.prototype = {
 };
 
 function Property(descriptor) {
-  if (! (this instanceof Property)) {
-    return new Property(descriptor || {});
-  } else {
+  if (this instanceof Property) {
     this.descriptor = descriptor;
+  } else {
+    return new Property(descriptor || {});
   }
 }
 
@@ -95,18 +95,18 @@ Property.prototype = {
 };
 
 function StaticMethod(value) {
-  if (! (this instanceof StaticMethod)) {
-    return new StaticMethod(value || Function);
-  } else {
+  if (this instanceof StaticMethod) {
     this.value = value;
+  } else {
+    return new StaticMethod(value || Function);
   }
 }
 
 function StaticProperty(descriptor) {
-  if (! (this instanceof StaticProperty)) {
-    return new StaticProperty(descriptor || {});
-  } else {
+  if (this instanceof StaticProperty) {
     this.descriptor = descriptor;
+  } else {
+    return new StaticProperty(descriptor || {});
   }
 }
 

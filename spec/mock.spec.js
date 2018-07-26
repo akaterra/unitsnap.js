@@ -1,6 +1,48 @@
 const unitsnap = require('..');
 const mock = require('../src/mock');
 
+describe('Property', () => {
+  const descriptor = {};
+
+  it('should be constructed by call as factory', () => {
+    expect(mock.Property(descriptor) instanceof mock.Property).toBeTruthy();
+    expect(new mock.Property(descriptor).descriptor).toBe(descriptor);
+  });
+
+  it('should be constructed by "new"', () => {
+    expect(new mock.Property(descriptor) instanceof mock.Property).toBeTruthy();
+    expect(new mock.Property(descriptor).descriptor).toBe(descriptor);
+  });
+});
+
+describe('StaticProperty', () => {
+  const descriptor = {};
+
+  it('should be constructed by call as factory', () => {
+    expect(mock.StaticProperty(descriptor) instanceof mock.StaticProperty).toBeTruthy();
+    expect(new mock.StaticProperty(descriptor).descriptor).toBe(descriptor);
+  });
+
+  it('should be constructed by "new"', () => {
+    expect(new mock.StaticProperty(descriptor) instanceof mock.StaticProperty).toBeTruthy();
+    expect(new mock.StaticProperty(descriptor).descriptor).toBe(descriptor);
+  });
+});
+
+describe('StaticMethod', () => {
+  const value = {};
+
+  it('should be constructed by call as factory', () => {
+    expect(mock.StaticMethod(value) instanceof mock.StaticMethod).toBeTruthy();
+    expect(new mock.StaticMethod(value).value).toBe(value);
+  });
+
+  it('should be constructed by "new"', () => {
+    expect(new mock.StaticMethod(value) instanceof mock.StaticMethod).toBeTruthy();
+    expect(new mock.StaticMethod(value).value).toBe(value);
+  });
+});
+
 describe('Custom', () => {
   describe('when uses ArgsAnnotation', () => {
     it('should return Custom with enabled "argsAnnotation"', () => {
@@ -423,6 +465,14 @@ describe('Mock', () => {
 
       it('should set methods marked as class prototype methods', () => {
         const E = new mock.Mock(history).by(B, {c: B});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(E.prototype.c.ORIGIN).toBe(B.prototype.c);
+        expect(E.prototype.c  instanceof Function).toBeTruthy();
+      });
+
+      it('should set methods marked by Initial as class prototype methods', () => {
+        const E = new mock.Mock(history).by(B, {c: mock.Initial});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(E.prototype.c.ORIGIN).toBe(B.prototype.c);
@@ -1435,6 +1485,14 @@ describe('Mock', () => {
 
       it('should set methods marked as class prototype props', () => {
         const E = new mock.Mock(history).override(B, {c: B});
+
+        expect(E.prototype.a).toBe(bPrototype.a);
+        expect(E.prototype.c.ORIGIN).toBe(bPrototype.c);
+        expect(E.prototype.c instanceof Function).toBeTruthy();
+      });
+
+      it('should set methods marked by Initial as class prototype props', () => {
+        const E = new mock.Mock(history).override(B, {c: mock.Initial});
 
         expect(E.prototype.a).toBe(bPrototype.a);
         expect(E.prototype.c.ORIGIN).toBe(bPrototype.c);

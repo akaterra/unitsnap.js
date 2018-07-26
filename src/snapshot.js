@@ -136,11 +136,6 @@ Snapshot.prototype = {
 
     return this;
   },
-  includeIsAsync: function (flag) {
-    this._config.isAsync = flag !== false;
-
-    return this;
-  },
   includeCallsCount: function (flag) {
     this._config.callsCount = flag !== false;
 
@@ -161,6 +156,11 @@ Snapshot.prototype = {
 
     return this;
   },
+  includeIsAsync: function (flag) {
+    this._config.isAsync = flag !== false;
+
+    return this;
+  },
   includeName: function (flag) {
     this._config.name = flag !== false;
 
@@ -171,8 +171,8 @@ Snapshot.prototype = {
 
     return this;
   },
-  isEnabled: function (key) {
-    return this._config[key] === true;
+  isEnabled: function (flag) {
+    return this._config[flag] === true;
   },
   load: function (name) {
     this._entries = this._provider.load(name || this._name);
