@@ -187,6 +187,11 @@ Snapshot.prototype = {
       .addProcessors([].concat(this._processors))
       .link(this._observer);
   },
+  remove: function (name) {
+    this._provider.remove(name || this._name);
+
+    return this;
+  },
   save: function (name) {
     this._provider.save(name || this._name, this);
 
@@ -355,7 +360,9 @@ SnapshotFsProvider.prototype = {
     return snapshot;
   },
   remove: function (name) {
-    require('fs').unlinkSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
+    if (this.exists(name)) {
+      require('fs').unlinkSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
+    }
 
     return this;
   },

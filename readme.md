@@ -845,7 +845,7 @@ it('should do something', function () {
 ```
 
 Run Jasmine with the env variable **SAVE_SNAPSHOT**=1 telling to the matcher to save snapshots.
-The snapshot will be saved into the "__dirname/test.snapshot.js" file.
+The snapshot will be saved into the "__dirname/test.snapshot.json" file.
 
 Be sure that the saved snapshot represents valid state of the execution flow.
 
