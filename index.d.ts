@@ -128,15 +128,17 @@ export class Snapshot {
     setMapper(mapper: (state: State) => any): this;
     setName(name: string): this;
     setProvider(provider: SnapshotProvider): this;
+    setFsProvider(dir: string): this;
+    setMemoryProvider(dictionary: {[key: string]: Partial<State>[]}): this;
     link(observer: Observer): this;
     unlink(): this;
-    addProcessor(checker: (value: any) => boolean, serializer: (value: any) => any): this;
-    addClassOfProcessor(cls: {new(...args: any[]): any}, serializer?: (value: any) => any): this;
-    addInstanceOfProcessor(cls: {new(...args: any[]): any}, serializer?: (value: any) => any): this;
-    addPathProcessor(path: string, serializer: (value: any) => any): this;
-    addRegexPathProcessor(regex: RegExp, serializer: (value: any) => any): this;
-    addUndefinedProcessor(serializer: (value: any) => any): this;
-    addProcessors(processors: {checker: (value: any) => boolean, serializer: (value: any) => any}[]): this;
+    addProcessor(checker: (value: any) => boolean, serializer: ((value: any) => any)|{new(): Ignore}): this;
+    addClassOfProcessor(cls: {new(...args: any[]): any}, serializer?: ((value: any) => any)|{new(): Ignore}): this;
+    addInstanceOfProcessor(cls: {new(...args: any[]): any}, serializer?: ((value: any) => any)|{new(): Ignore}): this;
+    addPathProcessor(path: string, serializer: ((value: any) => any)|{new(): Ignore}): this;
+    addRegexPathProcessor(regex: RegExp, serializer: ((value: any) => any)|{new(): Ignore}): this;
+    addUndefinedProcessor(serializer: ((value: any) => any)|{new(): Ignore}): this;
+    addProcessors(processors: {checker: (value: any) => boolean, serializer: ((value: any) => any)|{new(): Ignore}}[]): this;
     assert(snapshot: Partial<State>[]|Snapshot): true|string;
     assertSaved(name: string): true|string;
     exists(name?: string): boolean;
@@ -175,7 +177,7 @@ export class SnapshotFsProvider extends SnapshotProvider {
     new(dir: string): SnapshotFsProvider;
 }
 export class SnapshotMemoryProvider extends SnapshotProvider {
-    new(values: {[key: string]: Partial<State>[]}): SnapshotMemoryProvider;
+    new(dictionary: {[key: string]: Partial<State>[]}): SnapshotMemoryProvider;
 }
 // state
 export interface State {

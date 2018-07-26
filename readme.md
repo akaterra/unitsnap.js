@@ -931,3 +931,13 @@ export const unitsnapIoC = (observer) => {
     return ioc;
 };
 ```
+
+Create "jasmine.d.ts" file in the spec directory that adds jasmine matcher declaration:
+
+```typescript
+declare module jasmine {
+    interface Matchers<T> {
+        toMatchSnapshot(expected: any, expectationFailOutput?: any): boolean;
+    }
+}
+```
