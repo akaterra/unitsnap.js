@@ -18,6 +18,10 @@ describe('Snapshot', () => {
       Object.assign(this, snapshots);
     }
 
+    exists(name) {
+      return name in this;
+    }
+
     load(name) {
       return this[name];
     }
@@ -526,7 +530,7 @@ describe('Snapshot', () => {
         ]
       };
 
-      result.a.push(result);
+      result.a.push(result.a);
 
       const e = new unitsnap.Snapshot([{
         result: result,
@@ -593,6 +597,30 @@ describe('Snapshot', () => {
     expect(copy._processors).toEqual(e._processors);
 
     expect(copy._entries).toEqual([null]);
+  });
+
+  it('should exists by self name', () => {
+    const e = new unitsnap.Snapshot().setName('a').setProvider(new Provider({a: [null]}));
+
+    expect(e.exists()).toBeTruthy();
+  });
+
+  it('should not exists by self name', () => {
+    const e = new unitsnap.Snapshot().setName('b').setProvider(new Provider({a: [null]}));
+
+    expect(e.exists()).toBeFalsy();
+  });
+
+  it('should exists by name', () => {
+    const e = new unitsnap.Snapshot().setProvider(new Provider({a: [null]}));
+
+    expect(e.exists('a')).toBeTruthy();
+  });
+
+  it('should not exists by name', () => {
+    const e = new unitsnap.Snapshot().setProvider(new Provider({a: [null]}));
+
+    expect(e.exists('b')).toBeFalsy();
   });
 
   it('should load copy by self name', () => {

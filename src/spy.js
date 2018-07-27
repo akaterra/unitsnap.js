@@ -1,88 +1,3 @@
-var FN_ARGUMENT_NAMES = /([^\s,]+)/g;
-var FN_ES5_DECLARATION = /^(async\s*|)function\s*(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
-var FN_ES6_CLASS_CONSTRUCTOR_DECLARATION = /^class\s*(\w*).*[\r\n\s]*\{[\r\n\s]*()constructor\s*\((.*)\)[\r\n\s]*\{/g;
-var FN_ES6_CLASS_METHOD_DECLARATION = /^(static\s*|)(async\s*|)(get\s*|set\s*|)(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
-var FN_ES6_DECLARATION = /^(async\s*|)\(?(.*?)\)?\s*=>/g;
-var FN_STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-
-function parseFunctionAnnotation(func) {
-  var fnStr = func.toString().replace(FN_STRIP_COMMENTS, '');
-  var fnArgStr = null;
-  var fnName = null;
-  var matches;
-
-  if (fnStr.substr(0, 8) === 'function') {
-    matches = regexExecAll(FN_ES5_DECLARATION, fnStr);
-
-    if (matches.length) {
-      fnArgStr = matches[3];
-      fnName = matches[2];
-    }
-  } else if (new RegExp(FN_ES6_DECLARATION).test(fnStr)) {
-    matches = regexExecAll(FN_ES6_DECLARATION, fnStr);
-
-    if (matches.length) {
-      fnArgStr = matches[2];
-      fnName = null;
-    }
-  } else if (new RegExp(FN_ES6_CLASS_METHOD_DECLARATION).test(fnStr)) {
-    matches = regexExecAll(FN_ES6_CLASS_METHOD_DECLARATION, fnStr);
-
-    if (matches.length) {
-      fnArgStr = matches[5];
-      fnName = matches[4];
-    }
-  } else if (fnStr.substr(0, 5) === 'class') {
-
-    // es6 class, search for constructor
-    while (fnStr.substr(0, 5) === 'class') {
-      matches = regexExecAll(FN_ES6_CLASS_CONSTRUCTOR_DECLARATION, fnStr);
-
-      if (matches.length) {
-        fnArgStr = matches[3];
-        fnName = matches[2];
-
-        break;
-      }
-
-      func = Object.getPrototypeOf(func);
-
-      if (func === Object) {
-        break;
-      }
-
-      fnStr = func.toString();
-    }
-  } else {
-    return [];
-  }
-
-  if (fnArgStr === null) {
-    return [];
-  }
-
-  var result = fnArgStr.match(FN_ARGUMENT_NAMES);
-
-  if (result === null) {
-    return [];
-  }
-
-  return result;
-}
-
-function regexExecAll(rgx, str) {
-  rgx = new RegExp(rgx, 'mg');
-
-  var matches = [];
-  var sub;
-
-  while (sub = rgx.exec(str)) {
-    matches = matches.concat(sub);
-  }
-
-  return matches;
-}
-
 function spyOnFunction(callable, options, asConstructor) {
   if (! (callable instanceof Function)) {
     throw new Error('Callable fn must be callable');
@@ -95,12 +10,12 @@ function spyOnFunction(callable, options, asConstructor) {
     if (Array.isArray(options.argsAnnotation)) {
       originalCallableAnnotation = options.argsAnnotation;
     } else if (options.argsAnnotation instanceof Function) {
-      originalCallableAnnotation = parseFunctionAnnotation(options.argsAnnotation);
+      originalCallableAnnotation = instance.parseFunctionAnnotation(options.argsAnnotation).args;
     } else {
       throw new Error('Spy argsAnnotation must be callable or list of arguments');
     }
   } else {
-    originalCallableAnnotation = parseFunctionAnnotation(options && options.origin || callable);
+    originalCallableAnnotation = instance.parseFunctionAnnotation(options && options.origin || callable).args;
   }
 
   if (options && options.onCall !== void 0) {
@@ -443,7 +358,6 @@ function spyOnStaticMethod(cls, key, rep, options) {
 }
 
 module.exports = {
-  parseFunctionAnnotation: parseFunctionAnnotation,
   spyOnFunction: spyOnFunction,
 
   spyOnDescriptor: spyOnDescriptor,

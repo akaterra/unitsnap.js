@@ -644,13 +644,19 @@ Also it is possible to create a new Filter over the entries of the snapshot, the
 
 * **includeType()** - "type" section of the entry will be included to the serialized representation.
 
+* **exists(name)** - checks if the snapshot exists. 
+
 * **load(name)** - loads serialized representation of the snapshot.
 
 * **loadCopy(name)** - loads serialized representation of the snapshot as a new Snapshot.
 
+* **remove(name)** - removes saved snapshot.
+
 * **save(name)** - saves a serialized representation of the snapshot.
 
 * **serialize()** - creates a serialized representation of the snapshot.
+
+* **setName(name)** - sets the name of the snapshot, this name will be used as a default name for **exists**, **load**, **loadCopy**, **remove** and **save**.
 
 ##### Value processors
 

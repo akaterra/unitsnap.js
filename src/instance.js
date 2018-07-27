@@ -1,3 +1,82 @@
+var FN_ARGUMENT_NAMES = /([^\s,]+)/g;
+var FN_ES5_DECLARATION = /^(async\s*|)function\s*(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
+var FN_ES6_CLASS_CONSTRUCTOR_DECLARATION = /^class\s*(\w*).*[\r\n\s]*\{[\r\n\s]*()constructor\s*\((.*)\)[\r\n\s]*\{/g;
+var FN_ES6_CLASS_METHOD_DECLARATION = /^(static\s*|)(async\s*|)(get\s*|set\s*|)(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
+var FN_ES6_DECLARATION = /^(async\s*|)\(?(.*?)\)?\s*=>/g;
+var FN_STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+
+function parseFunctionAnnotation(func) {
+  var fnStr = func.toString().replace(FN_STRIP_COMMENTS, '');
+  var fnArgStr = null;
+  var fnName = null;
+  var matches;
+
+  if (fnStr.substr(0, 8) === 'function') {
+    matches = regexExecAll(FN_ES5_DECLARATION, fnStr);
+
+    if (matches.length) {
+      fnArgStr = matches[3];
+      fnName = matches[2];
+    }
+  } else if (new RegExp(FN_ES6_DECLARATION).test(fnStr)) {
+    matches = regexExecAll(FN_ES6_DECLARATION, fnStr);
+
+    if (matches.length) {
+      fnArgStr = matches[2];
+      fnName = null;
+    }
+  } else if (new RegExp(FN_ES6_CLASS_METHOD_DECLARATION).test(fnStr)) {
+    matches = regexExecAll(FN_ES6_CLASS_METHOD_DECLARATION, fnStr);
+
+    if (matches.length) {
+      fnArgStr = matches[5];
+      fnName = matches[4];
+    }
+  } else if (fnStr.substr(0, 5) === 'class') {
+
+    // es6 class, search for constructor
+    while (fnStr.substr(0, 5) === 'class') {
+      matches = regexExecAll(FN_ES6_CLASS_CONSTRUCTOR_DECLARATION, fnStr);
+
+      if (matches.length) {
+        fnArgStr = matches[3];
+        fnName = matches[2];
+
+        break;
+      }
+
+      func = Object.getPrototypeOf(func);
+
+      if (func === Object) {
+        break;
+      }
+
+      fnStr = func.toString();
+    }
+  } else {
+    return [];
+  }
+
+  if (fnArgStr === null) {
+    return {args: [], name: fnName};
+  }
+
+  return {args: fnArgStr.match(FN_ARGUMENT_NAMES) || [], name: fnName};
+}
+
+function regexExecAll(rgx, str) {
+  rgx = new RegExp(rgx, 'mg');
+
+  var matches = [];
+  var sub;
+
+  while (sub = rgx.exec(str)) {
+    matches = matches.concat(sub);
+  }
+
+  return matches;
+}
+
 function getAncestors(cls) {
   if (! cls) {
     return [];
@@ -19,17 +98,31 @@ function getAncestors(cls) {
 }
 
 function getDescriptorAndType(obj, key) {
-  var descriptor = Object.getOwnPropertyDescriptor(obj, key);
+  var descriptor = {
+    descriptor: Object.getOwnPropertyDescriptor(obj, key),
+    name: obj instanceof Function
+      ? obj.prototype.constructor.name + '.' + key
+      : Object.getPrototypeOf(obj) && Object.getPrototypeOf(obj).constructor.name + '.' + key || key,
+    type: null,
+  };
 
-  if (descriptor) {
-    if (descriptor.hasOwnProperty('get') || descriptor.hasOwnProperty('set')) {
-      return {descriptor: descriptor, type: 'getterSetter'};
-    } else if (descriptor.hasOwnProperty('value')) {
-      return {descriptor: descriptor, type: descriptor.value instanceof Function ? 'function' : 'value'};
+  if (descriptor.descriptor) {
+    if (descriptor.descriptor.hasOwnProperty('get') || descriptor.descriptor.hasOwnProperty('set')) {
+      descriptor.type = 'getterSetter';
+
+      if (descriptor.descriptor.get) {
+        descriptor.get = parseFunctionAnnotation(descriptor.descriptor.get);
+      }
+
+      if (descriptor.descriptor.set) {
+        descriptor.set = parseFunctionAnnotation(descriptor.descriptor.set);
+      }
+    } else if (descriptor.descriptor.hasOwnProperty('value')) {
+      descriptor.type = descriptor.descriptor.value instanceof Function ? 'function' : 'value'
     }
   }
 
-  return {descriptor: descriptor, type: null};
+  return descriptor;
 }
 
 function callConstructor(cls, context, a) {
@@ -203,6 +296,7 @@ function copyScopeDescriptors(cls, options, maxDepth) {
 }
 
 module.exports = {
+  parseFunctionAnnotation: parseFunctionAnnotation,
   getAncestors: getAncestors,
   getPropertyType: getDescriptorAndType,
   callConstructor: callConstructor,
