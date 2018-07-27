@@ -352,7 +352,7 @@ function SnapshotFsProvider(dir) {
 
 SnapshotFsProvider.prototype = {
   exists: function (name) {
-    return name ? require('fs').existsSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json') : false;
+    return require('fs').existsSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
   },
   load: function (name) {
     var snapshot = JSON.parse(require('fs').readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json'));
@@ -360,7 +360,7 @@ SnapshotFsProvider.prototype = {
     return snapshot;
   },
   remove: function (name) {
-    if (this.exists(name)) {
+    if (name && this.exists(name)) {
       require('fs').unlinkSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
     }
 
