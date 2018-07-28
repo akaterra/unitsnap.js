@@ -8,14 +8,16 @@ function spyOnFunction(callable, options, asConstructor) {
 
   if (options && options.argsAnnotation !== void 0) {
     if (Array.isArray(options.argsAnnotation)) {
-      originalCallableAnnotation = options.argsAnnotation;
+      originalCallableAnnotation = {args: options.argsAnnotation.map(function (arg) {
+        return typeof arg === 'string' ? instance.parseFunctionAnnotationCreateArgDescriptor(arg) : arg;
+      })};
     } else if (options.argsAnnotation instanceof Function) {
-      originalCallableAnnotation = instance.parseFunctionAnnotation(options.argsAnnotation).args;
+      originalCallableAnnotation = instance.parseFunctionAnnotation(options.argsAnnotation);
     } else {
       throw new Error('Spy argsAnnotation must be callable or list of arguments');
     }
   } else {
-    originalCallableAnnotation = instance.parseFunctionAnnotation(options && options.origin || callable).args;
+    originalCallableAnnotation = instance.parseFunctionAnnotation(options && options.origin || callable);
   }
 
   if (options && options.onCall !== void 0) {
@@ -28,11 +30,30 @@ function spyOnFunction(callable, options, asConstructor) {
     callable.ARGS = {'*': []};
     callable.CALLS_COUNT ++;
 
+    var isRest = false;
+    var isRestEs6Ind = null;
+
     Array.prototype.forEach.call(arguments, function (val, ind) {
-      if (ind >= originalCallableAnnotation.length) {
-        callable.ARGS['*'].push(val);
+      if (ind >= originalCallableAnnotation.args.length) {
+        isRest = true;
+      } else if (originalCallableAnnotation.args[ind].type === 'rest') {
+        isRest = true;
+        isRestEs6Ind = ind;
+        callable.ARGS[originalCallableAnnotation.args[isRestEs6Ind].name] = [];
+
+        delete callable.ARGS['*'];
+      } else if (originalCallableAnnotation.args[ind].type === 'unpack') {
+        originalCallableAnnotation.args[ind].props.forEach(function (annotation) {
+          callable.ARGS[annotation.alias || annotation.name] = val[annotation.name];
+        });
+
+        return;
+      }
+
+      if (isRest) {
+        callable.ARGS[isRestEs6Ind ? originalCallableAnnotation.args[isRestEs6Ind].name : '*'].push(val);
       } else {
-        callable.ARGS[originalCallableAnnotation[ind]] = val;
+        callable.ARGS[originalCallableAnnotation.args[ind].name] = val;
       }
     });
     
