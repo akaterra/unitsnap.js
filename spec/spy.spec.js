@@ -16,15 +16,15 @@ describe('Spy', () => {
     });
 
     it('should use arguments annotations in ES6 declaration', () => {
-      const es6 = (a, b, c) => {
+      const es6 = (a, {b, c=5, d:dd, e=5, f:ff=5}, ...g) => {
 
       };
 
       const spied = spy.spyOnFunction(es6);
 
-      spied(1, 2, 3, 4, 5);
+      spied(1, {b: 2, c: 3, d: 4}, 5);
 
-      expect(spied.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
+      expect(spied.ARGS).toEqual({a: 1, b: 2, c: 3, dd: 4, e: void 0, ff: void 0, g: [5]});
     });
 
     it('should use arguments annotations in ES6 declaration with no brackets single argument', () => {

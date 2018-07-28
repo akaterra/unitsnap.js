@@ -21,12 +21,12 @@ export class Fixture {
     setCallbackStrategy(cb: (...args) => any): this;
     setQueueStrategy(values: any[]): this;
     setFsProvider(dirOrProvider: string|FixtureFsProvider): this;
-    setMemoryProvider(dirOrProvider: {[key: string]: any[] }|FixtureMemoryProvider): this;
+    setMemoryProvider(dirOrProvider: {[key: string]: any[]}|FixtureMemoryProvider): this;
     pop(): any;
     push(...args: any[]): this;
     throwOnCallback(cb: (value: any) => boolean): this;
-    throwOnClassOf(cls: {new(...args: any[]): any }): this;
-    throwOnInstanceOf(cls: {new(...args: any[]): any }): this;
+    throwOnClassOf(cls: {new(...args: any[]): any}): this;
+    throwOnInstanceOf(cls: {new(...args: any[]): any}): this;
 }
 export class FixtureCallbackStrategy {
     new(cb: (...args: any[]) => any): FixtureCallbackStrategy;
@@ -71,9 +71,9 @@ export interface HistoryEpoch {
 // mock
 export class Mock {
     new(history?: History): Mock;
-    by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any })): {new(...args: any[]): T};
-    from<T=object>(props: {[key: string]: any }): {new(...args: any[]): T};
-    override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any })): {new(...args: any[]): T};
+    by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
+    from<T=object>(props: {[key: string]: any}): {new(...args: any[]): T};
+    override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
     spy(fn: (...args) => any): (...args) => any;
 }
 export interface PropertyDescriptor {
@@ -108,9 +108,9 @@ export class Observer {
     config(): ObserverConfig;
     begin(epoch?: string, comment?: string): this;
     end(): this;
-    by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any })): {new(...args: any[]): T};
-    from<T=object>(props: {[key: string]: any }): {new(...args: any[]): T};
-    override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any })): {new(...args: any[]): T};
+    by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
+    from<T=object>(props: {[key: string]: any}): {new(...args: any[]): T};
+    override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
     spy(fn: (...args) => any): (...args) => any;
     push(...args: any[]): this;
     filter(): Filter;
@@ -153,7 +153,7 @@ export class Snapshot {
     includeType(flag?: boolean): this;
     isEnabled(flag: string): boolean;
     load(name?: string): Snapshot;
-    remove(name?: string): Snapshot;
+    remove(name?: string): this;
     save(name?: string): this;
     serialize(): Partial<State>[];
 }
