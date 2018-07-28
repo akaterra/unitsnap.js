@@ -1,6 +1,6 @@
 {
   "name": "unitsnap.js",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Library for snapshot based unit testing",
   "main": "index.js",
   "types": "index.d.ts",
