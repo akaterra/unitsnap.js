@@ -94,9 +94,9 @@ export interface MockProperty {
 export interface MockMethod {
     value: any;
 }
-export function ArgsAnnotation(argsAnnotation: ((...args) => any)|string[]): MockCustom;
+export function ArgsAnnotation(value: any, argsAnnotation: ((...args) => any)|string[]): MockCustom;
 export function Custom(value?: any): MockCustom;
-export function Exclude(): MockCustom;
+export function Exclude(value: any): MockCustom;
 export function Initial(): void;
 export function Property(descriptor: Partial<PropertyDescriptor>): MockProperty;
 export function StaticProperty(descriptor: Partial<PropertyDescriptor>): MockProperty;
