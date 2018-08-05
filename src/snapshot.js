@@ -93,9 +93,9 @@ Snapshot.prototype = {
   },
   addPathProcessor: function (path, serializer) {
     var usefulRegex = RegExp('^' + path
-      .replace(/[-[\]{}()+?.,\\^$|#\s]/g, '\\$&')
-      .replace('*', '.*')
-      .replace('_', '.') + '$'
+      .replace(/[-[\]{}()+.,\\^$|#\s]/g, '\\$&')
+      .replace(/\*/g, '.*')
+      .replace(/\?/g, '.') + '$'
     );
 
     return this.addProcessor(function (value, path) {

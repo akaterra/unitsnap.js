@@ -88,8 +88,12 @@ export interface MockCustom {
 }
 export interface MockProperty {
     descriptor: Partial<PropertyDescriptor>;
-    get(getter: any): this;
-    set(setter: any): this;
+    createGetterSetterDescriptor(): {configurable?: boolean, writable?: boolean, get?: any, set?: any};
+    createValueDescriptor(): {configurable?: boolean, writable?: boolean, value?: any};
+    get(getter?: any): this;
+    set(setter?: any): this;
+    handler(fn?: (...args: any[]) => any): this;
+    value(value: any): this;
 }
 export interface MockMethod {
     value: any;

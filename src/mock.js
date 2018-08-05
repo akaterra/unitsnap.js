@@ -73,30 +73,76 @@ Mock.prototype = {
   },
 };
 
-function Property(descriptor) {
-  if (this instanceof Property) {
-    this.descriptor = descriptor;
+var propertyGetterSetterProps = ['configurable', 'writable', 'get', 'set'];
+var propertyValueProps = ['configurable', 'writable', 'value'];
+
+function Descriptor(descriptor) {
+  if (this instanceof Descriptor) {
+    this.descriptor = Object.assign({}, descriptor);
   } else {
-    return new Property(descriptor || {});
+    return new Descriptor(descriptor || {});
   }
 }
 
-Property.prototype = {
+Descriptor.prototype = {
+  create: function () {
+    throw new Error('Use "createGetterSetterDescriptor" or "createValueDescriptor" for descriptor specification');
+  },
+  createGetterSetterDescriptor: function () {
+    return propertyGetterSetterProps.reduce(function (acc, key) {
+      if (! this.descriptor.hasOwnProperty(key)) {
+        return acc;
+      }
+
+      acc[key] = this.descriptor[key];
+
+      return acc;
+    }.bind(this), {get: this.descriptor.get || Function, set: this.descriptor.set || Function});
+  },
+  createValueDescriptor: function () {
+    return propertyValueProps.reduce(function (acc, key) {
+      if (! this.descriptor.hasOwnProperty(key)) {
+        return acc;
+      }
+
+      acc[key] = this.descriptor[key];
+
+      return acc;
+    }.bind(this), {value: this.descriptor.value || Function});
+  },
   get: function (get) {
-    this.descriptor.get = get;
+    this.descriptor.get = get || Function;
 
     return this;
   },
   set: function (set) {
-    this.descriptor.set = set;
+    this.descriptor.set = set || Function;
+
+    return this;
+  },
+  handler: function (fn) {
+    this.descriptor.value = fn || Function;
+
+    return this;
+  },
+  value: function (value) {
+    this.descriptor.value = value;
 
     return this;
   },
 };
 
+function Property(descriptor) {
+  if (this instanceof Property) {
+    this.descriptor = Object.assign({}, descriptor);
+  } else {
+    return new Property(descriptor || {});
+  }
+}
+
 function StaticMethod(value) {
   if (this instanceof StaticMethod) {
-    this.value = value;
+    this.descriptor = {value: value};
   } else {
     return new StaticMethod(value || Function);
   }
@@ -104,24 +150,11 @@ function StaticMethod(value) {
 
 function StaticProperty(descriptor) {
   if (this instanceof StaticProperty) {
-    this.descriptor = descriptor;
+    this.descriptor = Object.assign({}, descriptor);
   } else {
     return new StaticProperty(descriptor || {});
   }
 }
-
-StaticProperty.prototype = {
-  get: function (get) {
-    this.descriptor.get = get;
-
-    return this;
-  },
-  set: function (set) {
-    this.descriptor.set = set;
-
-    return this;
-  },
-};
 
 function Custom(value) {
   if (! (this instanceof Custom)) {
@@ -192,14 +225,22 @@ function ClassMaker(mock, cls, props) {
     props.push('constructor');
   }
 
+  var restProp;
+
   this._props = Array.isArray(props)
     ? props.reduce(function (acc, key) {
-      if (key in this._clsProtoPropsDescriptors) {
+      if (key === '*') {
+        restProp = Initial;
+
+        return acc;
+      }
+
+      if (hasOwnProperty(this._clsProtoPropsDescriptors, key)) {
         var descriptor = this._clsProtoPropsDescriptors[key];
 
         switch (descriptor.type) {
           case 'function':
-            acc[key] = cls;
+            acc[key] = Initial;
 
             break;
 
@@ -207,12 +248,42 @@ function ClassMaker(mock, cls, props) {
             acc[key] = new Property(descriptor.descriptor);
         }
       } else {
-        acc[key] = cls;
+        acc[key] = Initial;
       }
 
       return acc;
     }.bind(this), {})
-    : props;
+    : Object.keys(props).reduce(function (acc, key) {
+      if (key === '*') {
+        restProp = props[key];
+
+        return acc;
+      }
+
+      acc[key] = props[key];
+
+      return acc;
+    }.bind(this), {});
+
+  if (restProp) {
+    Object.keys(this._clsProtoPropsDescriptors).forEach(function (key) {
+      if (this._clsProtoPropsDescriptors[key].level === 0 && ! this._props.hasOwnProperty(key)) {
+        var descriptor = this._clsProtoPropsDescriptors[key];
+
+        switch (descriptor.type) {
+          case 'function':
+            this._props[key] = restProp instanceof Property ? restProp.createValueDescriptor : restProp;
+
+            break;
+
+          default:
+            this._props[key] = new Property(descriptor.descriptor);
+        }
+
+        this._props[key] = restProp;
+      }
+    }.bind(this));
+  }
 
   this._propsMetadata = { extraStaticProps: [], extraProps: [] };
 }
@@ -297,19 +368,20 @@ ClassMaker.prototype = {
       var custom = null;
       var customGet = null;
       var customSet = null;
+      var prop = self._props[key];
       var rep = null;
       var repDescriptor = null;
 
-      if (self._props[key] instanceof StaticProperty) {
+      if (prop instanceof StaticProperty) {
         repDescriptor = {};
 
-        if (self._props[key].descriptor.get) {
-          if (self._props[key].descriptor.get instanceof Custom) {
-            customGet = self._props[key].descriptor.get;
+        if (prop.descriptor.get) {
+          if (prop.descriptor.get instanceof Custom) {
+            customGet = prop.descriptor.get;
           }
 
           repDescriptor.get = classMakerGetReplacement(
-            customGet ? customGet.value : self._props[key].descriptor.get,
+            customGet ? customGet.value : prop.descriptor.get,
             key,
             self._cls,
             self._clsProps,
@@ -325,13 +397,13 @@ ClassMaker.prototype = {
           }
         }
 
-        if (self._props[key].descriptor.set) {
-          if (self._props[key].descriptor.set instanceof Custom) {
-            customSet = self._props[key].descriptor.set;
+        if (prop.descriptor.set) {
+          if (prop.descriptor.set instanceof Custom) {
+            customSet = prop.descriptor.set;
           }
 
           repDescriptor.set = classMakerGetReplacement(
-            customSet ? customSet.value : self._props[key].descriptor.set,
+            customSet ? customSet.value : prop.descriptor.set,
             key,
             self._cls,
             self._clsProps,
@@ -354,7 +426,7 @@ ClassMaker.prototype = {
               type: 'staticGetter',
             },
             origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.get,
-            replacement: self._props[key].descriptor.get,
+            replacement: prop.descriptor.get,
           }, customGet || {}),
           set: Object.assign({
             extra: {
@@ -362,7 +434,7 @@ ClassMaker.prototype = {
               type: 'staticSetter',
             },
             origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.set,
-            replacement: self._props[key].descriptor.set,
+            replacement: prop.descriptor.set,
           }, customSet || {}),
           onCall: function (context, state) {
             if (self._mock._history) {
@@ -370,16 +442,16 @@ ClassMaker.prototype = {
             }
           },
         });
-      } else if (self._props[key] instanceof Property) {
+      } else if (prop instanceof Property) {
         repDescriptor = {};
 
-        if (self._props[key].descriptor.get) {
-          if (self._props[key].descriptor.get instanceof Custom) {
-            customGet = self._props[key].descriptor.get;
+        if (prop.descriptor.get) {
+          if (prop.descriptor.get instanceof Custom) {
+            customGet = prop.descriptor.get;
           }
 
           repDescriptor.get = classMakerGetReplacement(
-            customGet ? customGet.value : self._props[key].descriptor.get,
+            customGet ? customGet.value : prop.descriptor.get,
             key,
             self._cls,
             self._clsProtoScope,
@@ -395,13 +467,13 @@ ClassMaker.prototype = {
           }
         }
 
-        if (self._props[key].descriptor.set) {
-          if (self._props[key].descriptor.set instanceof Custom) {
-            customSet = self._props[key].descriptor.set;
+        if (prop.descriptor.set) {
+          if (prop.descriptor.set instanceof Custom) {
+            customSet = prop.descriptor.set;
           }
 
           repDescriptor.set = classMakerGetReplacement(
-            customSet ? customSet.value : self._props[key].descriptor.set,
+            customSet ? customSet.value : prop.descriptor.set,
             key,
             self._cls,
             self._clsProtoScope,
@@ -424,7 +496,7 @@ ClassMaker.prototype = {
               type: 'getter',
             },
             origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.get,
-            replacement: self._props[key].descriptor.get,
+            replacement: prop.descriptor.get,
           }, customGet || {}),
           set: Object.assign({
             extra: {
@@ -432,7 +504,7 @@ ClassMaker.prototype = {
               type: 'setter',
             },
             origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.set,
-            replacement: self._props[key].descriptor.set,
+            replacement: prop.descriptor.set,
           }, customSet || {}),
           onCall: function (context, state) {
             if (self._mock._history) {
@@ -440,13 +512,13 @@ ClassMaker.prototype = {
             }
           },
         });
-      } else if (self._props[key] instanceof StaticMethod) {
-        if (self._props[key].value instanceof Custom) {
-          custom = self._props[key].value;
+      } else if (prop instanceof StaticMethod) {
+        if (prop.descriptor.value instanceof Custom) {
+          custom = prop.descriptor.value;
         }
 
         rep = classMakerGetReplacement(
-          custom ? custom.value : self._props[key].value,
+          custom ? custom.value : prop.descriptor.value,
           key,
           self._cls,
           self._clsProps,
@@ -477,12 +549,12 @@ ClassMaker.prototype = {
           },
         }, custom || {}));
       } else {
-        if (self._props[key] instanceof Custom) {
-          custom = self._props[key];
+        if (prop instanceof Custom) {
+          custom = prop;
         }
 
         rep = classMakerGetReplacement(
-          custom ? custom.value : self._props[key],
+          custom ? custom.value : prop,
           key,
           self._cls,
           self._clsProtoScope,
@@ -559,6 +631,10 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
   return function () { return prop; };
 }
 
+function hasOwnProperty(obj, key) {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}
+
 module.exports = {
   ArgsAnnotation: ArgsAnnotation,
   Exclude: Exclude,
@@ -581,3 +657,14 @@ var spyOnStaticDescriptor = require('./spy').spyOnStaticDescriptor;
 var spyOnFunction = require('./spy').spyOnFunction;
 var spyOnMethod = require('./spy').spyOnMethod;
 var spyOnStaticMethod = require('./spy').spyOnStaticMethod;
+
+Property.prototype = Object.assign(copyPrototype(Descriptor), {
+  create: function () {
+    return this.createGetterSetterDescriptor();
+  },
+});
+StaticProperty.prototype = Object.assign(copyPrototype(Descriptor), {
+  create: function () {
+    return this.createValueDescriptor();
+  },
+});

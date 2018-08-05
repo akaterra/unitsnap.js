@@ -402,20 +402,20 @@ describe('Snapshot', () => {
       }]);
     });
 
-    it('should serialize with path serializer contained "_" as "single symbol" pattern', () => {
+    it('should serialize with path serializer contained "?" as "single arbitrary symbol" pattern', () => {
       const e = new unitsnap.Snapshot([{
         args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
-      }]).addPathProcessor('[0]._esult', _ => 'serialized');
+      }]).addPathProcessor('[0].?es?lt', _ => 'serialized');
 
       expect(e.serialize()).toEqual([{
         args: [], result: 'serialized',
       }]);
     });
 
-    it('should serialize with path serializer contained "*" as "arbitrary symbols" pattern', () => {
+    it('should serialize with path serializer contained "*" as "any arbitrary symbols" pattern', () => {
       const e = new unitsnap.Snapshot([{
         args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
-      }]).addPathProcessor('[0]*result', _ => 'serialized');
+      }]).addPathProcessor('[0]*res*ult', _ => 'serialized');
 
       expect(e.serialize()).toEqual([{
         args: [], result: 'serialized',

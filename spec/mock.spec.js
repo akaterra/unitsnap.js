@@ -6,12 +6,30 @@ describe('Property', () => {
 
   it('should be constructed by call as factory', () => {
     expect(mock.Property(descriptor) instanceof mock.Property).toBeTruthy();
-    expect(new mock.Property(descriptor).descriptor).toBe(descriptor);
+    expect(new mock.Property(descriptor).descriptor).toEqual(descriptor);
   });
 
   it('should be constructed by "new"', () => {
     expect(new mock.Property(descriptor) instanceof mock.Property).toBeTruthy();
-    expect(new mock.Property(descriptor).descriptor).toBe(descriptor);
+    expect(new mock.Property(descriptor).descriptor).toEqual(descriptor);
+  });
+
+  it('should set get/set/handler default value = Function', () => {
+    const e = mock.Property().get().set().handler();
+
+    expect(e.descriptor).toEqual({get: Function, set: Function, value: Function});
+  });
+
+  it('should create getter/setter descriptor', () => {
+    const e = mock.Property().get(1).set(2).handler(3);
+
+    expect(e.createGetterSetterDescriptor()).toEqual({get: 1, set: 2});
+  });
+
+  it('should create value descriptor', () => {
+    const e = mock.Property().get(1).set(2).handler(3);
+
+    expect(e.createValueDescriptor()).toEqual({value: 3});
   });
 });
 
@@ -20,12 +38,30 @@ describe('StaticProperty', () => {
 
   it('should be constructed by call as factory', () => {
     expect(mock.StaticProperty(descriptor) instanceof mock.StaticProperty).toBeTruthy();
-    expect(new mock.StaticProperty(descriptor).descriptor).toBe(descriptor);
+    expect(new mock.StaticProperty(descriptor).descriptor).toEqual(descriptor);
   });
 
   it('should be constructed by "new"', () => {
     expect(new mock.StaticProperty(descriptor) instanceof mock.StaticProperty).toBeTruthy();
-    expect(new mock.StaticProperty(descriptor).descriptor).toBe(descriptor);
+    expect(new mock.StaticProperty(descriptor).descriptor).toEqual(descriptor);
+  });
+
+  it('should set get/set/handler default value = Function', () => {
+    const e = mock.StaticProperty().get().set().handler();
+
+    expect(e.descriptor).toEqual({get: Function, set: Function, value: Function});
+  });
+
+  it('should create getter/setter descriptor', () => {
+    const e = mock.StaticProperty().get(1).set(2).handler(3);
+
+    expect(e.createGetterSetterDescriptor()).toEqual({get: 1, set: 2});
+  });
+
+  it('should create value descriptor', () => {
+    const e = mock.StaticProperty().get(1).set(2).handler(3);
+
+    expect(e.createValueDescriptor()).toEqual({value: 3});
   });
 });
 
@@ -34,12 +70,12 @@ describe('StaticMethod', () => {
 
   it('should be constructed by call as factory', () => {
     expect(mock.StaticMethod(value) instanceof mock.StaticMethod).toBeTruthy();
-    expect(new mock.StaticMethod(value).value).toBe(value);
+    expect(new mock.StaticMethod(value).descriptor.value).toEqual(value);
   });
 
   it('should be constructed by "new"', () => {
     expect(new mock.StaticMethod(value) instanceof mock.StaticMethod).toBeTruthy();
-    expect(new mock.StaticMethod(value).value).toBe(value);
+    expect(new mock.StaticMethod(value).descriptor.value).toEqual(value);
   });
 });
 

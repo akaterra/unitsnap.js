@@ -688,7 +688,7 @@ Note, that each added processor will be inserted into beginning of the processor
 
 * **addPathProcessor(path, serializer)** - adds "match to path" processor, the value having **path** will be serialized with **serializer**
 
-  Path can contain an asterisk ("*") as any number of characters and an underscore ("_") as a single character.
+  Path is a wildcard pattern with an asterisk ("*") as any number of characters and with a question mask ("?") as a single character.
 
 * **addRegexPathProcessor(regex, serializer)** - adds "match to regex path" processor, the value with path matched to the **regex** will be serialized with **serializer**.
 
