@@ -45,6 +45,7 @@ describe('Observer', () => {
     expect(e._snapshot._observer).toBe(e);
     expect(e._config).toEqual({
       fixture: e._fixture,
+      history: e._history,
       mock: e._mock,
       snapshot: e._snapshot,
     });

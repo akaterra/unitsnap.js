@@ -41,34 +41,6 @@ describe('Type helpers', () => {
     });
   });
 
-  describe('ClassOfType', () => {
-    it('should check and resolve class of value', () => {
-      var t = new typeHelpers.ClassOfType(Date);
-
-      for (const v of [new Date()]) {
-        expect(t.check(v)).toBeTruthy();
-      }
-    });
-
-    it('should check and reject not class of value', () => {
-      var t = new typeHelpers.ClassOfType(Date);
-
-      class D extends Date {
-
-      }
-
-      for (const v of [new D()]) {
-        expect(t.check(v)).toBeFalsy();
-      }
-    });
-
-    it('should serialize value', () => {
-      var t = new typeHelpers.ClassOfType(Date);
-
-      expect(t.serialize()).toEqual({$$data: 'Date', $$type: 'classOf'});
-    });
-  });
-
   describe('DateType', () => {
     it('should check and resolve instance of date value', () => {
       var t = new typeHelpers.DateType();
@@ -182,6 +154,35 @@ describe('Type helpers', () => {
       var t = new typeHelpers.NumberType();
 
       expect(t.serialize()).toEqual({$$data: null, $$type: 'number'});
+    });
+  });
+
+
+  describe('StrictInstanceOfType', () => {
+    it('should check and resolve class of value', () => {
+      var t = new typeHelpers.StrictInstanceOfType(Date);
+
+      for (const v of [new Date()]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and reject not class of value', () => {
+      var t = new typeHelpers.StrictInstanceOfType(Date);
+
+      class D extends Date {
+
+      }
+
+      for (const v of [new D()]) {
+        expect(t.check(v)).toBeFalsy();
+      }
+    });
+
+    it('should serialize value', () => {
+      var t = new typeHelpers.StrictInstanceOfType(Date);
+
+      expect(t.serialize()).toEqual({$$data: 'Date', $$type: 'classOf'});
     });
   });
 

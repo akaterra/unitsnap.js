@@ -62,6 +62,14 @@ Snapshot.prototype = {
       return basicType[0] === checker;
     });
 
+    if (typeof checker !== 'function' && ! basicTypeChecker) {
+      var expectedValue = checker;
+
+      checker = function (value) {
+        return value === expectedValue;
+      }
+    }
+
     basicTypeChecker = basicTypeChecker
       ? basicTypeChecker[1].check.bind(basicTypeChecker[1])
       : checker;
@@ -80,11 +88,6 @@ Snapshot.prototype = {
     });
 
     return this;
-  },
-  addClassOfProcessor: function (cls, serializer) {
-    var usefulCls = new typeHelpers.ClassOfType(cls);
-
-    return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   },
   addInstanceOfProcessor: function (cls, serializer) {
     var usefulCls = new typeHelpers.InstanceOfType(cls);
@@ -108,6 +111,11 @@ Snapshot.prototype = {
     return this.addProcessor(function (value, path) {
       return usefulRegex.test(path);
     }, serializer);
+  },
+  addStrictInstanceOfProcessor: function (cls, serializer) {
+    var usefulCls = new typeHelpers.StrictInstanceOfType(cls);
+
+    return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   },
   addUndefinedProcessor: function (serializer) {
     var usefulCls = new typeHelpers.UndefinedType();

@@ -125,6 +125,24 @@ describe('Snapshot', () => {
     expect(e._processors).toEqual([{checker: f, serializer: f}]);
   });
 
+  it('should add processor with custom checker as matcher to primitive value', () => {
+    const e = new unitsnap.Snapshot().addProcessor('checker', f);
+
+    expect(e._processors[0].checker instanceof Function).toBeTruthy();
+  });
+
+  it('should return true on value match on added processor with custom checker as matcher to primitive value', () => {
+    const e = new unitsnap.Snapshot().addProcessor('a', f);
+
+    expect(e._processors[0].checker('a')).toBeTruthy();
+  });
+
+  it('should return false on value mismatch on added processor with custom checker as matcher to primitive value', () => {
+    const e = new unitsnap.Snapshot().addProcessor('a', f);
+
+    expect(e._processors[0].checker('b')).toBeFalsy();
+  });
+
   it('should add processor before previously added', () => {
     const e = new unitsnap.Snapshot().addProcessor(f, f).addProcessor(g, g);
 
@@ -288,13 +306,13 @@ describe('Snapshot', () => {
   });
 
   it('should add processor of class of', () => {
-    const e = new unitsnap.Snapshot().addClassOfProcessor(Date);
+    const e = new unitsnap.Snapshot().addStrictInstanceOfProcessor(Date);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.ClassOfType.prototype.check);
+    expect(e._processors[0].checker.original).toBe(typeHelpers.StrictInstanceOfType.prototype.check);
   });
 
   it('should add processor of class of with custom serializer', () => {
-    const e = new unitsnap.Snapshot().addClassOfProcessor(Date, f);
+    const e = new unitsnap.Snapshot().addStrictInstanceOfProcessor(Date, f);
 
     expect(e._processors[0].serializer).toBe(f);
   });
@@ -583,7 +601,7 @@ describe('Snapshot', () => {
       .setConfig({a: 1})
       .setName('a')
       .setProvider(new Provider({a: [null]}))
-      .addClassOfProcessor(Date)
+      .addStrictInstanceOfProcessor(Date)
       .link(observer);
 
     const copy = e.loadCopy();

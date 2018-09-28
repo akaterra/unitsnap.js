@@ -670,7 +670,7 @@ Note, that each added processor will be inserted into beginning of the processor
 
   **checker** is a function that checks if the value should be serialized, **serializer** performs value serialization.
 
-* **addClassOfProcessor(class, serializer)** - adds "class of" processor, the value will be serialized as:
+* **addStrictInstanceOfProcessor(class, serializer)** - adds "class of" processor, the value will be serialized as:
   ```javascript
   {
     $$data: <class name>,
@@ -744,7 +744,7 @@ Available helpers:
   }
   ```
 
-* **ClassOfType** - checks the value to be class of and serializes the value as:
+* **StrictInstanceOfType** - checks the value to be class of and serializes the value as:
   ```javascript
   {
     $$data: <class name>,

@@ -90,19 +90,19 @@ describe('History', () => {
   });
 
   it('should add callback to current epoch on begun history', () => {
-    const e = new unitsnap.History().begin('1', '2').addOnEndCallback(f);
+    const e = new unitsnap.History().begin('1', '2').addOnEpochEndCallback(f);
 
     expect(e.getCurrentEpoch().callbacks).toEqual([f]);
   });
 
   it('should not add callback to current epoch on not begun history', () => {
-    const e = new unitsnap.History().addOnEndCallback(f);
+    const e = new unitsnap.History().addOnEpochEndCallback(f);
 
     expect(e.getCurrentEpoch()).toBeNull();
   });
 
   it('should call current epoch callback on epoch end', () => {
-    new unitsnap.History().begin().addOnEndCallback(callback).end();
+    new unitsnap.History().begin().addOnEpochEndCallback(callback).end();
 
     expect(callback).toHaveBeenCalled();
   });

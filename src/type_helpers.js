@@ -3,6 +3,9 @@ function AnyType() {
 }
 
 AnyType.prototype = {
+  clone: function (value) {
+    return value;
+  },
   check: function () {
     return true;
   },
@@ -16,6 +19,9 @@ function BooleanType() {
 }
 
 BooleanType.prototype = {
+  clone: function (value) {
+    return value;
+  },
   check: function (value) {
     return typeof value === 'boolean';
   },
@@ -24,16 +30,35 @@ BooleanType.prototype = {
   },
 };
 
-function ClassOfType(cls) {
-  this._cls = cls;
+function ConvertToString() {
+
 }
 
-ClassOfType.prototype = {
-  check: function (value) {
-    return value !== void 0 && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls;
+ConvertToString.prototype = {
+  clone: function (value) {
+    return String(value);
   },
-  serialize: function () {
-    return {$$data: this._cls.prototype.constructor.name, $$type: 'classOf'};
+  check: function (value) {
+    return true;
+  },
+  serialize: function (value) {
+    return value;
+  },
+};
+
+function Copy() {
+
+}
+
+Copy.prototype = {
+  clone: function (value) {
+    return value;
+  },
+  check: function (value) {
+    return true;
+  },
+  serialize: function (value) {
+    return value;
   },
 };
 
@@ -42,6 +67,9 @@ function DateType() {
 }
 
 DateType.prototype = {
+  clone: function (value) {
+    return value;
+  },
   check: function (value) {
     return value instanceof Date;
   },
@@ -55,6 +83,9 @@ function DateValue() {
 }
 
 DateValue.prototype = {
+  clone: function (value) {
+    return value;
+  },
   check: function (value) {
     return value instanceof Date;
   },
@@ -68,7 +99,10 @@ function Ignore() {
 }
 
 Ignore.prototype = {
-  check: function (value) {
+  clone: function (value) {
+    return value;
+  },
+  check: function () {
     return true;
   },
   serialize: function () {
@@ -81,6 +115,9 @@ function InstanceOfType(cls) {
 }
 
 InstanceOfType.prototype = {
+  clone: function (value) {
+    return value;
+  },
   check: function (value) {
     return value instanceof this._cls;
   },
@@ -94,6 +131,9 @@ function NumberType() {
 }
 
 NumberType.prototype = {
+  clone: function (value) {
+    return value;
+  },
   check: function (value) {
     return typeof value === 'number';
   },
@@ -102,11 +142,30 @@ NumberType.prototype = {
   },
 };
 
+function StrictInstanceOfType(cls) {
+  this._cls = cls;
+}
+
+StrictInstanceOfType.prototype = {
+  clone: function (value) {
+    return value;
+  },
+  check: function (value) {
+    return value !== void 0 && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls;
+  },
+  serialize: function () {
+    return {$$data: this._cls.prototype.constructor.name, $$type: 'classOf'};
+  },
+};
+
 function StringType() {
 
 }
 
 StringType.prototype = {
+  clone: function (value) {
+    return value;
+  },
   check: function (value) {
     return typeof value === 'string';
   },
@@ -131,12 +190,14 @@ UndefinedType.prototype = {
 module.exports = {
   AnyType: AnyType,
   BooleanType: BooleanType,
-  ClassOfType: ClassOfType,
+  ConvertToString: ConvertToString,
+  Copy: Copy,
   DateType: DateType,
   DateValue: DateValue,
   Ignore: Ignore,
   InstanceOfType: InstanceOfType,
   NumberType: NumberType,
+  StrictInstanceOfType: StrictInstanceOfType,
   StringType: StringType,
   UndefinedType: UndefinedType,
 };

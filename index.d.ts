@@ -72,6 +72,7 @@ export interface HistoryEpoch {
 export class Mock {
     new(history?: History): Mock;
     by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
+    byOverride<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
     from<T=object>(props: {[key: string]: any}): {new(...args: any[]): T};
     override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
     spy(fn: (...args) => any): (...args) => any;
@@ -137,10 +138,10 @@ export class Snapshot {
     link(observer: Observer): this;
     unlink(): this;
     addProcessor(checker: (value: any) => boolean, serializer: ((value: any) => any)|{new(): Ignore}): this;
-    addClassOfProcessor(cls: {new(...args: any[]): any}, serializer?: ((value: any) => any)|{new(): Ignore}): this;
     addInstanceOfProcessor(cls: {new(...args: any[]): any}, serializer?: ((value: any) => any)|{new(): Ignore}): this;
     addPathProcessor(path: string, serializer: ((value: any) => any)|{new(): Ignore}): this;
     addRegexPathProcessor(regex: RegExp, serializer: ((value: any) => any)|{new(): Ignore}): this;
+    addStrictInstanceOfProcessor(cls: {new(...args: any[]): any}, serializer?: ((value: any) => any)|{new(): Ignore}): this;
     addUndefinedProcessor(serializer: ((value: any) => any)|{new(): Ignore}): this;
     addProcessors(processors: {checker: (value: any) => boolean, serializer: ((value: any) => any)|{new(): Ignore}}[]): this;
     assert(snapshot: Partial<State>[]|Snapshot): true|string;
@@ -208,13 +209,14 @@ export interface State {
 }
 // type helpers
 export abstract class TypeHelper<T=any> {
+    clone(value: T): any;
     check(value: T): boolean;
     serialize(value: T): boolean;
 }
 export class AnyType extends TypeHelper {}
 export class BooleanType extends TypeHelper {}
-export class ClassOfType extends TypeHelper {
-    new(value: {new(...args: any[]): any}): ClassOfType;
+export class StrictInstanceOfType extends TypeHelper {
+    new(value: {new(...args: any[]): any}): StrictInstanceOfType;
 }
 export class DateType extends TypeHelper {}
 export class DateValue extends TypeHelper {}

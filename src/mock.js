@@ -12,6 +12,11 @@ Mock.prototype = {
 
     return maker.makePrototypeFor(maker.makeConstructor(cls, true));
   },
+  byOverride: function (cls, props) {
+    var maker = new ClassMaker(this, cls, props);
+
+    return maker.makePrototypeFor(maker.makeConstructor(cls, true));
+  },
   from: function (props) {
     var maker = new ClassMaker(this, function () {}, props);
 
@@ -86,7 +91,7 @@ function Descriptor(descriptor) {
 
 Descriptor.prototype = {
   create: function () {
-    throw new Error('Use "createGetterSetterDescriptor" or "createValueDescriptor" for descriptor specification');
+    throw new Error('"createGetterSetterDescriptor" or "createValueDescriptor" can only be used for' + (this.descriptor.name || '?'));
   },
   createGetterSetterDescriptor: function () {
     return propertyGetterSetterProps.reduce(function (acc, key) {
@@ -272,7 +277,9 @@ function ClassMaker(mock, cls, props) {
 
         switch (descriptor.type) {
           case 'function':
-            this._props[key] = restProp instanceof Property ? restProp.createValueDescriptor : restProp;
+            this._props[key] = restProp instanceof Descriptor
+              ? restProp.createGetterSetterDescriptor()
+              : restProp;
 
             break;
 
@@ -662,9 +669,15 @@ Property.prototype = Object.assign(copyPrototype(Descriptor), {
   create: function () {
     return this.createGetterSetterDescriptor();
   },
+  createValueDescriptor: function () {
+    throw new Error('"createGetterSetterDescriptor" can only be used for: ' + (this.descriptor.name || '?'));
+  },
 });
 StaticProperty.prototype = Object.assign(copyPrototype(Descriptor), {
   create: function () {
     return this.createValueDescriptor();
   },
+  createGetterSetterDescriptor: function () {
+    throw new Error('"createValueDescriptor" can only be used for: ' + (this.descriptor.name || '?'));
+  }
 });

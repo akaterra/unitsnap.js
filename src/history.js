@@ -1,4 +1,6 @@
 function History() {
+  this._processors = [];
+
   this.flush();
 }
 
@@ -36,7 +38,49 @@ History.prototype = {
 
     return this;
   },
-  addOnEndCallback: function (cb) {
+  addProcessor: function (checker, cloner) {
+    var basicTypeChecker = basicTypes.find(function (basicType) {
+      return basicType[0] === checker;
+    });
+
+    if (typeof checker !== 'function' && ! basicTypeChecker) {
+      var expectedValue = checker;
+
+      checker = function (value) {
+        return value === expectedValue;
+      }
+    }
+
+    basicTypeChecker = basicTypeChecker
+      ? basicTypeChecker[1].check.bind(basicTypeChecker[1])
+      : checker;
+
+    var basicTypeCloner = basicTypes.find(function (basicType) {
+      return basicType[0] === (cloner === void 0 ? checker : cloner);
+    });
+
+    basicTypeCloner = basicTypeCloner
+      ? basicTypeCloner[1].clone.bind(basicTypeCloner[1])
+      : cloner;
+
+    this._processors.unshift({
+      checker: basicTypeChecker,
+      cloner: basicTypeCloner,
+    });
+
+    return this;
+  },
+  addInstanceOfProcessor: function (cls, cloner) {
+    var usefulCls = new typeHelpers.InstanceOfType(cls);
+
+    return this.addProcessor(usefulCls.check.bind(usefulCls), cloner || usefulCls.serialize.bind(usefulCls));
+  },
+  addStrictInstanceOfProcessor: function (cls, cloner) {
+    var usefulCls = new typeHelpers.StrictInstanceOfType(cls);
+
+    return this.addProcessor(usefulCls.check.bind(usefulCls), cloner || usefulCls.serialize.bind(usefulCls));
+  },
+  addOnEpochEndCallback: function (cb) {
     var epoch = this.getCurrentEpoch();
 
     if (epoch) {
@@ -77,3 +121,19 @@ module.exports = {
 };
 
 var filter = require('./filter');
+var typeHelpers = require('./type_helpers');
+
+var basicTypes = [
+  [typeHelpers.AnyType, new typeHelpers.AnyType()],
+  [Boolean, new typeHelpers.BooleanType()],
+  [typeHelpers.BooleanType, new typeHelpers.BooleanType()],
+  [Date, new typeHelpers.DateType()],
+  [typeHelpers.Ignore, new typeHelpers.Ignore()],
+  [typeHelpers.DateType, new typeHelpers.DateType()],
+  [Number, new typeHelpers.NumberType()],
+  [typeHelpers.NumberType, new typeHelpers.NumberType()],
+  [String, new typeHelpers.StringType()],
+  [typeHelpers.StringType, new typeHelpers.StringType()],
+  [void 0, new typeHelpers.UndefinedType()],
+  [typeHelpers.UndefinedType, new typeHelpers.UndefinedType()],
+];

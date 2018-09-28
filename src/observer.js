@@ -10,7 +10,7 @@ function Observer() {
   this._history = new history.History().link(this);
   this._mock = new mock.Mock(this._history);
   this._snapshot = new snapshot.Snapshot([]).link(this);
-  this._config = {fixture: this._fixture, mock: this._mock, snapshot: this._snapshot};
+  this._config = {fixture: this._fixture, history: this._history, mock: this._mock, snapshot: this._snapshot};
 }
 
 Observer.prototype = {
@@ -39,17 +39,23 @@ Observer.prototype = {
   by: function (cls, props) {
     return this._mock.by(cls, props);
   },
+  byOverride: function (cls, props) {
+    return this._mock.byOverride(cls, props);
+  },
   from: function (props) {
     return this._mock.from(props);
   },
   override: function (cls, props) {
     var mockedCls = this._mock.override(cls, props);
 
-    this._history.addOnEndCallback(function () {
+    this._history.addOnEpochEndCallback(function () {
       mockedCls.RESTORE();
     });
 
     return mockedCls;
+  },
+  patch: function () {
+
   },
   spy: function (fn) {
     return this._mock.spy(fn);
@@ -72,12 +78,14 @@ Observer.prototype = {
 module.exports = {
   AnyType: typeHelpers.AnyType,
   BooleanType: typeHelpers.BooleanType,
-  ClassOfType: typeHelpers.ClassOfType,
+  ConvertToString: typeHelpers.ConvertToString,
+  Copy: typeHelpers.Copy,
   DateType: typeHelpers.DateType,
   DateValue: typeHelpers.DateValue,
   Ignore: typeHelpers.Ignore,
   InstanceOfType: typeHelpers.InstanceOfType,
   NumberType: typeHelpers.NumberType,
+  StrictInstanceOfType: typeHelpers.StrictInstanceOfType,
   StringType: typeHelpers.StringType,
   UndefinedType: typeHelpers.UndefinedType,
 
