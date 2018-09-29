@@ -38,7 +38,7 @@ History.prototype = {
 
     return this;
   },
-  addProcessor: function (checker, cloner) {
+  addProcessor: function (checker, copier) {
     var basicTypeChecker = basicTypes.find(function (basicType) {
       return basicType[0] === checker;
     });
@@ -55,30 +55,30 @@ History.prototype = {
       ? basicTypeChecker[1].check.bind(basicTypeChecker[1])
       : checker;
 
-    var basicTypeCloner = basicTypes.find(function (basicType) {
-      return basicType[0] === (cloner === void 0 ? checker : cloner);
+    var basicTypeCopier = basicTypes.find(function (basicType) {
+      return basicType[0] === (copier === void 0 ? checker : copier);
     });
 
-    basicTypeCloner = basicTypeCloner
-      ? basicTypeCloner[1].clone.bind(basicTypeCloner[1])
-      : cloner;
+    basicTypeCopier = basicTypeCopier
+      ? basicTypeCopier[1].copy.bind(basicTypeCopier[1])
+      : copier;
 
     this._processors.unshift({
       checker: basicTypeChecker,
-      cloner: basicTypeCloner,
+      copier: basicTypeCopier,
     });
 
     return this;
   },
-  addInstanceOfProcessor: function (cls, cloner) {
+  addInstanceOfProcessor: function (cls, copier) {
     var usefulCls = new typeHelpers.InstanceOfType(cls);
 
-    return this.addProcessor(usefulCls.check.bind(usefulCls), cloner || usefulCls.serialize.bind(usefulCls));
+    return this.addProcessor(usefulCls.check.bind(usefulCls), copier || usefulCls.serialize.bind(usefulCls));
   },
-  addStrictInstanceOfProcessor: function (cls, cloner) {
+  addStrictInstanceOfProcessor: function (cls, copier) {
     var usefulCls = new typeHelpers.StrictInstanceOfType(cls);
 
-    return this.addProcessor(usefulCls.check.bind(usefulCls), cloner || usefulCls.serialize.bind(usefulCls));
+    return this.addProcessor(usefulCls.check.bind(usefulCls), copier || usefulCls.serialize.bind(usefulCls));
   },
   addOnEpochEndCallback: function (cb) {
     var epoch = this.getCurrentEpoch();
@@ -105,16 +105,80 @@ History.prototype = {
 
     var epoch = this._epochs[this._epochs.length - 1];
 
-    this._entries.push(Object.assign({
+    state = Object.assign({
       comment: epoch.comment,
       epoch: epoch.epoch,
       tags: tags,
       time: new Date(),
-    }, state));
+    }, state);
+
+    if (this._notProcess || this._processors.length === 0) {
+      this._entries.push(state);
+    } else {
+      this._entries.push(state);
+    }
 
     return this;
   },
 };
+
+function historyCopyValue(history, value, path, primitiveOnly, circular) {
+  var processor = history._processors.length && history._processors.find(function (p) {
+      return p.checker(value, path);
+    });
+
+  if (processor) {
+    value = processor.copier(value);
+  }
+
+  if (! circular) {
+    circular = [];
+  }
+
+  var serialized;
+
+  if (! primitiveOnly && Array.isArray(value)) {
+    if (circular.indexOf(value) !== - 1) {
+      return '[[ Circular ! ]]'
+    }
+
+    circular.push(value);
+
+    serialized = value.map(function (val, ind) {
+      return historyCopyValue(history, val, path + '[' + ind + ']', false, circular);
+    }).filter(function (val) {
+      return val !== typeHelpers.Ignore;
+    });
+
+    circular.pop();
+
+    return serialized;
+  }
+
+  if (! primitiveOnly && value && typeof value === 'object') {
+    if (circular.indexOf(value) !== - 1) {
+      return '[[ Circular ! ]]'
+    }
+
+    circular.push(value);
+
+    serialized = Object.keys(value).reduce(function (acc, key) {
+      var serialized = historyCopyValue(history, value[key], path + '.' + key, false, circular);
+
+      if (serialized !== typeHelpers.Ignore) {
+        acc[key] = serialized;
+      }
+
+      return acc;
+    }, {});
+
+    circular.pop();
+
+    return serialized;
+  }
+
+  return value;
+}
 
 module.exports = {
   History: History,

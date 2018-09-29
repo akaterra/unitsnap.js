@@ -555,7 +555,7 @@ describe('Snapshot', () => {
       }]);
 
       expect(e.serialize()).toEqual([{
-        args: void 0, result: {a:['[[ Circular ! ]]']},
+        args: void 0, result: {a: ['[[ Circular ! ]]']},
       }]);
     });
 

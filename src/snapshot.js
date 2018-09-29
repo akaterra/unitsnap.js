@@ -217,6 +217,10 @@ Snapshot.prototype = {
 };
 
 function snapshotAssert(source, target, path) {
+  if (source === target) {
+    return true;
+  }
+
   if (Array.isArray(source)) {
     if (! Array.isArray(target) || source.length !== target.length) {
       return path;
@@ -239,7 +243,7 @@ function snapshotAssert(source, target, path) {
     });
   }
 
-  return source === target ? true : path;
+  return path;
 }
 
 function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) {
@@ -247,15 +251,11 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
     return p.checker(value, path);
   });
 
-  if (processor) {
-    value = processor.serializer(value);
-  }
-
   if (! circular) {
     circular = [];
   }
 
-  var serialized;
+  var serialized = processor ? processor.serializer(value) : typeHelpers.ShallowCopy.prototype.copy(value);
 
   if (! primitiveOnly && Array.isArray(value)) {
     if (circular.indexOf(value) !== - 1) {
@@ -264,13 +264,17 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
 
     circular.push(value);
 
-    serialized = value.map(function (val, ind) {
-      return snapshotSerializeValue(snapshot, val, path + '[' + ind + ']', false, circular);
-    }).filter(function (val) {
-      return val !== typeHelpers.Ignore;
+    serialized.forEach(function (val, ind) {
+      serialized[ind] = snapshotSerializeValue(snapshot, val, path + '[' + ind + ']', false, circular);
     });
 
     circular.pop();
+
+    Object.keys(serialized).forEach(function (key) {
+      if (serialized[key] === typeHelpers.Ignore) {
+        delete serialized[key];
+      }
+    });
 
     return serialized;
   }
@@ -282,22 +286,22 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
 
     circular.push(value);
 
-    serialized = Object.keys(value).reduce(function (acc, key) {
-      var serialized = snapshotSerializeValue(snapshot, value[key], path + '.' + key, false, circular);
-
-      if (serialized !== typeHelpers.Ignore) {
-        acc[key] = serialized;
-      }
-
-      return acc;
-    }, {});
+    Object.keys(serialized).forEach(function (key) {
+      serialized[key] = snapshotSerializeValue(snapshot, value[key], path + '.' + key, false, circular);
+    });
 
     circular.pop();
+
+    Object.keys(serialized).forEach(function (key) {
+      if (serialized[key] === typeHelpers.Ignore) {
+        delete serialized[key];
+      }
+    });
 
     return serialized;
   }
 
-  return value;
+  return serialized;
 }
 
 function snapshotMapEntry(snapshot, entry) {
@@ -433,6 +437,7 @@ var basicTypes = [
   [typeHelpers.DateType, new typeHelpers.DateType()],
   [Number, new typeHelpers.NumberType()],
   [typeHelpers.NumberType, new typeHelpers.NumberType()],
+  [typeHelpers.ShallowCopy, new typeHelpers.ShallowCopy()],
   [String, new typeHelpers.StringType()],
   [typeHelpers.StringType, new typeHelpers.StringType()],
   [void 0, new typeHelpers.UndefinedType()],
