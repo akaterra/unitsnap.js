@@ -450,10 +450,10 @@ describe('Snapshot', () => {
       }]);
     });
 
-    it('should serialize ignoring values equal "Ignore" type helper', () => {
+    it('should serialize ignoring PROCESSED values equal "Ignore" type helper', () => {
       const e = new unitsnap.Snapshot([{
-        args: [unitsnap.Ignore, {a: 1, b: unitsnap.Ignore, c: 3}], result: unitsnap.Ignore,
-      }]);
+        args: ['ignore', {a: 1, b: 'ignore', c: 3}], result: 'ignore',
+      }]).addProcessor('ignore', unitsnap.Ignore);
 
       expect(e.serialize()).toEqual([{
         args: [{a: 1, c: 3}],

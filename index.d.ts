@@ -219,7 +219,7 @@ export class StrictInstanceOfType extends TypeHelper {
     new(value: {new(...args: any[]): any}): StrictInstanceOfType;
 }
 export class DateType extends TypeHelper {}
-export class DateValue extends TypeHelper {}
+export class DateToIsoString extends TypeHelper {}
 export class Ignore extends TypeHelper {}
 export class InstanceOfType extends TypeHelper {
     new(value: {new(...args: any[]): any}): InstanceOfType;

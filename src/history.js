@@ -112,72 +112,85 @@ History.prototype = {
       time: new Date(),
     }, state);
 
-    if (this._notProcess || this._processors.length === 0) {
-      this._entries.push(state);
-    } else {
-      this._entries.push(state);
-    }
+    this._entries.push(this._processors.length ? historyCopyValue(this, state, '') : historyCopyValue(this, state, state));
 
     return this;
   },
 };
+
+function IgnoreInternal() {
+}
 
 function historyCopyValue(history, value, path, primitiveOnly, circular) {
   var processor = history._processors.length && history._processors.find(function (p) {
       return p.checker(value, path);
     });
 
+  var copied;
+
   if (processor) {
-    value = processor.copier(value);
+    copied = processor.copier(value);
+
+    if (copied === typeHelpers.Ignore) {
+      return IgnoreInternal;
+    }
+  } else {
+    copied = value;
   }
 
   if (! circular) {
     circular = [];
   }
 
-  var serialized;
-
   if (! primitiveOnly && Array.isArray(value)) {
     if (circular.indexOf(value) !== - 1) {
-      return '[[ Circular ! ]]'
+      return value;
     }
 
     circular.push(value);
 
-    serialized = value.map(function (val, ind) {
-      return historyCopyValue(history, val, path + '[' + ind + ']', false, circular);
-    }).filter(function (val) {
-      return val !== typeHelpers.Ignore;
+    copied.forEach(function (val, ind) {
+      var tmp = historyCopyValue(history, val, path + '[' + ind + ']', false, circular);
+
+      if (tmp !== copied[ind]) {
+        copied[ind] = tmp;
+      }
     });
 
     circular.pop();
 
-    return serialized;
-  }
-
-  if (! primitiveOnly && value && typeof value === 'object') {
+    for (var i = 0; i < copied.length;) {
+      if (copied[i] === IgnoreInternal) {
+        copied.splice(i, 1);
+      } else {
+        i += 1;
+      }
+    }
+  } else if (! primitiveOnly && value && typeof value === 'object') {
     if (circular.indexOf(value) !== - 1) {
-      return '[[ Circular ! ]]'
+      return value;
     }
 
     circular.push(value);
 
-    serialized = Object.keys(value).reduce(function (acc, key) {
-      var serialized = historyCopyValue(history, value[key], path + '.' + key, false, circular);
+    Object.keys(copied).forEach(function (key) {
+      var tmp = historyCopyValue(history, value[key], path + '.' + key, false, circular);
 
-      if (serialized !== typeHelpers.Ignore) {
-        acc[key] = serialized;
+      if (tmp !== copied[key]) {
+        copied[key] = tmp;
       }
-
-      return acc;
-    }, {});
+    });
 
     circular.pop();
 
-    return serialized;
+    Object.keys(copied).forEach(function (key) {
+      if (copied[key] === IgnoreInternal) {
+        delete copied[key];
+      }
+    });
   }
 
-  return value;
+  return copied;
 }
 
 module.exports = {

@@ -3,7 +3,33 @@ const unitsnap = require('..');
 describe('History', () => {
   const callback = jasmine.createSpy();
   const f = _ => _;
+  const g = _ => _;
   const observer = new unitsnap.Observer();
+
+
+  const bind = Function.prototype.bind;
+
+  afterAll(() => {
+    Object.defineProperties(Function.prototype, {
+      'bind': {
+        value: bind,
+      },
+    });
+  });
+
+  beforeAll(() => {
+    Object.defineProperties(Function.prototype, {
+      'bind': {
+        value: function () {
+          var func = bind.apply(this, arguments);
+
+          func.original = this;
+
+          return func;
+        },
+      },
+    });
+  });
 
   it('should link observer', () => {
     const e = new unitsnap.History();
@@ -15,6 +41,43 @@ describe('History', () => {
     const e = new unitsnap.History();
 
     expect(e.link(observer).unlink()._observer).toBeUndefined();
+  });
+
+
+  it('should add processor with custom checker and copier', () => {
+    const e = new unitsnap.History().addProcessor(f, f);
+
+    expect(e._processors).toEqual([{checker: f, copier: f}]);
+  });
+
+  it('should add processor with custom checker as matcher to primitive value', () => {
+    const e = new unitsnap.History().addProcessor('checker', f);
+
+    expect(e._processors[0].copier instanceof Function).toBeTruthy();
+  });
+
+  it('should return true on value match on added processor with custom checker as matcher to primitive value', () => {
+    const e = new unitsnap.History().addProcessor('a', f);
+
+    expect(e._processors[0].checker('a')).toBeTruthy();
+  });
+
+  it('should return false on value mismatch on added processor with custom checker as matcher to primitive value', () => {
+    const e = new unitsnap.History().addProcessor('a', f);
+
+    expect(e._processors[0].checker('b')).toBeFalsy();
+  });
+
+  it('should add processor before previously added', () => {
+    const e = new unitsnap.History().addProcessor(f, f).addProcessor(g, g);
+
+    expect(e._processors).toEqual([{checker: g, copier: g}, {checker: f, copier: f}]);
+  });
+
+  it('should add processor of basic type Any as checker', () => {
+    const e = new unitsnap.History().addProcessor(unitsnap.AnyType);
+
+    expect(e._processors[0].copier.original).toBe(unitsnap.AnyType.prototype.copy);
   });
 
   it('should begin epoch', () => {

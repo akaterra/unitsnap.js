@@ -246,20 +246,33 @@ function snapshotAssert(source, target, path) {
   return path;
 }
 
+function IgnoreInternal() {
+}
+
 function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) {
   var processor = snapshot._processors.length && snapshot._processors.find(function (p) {
     return p.checker(value, path);
   });
 
+  var serialized;
+
+  if (processor) {
+    serialized = processor.serializer(value);
+
+    if (serialized === typeHelpers.Ignore) {
+      return IgnoreInternal;
+    }
+  } else {
+    serialized = value;
+  }
+
   if (! circular) {
     circular = [];
   }
 
-  var serialized = processor ? processor.serializer(value) : typeHelpers.ShallowCopy.prototype.copy(value);
-
   if (! primitiveOnly && Array.isArray(value)) {
     if (circular.indexOf(value) !== - 1) {
-      return '[[ Circular ! ]]'
+      return '[[ Circular ! ]]';
     }
 
     circular.push(value);
@@ -270,18 +283,16 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
 
     circular.pop();
 
-    Object.keys(serialized).forEach(function (key) {
-      if (serialized[key] === typeHelpers.Ignore) {
-        delete serialized[key];
+    for (var i = 0; i < serialized.length;) {
+      if (serialized[i] === IgnoreInternal) {
+        serialized.splice(i, 1);
+      } else {
+        i += 1;
       }
-    });
-
-    return serialized;
-  }
-
-  if (! primitiveOnly && value && typeof value === 'object') {
+    }
+  } else if (! primitiveOnly && value && typeof value === 'object') {
     if (circular.indexOf(value) !== - 1) {
-      return '[[ Circular ! ]]'
+      return '[[ Circular ! ]]';
     }
 
     circular.push(value);
@@ -293,12 +304,10 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
     circular.pop();
 
     Object.keys(serialized).forEach(function (key) {
-      if (serialized[key] === typeHelpers.Ignore) {
+      if (serialized[key] === IgnoreInternal) {
         delete serialized[key];
       }
     });
-
-    return serialized;
   }
 
   return serialized;

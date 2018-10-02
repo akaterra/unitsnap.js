@@ -30,22 +30,6 @@ BooleanType.prototype = {
   },
 };
 
-function ConvertToString() {
-
-}
-
-ConvertToString.prototype = {
-  check: function (value) {
-    return true;
-  },
-  copy: function (value) {
-    return String(value);
-  },
-  serialize: function (value) {
-    return this.copy(value);
-  },
-};
-
 function DateType() {
 
 }
@@ -62,16 +46,16 @@ DateType.prototype = {
   },
 };
 
-function DateValue() {
+function DateToIsoString() {
 
 }
 
-DateValue.prototype = {
+DateToIsoString.prototype = {
   check: function (value) {
     return value instanceof Date;
   },
   copy: function (value) {
-    return new Date(value);
+    return value.toISOString();
   },
   serialize: function (value) {
     return value.toISOString();
@@ -86,8 +70,8 @@ Ignore.prototype = {
   check: function () {
     return true;
   },
-  copy: function (value) {
-    return value;
+  copy: function () {
+    return Ignore;
   },
   serialize: function () {
     return Ignore;
@@ -178,7 +162,7 @@ StrictInstanceOfType.prototype = {
     return value;
   },
   serialize: function () {
-    return {$$data: this._cls.prototype.constructor.name, $$type: 'classOf'};
+    return {$$data: this._cls.prototype.constructor.name, $$type: 'strictInstanceOf'};
   },
 };
 
@@ -198,6 +182,22 @@ StringType.prototype = {
   },
 };
 
+function ToString() {
+
+}
+
+ToString.prototype = {
+  check: function () {
+    return true;
+  },
+  copy: function (value) {
+    return String(value);
+  },
+  serialize: function (value) {
+    return this.copy(value);
+  },
+};
+
 function UndefinedType() {
 
 }
@@ -206,8 +206,8 @@ UndefinedType.prototype = {
   check: function (value) {
     return value === void 0;
   },
-  copy: function (value) {
-    return value;
+  copy: function () {
+    return void 0;
   },
   serialize: function () {
     return {$$data: null, $$type: 'undefined'};
@@ -217,9 +217,8 @@ UndefinedType.prototype = {
 module.exports = {
   AnyType: AnyType,
   BooleanType: BooleanType,
-  ConvertToString: ConvertToString,
   DateType: DateType,
-  DateValue: DateValue,
+  DateToIsoString: DateToIsoString,
   Ignore: Ignore,
   Initial: Initial,
   InstanceOfType: InstanceOfType,
@@ -227,5 +226,6 @@ module.exports = {
   ShallowCopy: ShallowCopy,
   StrictInstanceOfType: StrictInstanceOfType,
   StringType: StringType,
+  ToString: ToString,
   UndefinedType: UndefinedType,
 };

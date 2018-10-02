@@ -54,9 +54,6 @@ Observer.prototype = {
 
     return mockedCls;
   },
-  patch: function () {
-
-  },
   spy: function (fn) {
     return this._mock.spy(fn);
   },
@@ -78,10 +75,10 @@ Observer.prototype = {
 module.exports = {
   AnyType: typeHelpers.AnyType,
   BooleanType: typeHelpers.BooleanType,
-  ConvertToString: typeHelpers.ConvertToString,
+  ToString: typeHelpers.ToString,
   ShallowCopy: typeHelpers.ShallowCopy,
   DateType: typeHelpers.DateType,
-  DateValue: typeHelpers.DateValue,
+  DateToIsoString: typeHelpers.DateToIsoString,
   Ignore: typeHelpers.Ignore,
   Initial: typeHelpers.Initial,
   InstanceOfType: typeHelpers.InstanceOfType,

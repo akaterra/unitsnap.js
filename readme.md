@@ -760,7 +760,7 @@ Available helpers:
   }
   ```
 
-* **DateValue** - checks the value to be instance of Date and serializes the value as:
+* **DateToIsoString** - checks the value to be instance of Date and serializes the value as:
   ```javascript
   {
     $$data: <ISO string>,
