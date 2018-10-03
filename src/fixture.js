@@ -58,16 +58,16 @@ Fixture.prototype = {
 
     return this;
   },
-  throwOnClassOf: function (cls) {
-    return this.throwOnCallback(function (value) {
-      return value !== void 0 && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === cls;
-    });
-  },
   throwOnInstanceOf: function (cls) {
     return this.throwOnCallback(function (value) {
       return value instanceof cls;
     });
-  }
+  },
+  throwOnStrictInstanceOf: function (cls) {
+    return this.throwOnCallback(function (value) {
+      return value !== void 0 && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === cls;
+    });
+  },
 };
 
 function FixtureMemoryProvider(dictionary) {

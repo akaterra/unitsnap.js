@@ -202,7 +202,7 @@ describe('Type helpers', () => {
   });
 
   describe('StrictInstanceOfType', () => {
-    it('should check and resolve class of value', () => {
+    it('should check and resolve strict instance of value', () => {
       var t = new typeHelpers.StrictInstanceOfType(Date);
 
       for (const v of [new Date()]) {
@@ -210,7 +210,7 @@ describe('Type helpers', () => {
       }
     });
 
-    it('should check and reject not class of value', () => {
+    it('should check and reject not strict instance of value', () => {
       var t = new typeHelpers.StrictInstanceOfType(Date);
 
       class D extends Date {

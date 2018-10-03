@@ -89,10 +89,20 @@ Snapshot.prototype = {
 
     return this;
   },
+  addArrayProcessor: function (serializer) {
+    return this.addProcessor(function (value, path) {
+      return Array.isArray(value);
+    }, serializer);
+  },
   addInstanceOfProcessor: function (cls, serializer) {
     var usefulCls = new typeHelpers.InstanceOfType(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
+  },
+  addObjectProcessor: function (serializer) {
+    return this.addProcessor(function (value, path) {
+      return Object.getPrototypeOf(value) === Object.prototype;
+    }, serializer);
   },
   addPathProcessor: function (path, serializer) {
     var usefulRegex = RegExp('^' + path
@@ -207,7 +217,7 @@ Snapshot.prototype = {
   },
   serialize: function () {
     return this._entries.map(function (entry, ind) {
-      return snapshotSerializeValue(
+      return snapshotSerializeEntry(
         this,
         this._mapper(this, entry),
         '[' + ind + ']'
@@ -249,10 +259,18 @@ function snapshotAssert(source, target, path) {
 function IgnoreInternal() {
 }
 
-function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) {
-  var processor = snapshot._processors.length && snapshot._processors.find(function (p) {
-    return p.checker(value, path);
-  });
+function snapshotSerializeEntry(snapshot, entry, path, primitiveOnly) {
+  return snapshotSerializeValue(snapshot, entry, path, primitiveOnly, void 0, true);
+}
+
+function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular, notApplyProcessors) {
+  var processor;
+
+  if (notApplyProcessors !== true) {
+    processor = snapshot._processors.length && snapshot._processors.find(function (p) {
+      return p.checker(value, path);
+    });
+  }
 
   var serialized;
 
@@ -270,7 +288,7 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
     circular = [];
   }
 
-  if (! primitiveOnly && Array.isArray(value)) {
+  if (! primitiveOnly && Array.isArray(serialized)) {
     if (circular.indexOf(value) !== - 1) {
       return '[[ Circular ! ]]';
     }
@@ -278,7 +296,11 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
     circular.push(value);
 
     serialized.forEach(function (val, ind) {
-      serialized[ind] = snapshotSerializeValue(snapshot, val, path + '[' + ind + ']', false, circular);
+      var tmp = snapshotSerializeValue(snapshot, val, path + '[' + ind + ']', false, circular);
+
+      if (tmp !== serialized[ind]) {
+        serialized[ind] = tmp;
+      }
     });
 
     circular.pop();
@@ -290,7 +312,7 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
         i += 1;
       }
     }
-  } else if (! primitiveOnly && value && typeof value === 'object') {
+  } else if (! primitiveOnly && serialized && typeof serialized === 'object') {
     if (circular.indexOf(value) !== - 1) {
       return '[[ Circular ! ]]';
     }
@@ -298,7 +320,11 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
     circular.push(value);
 
     Object.keys(serialized).forEach(function (key) {
-      serialized[key] = snapshotSerializeValue(snapshot, value[key], path + '.' + key, false, circular);
+      var tmp = snapshotSerializeValue(snapshot, value[key], path + '.' + key, false, circular);
+
+      if (tmp !== serialized[key]) {
+        serialized[key] = tmp;
+      }
     });
 
     circular.pop();

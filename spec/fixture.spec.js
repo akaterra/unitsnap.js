@@ -71,14 +71,14 @@ describe('Fixture', () => {
     expect(() => e.pop()).toThrow(new Error());
   });
 
-  it('should throw exception on class of', () => {
-    const e = new unitsnap.Fixture().throwOnClassOf(A).push(new A());
+  it('should throw exception on strict instance of', () => {
+    const e = new unitsnap.Fixture().throwOnStrictInstanceOf(A).push(new A());
 
     expect(() => e.pop()).toThrow(new A());
   });
 
-  it('should not throw exception on non class of', () => {
-    const e = new unitsnap.Fixture().throwOnClassOf(A).push(new B());
+  it('should not throw exception on non strict instance of', () => {
+    const e = new unitsnap.Fixture().throwOnStrictInstanceOf(A).push(new B());
 
     expect(() => e.pop()).not.toThrow();
   });

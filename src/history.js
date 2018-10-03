@@ -80,6 +80,11 @@ History.prototype = {
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), copier || usefulCls.serialize.bind(usefulCls));
   },
+  addProcessors: function (processors) {
+    this._processors.unshift.apply(this._processors, processors);
+
+    return this;
+  },
   addOnEpochEndCallback: function (cb) {
     var epoch = this.getCurrentEpoch();
 
@@ -142,7 +147,7 @@ function historyCopyValue(history, value, path, primitiveOnly, circular) {
     circular = [];
   }
 
-  if (! primitiveOnly && Array.isArray(value)) {
+  if (! primitiveOnly && Array.isArray(copied)) {
     if (circular.indexOf(value) !== - 1) {
       return value;
     }
@@ -166,7 +171,7 @@ function historyCopyValue(history, value, path, primitiveOnly, circular) {
         i += 1;
       }
     }
-  } else if (! primitiveOnly && value && typeof value === 'object') {
+  } else if (! primitiveOnly && copied && typeof copied === 'object') {
     if (circular.indexOf(value) !== - 1) {
       return value;
     }

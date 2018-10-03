@@ -10,8 +10,12 @@ describe('Snapshot', () => {
   class A {
   }
 
+  const a = new A();
+
   class B extends A {
   }
+
+  const b = new B();
 
   class Provider {
     constructor(snapshots) {
@@ -305,14 +309,8 @@ describe('Snapshot', () => {
     expect(e._processors[0].checker).toBe(f);
   });
 
-  it('should add processor of class of', () => {
-    const e = new unitsnap.Snapshot().addStrictInstanceOfProcessor(Date);
-
-    expect(e._processors[0].checker.original).toBe(typeHelpers.StrictInstanceOfType.prototype.check);
-  });
-
-  it('should add processor of class of with custom serializer', () => {
-    const e = new unitsnap.Snapshot().addStrictInstanceOfProcessor(Date, f);
+  it('should add processor of array with custom serializer', () => {
+    const e = new unitsnap.Snapshot().addArrayProcessor(f);
 
     expect(e._processors[0].serializer).toBe(f);
   });
@@ -325,6 +323,12 @@ describe('Snapshot', () => {
 
   it('should add processor of instance of with custom serializer', () => {
     const e = new unitsnap.Snapshot().addInstanceOfProcessor(Date, f);
+
+    expect(e._processors[0].serializer).toBe(f);
+  });
+
+  it('should add processor of object with custom serializer', () => {
+    const e = new unitsnap.Snapshot().addObjectProcessor(f);
 
     expect(e._processors[0].serializer).toBe(f);
   });
@@ -343,6 +347,18 @@ describe('Snapshot', () => {
 
   it('should add processor of path regex as prepared regex with custom serializer', () => {
     const e = new unitsnap.Snapshot().addRegexPathProcessor(/a/, f);
+
+    expect(e._processors[0].serializer).toBe(f);
+  });
+
+  it('should add processor of strict instance of', () => {
+    const e = new unitsnap.Snapshot().addStrictInstanceOfProcessor(Date);
+
+    expect(e._processors[0].checker.original).toBe(typeHelpers.StrictInstanceOfType.prototype.check);
+  });
+
+  it('should add processor of strict instance of with custom serializer', () => {
+    const e = new unitsnap.Snapshot().addStrictInstanceOfProcessor(Date, f);
 
     expect(e._processors[0].serializer).toBe(f);
   });
@@ -417,6 +433,36 @@ describe('Snapshot', () => {
 
       expect(e.serialize()).toEqual([{
         args: [], result: [{a: 'A'}],
+      }]);
+    });
+
+    it('should serialize with array serializer', () => {
+      const e = new unitsnap.Snapshot([{
+        args: [], result: 'name'
+      }]).addArrayProcessor(_ => 'serialized');
+
+      expect(e.serialize()).toEqual([{
+        args: 'serialized', result: 'name',
+      }]);
+    });
+
+    it('should serialize with object serializer', () => {
+      const e = new unitsnap.Snapshot([{
+        args: {}, result: 'name'
+      }]).addObjectProcessor(_ => 'serialized');
+
+      expect(e.serialize()).toEqual([{
+        args: 'serialized', result: 'name',
+      }]);
+    });
+
+    it('should not serialize not direct Object instance with object serializer', () => {
+      const e = new unitsnap.Snapshot([{
+        args: a, result: 'name'
+      }]).addObjectProcessor(_ => 'serialized');
+
+      expect(e.serialize()).toEqual([{
+        args: a, result: 'name',
       }]);
     });
 
