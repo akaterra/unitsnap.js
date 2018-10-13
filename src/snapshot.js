@@ -89,48 +89,30 @@ Snapshot.prototype = {
 
     return this;
   },
-  addArrayProcessor: function (serializer) {
-    return this.addProcessor(function (value, path) {
-      return Array.isArray(value);
-    }, serializer);
-  },
   addInstanceOfProcessor: function (cls, serializer) {
-    var usefulCls = new typeHelpers.InstanceOfType(cls);
+    var checker = new typeHelpers.InstanceOfType(cls);
 
-    return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
-  },
-  addObjectProcessor: function (serializer) {
-    return this.addProcessor(function (value, path) {
-      return Object.getPrototypeOf(value) === Object.prototype;
-    }, serializer);
+    return this.addProcessor(checker.check.bind(checker), serializer || checker.serialize.bind(checker));
   },
   addPathProcessor: function (path, serializer) {
-    var usefulRegex = RegExp('^' + path
-      .replace(/[-[\]{}()+.,\\^$|#\s]/g, '\\$&')
-      .replace(/\*/g, '.*')
-      .replace(/\?/g, '.') + '$'
-    );
+    var checker = new typeHelpers.Path(path);
 
-    return this.addProcessor(function (value, path) {
-      return usefulRegex.test(path);
-    }, serializer);
+    return this.addProcessor(checker.check.bind(checker), serializer || checker.serialize.bind(checker));
   },
   addRegexPathProcessor: function (regex, serializer) {
-    var usefulRegex = regex instanceof RegExp ? regex : RegExp(regex);
+    var checker = new typeHelpers.RegexPath(regex);
 
-    return this.addProcessor(function (value, path) {
-      return usefulRegex.test(path);
-    }, serializer);
+    return this.addProcessor(checker.check.bind(checker), serializer || checker.serialize.bind(checker));
   },
   addStrictInstanceOfProcessor: function (cls, serializer) {
-    var usefulCls = new typeHelpers.StrictInstanceOfType(cls);
+    var checker = new typeHelpers.StrictInstanceOfType(cls);
 
-    return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
+    return this.addProcessor(checker.check.bind(checker), serializer || checker.serialize.bind(checker));
   },
   addUndefinedProcessor: function (serializer) {
-    var usefulCls = new typeHelpers.UndefinedType();
+    var checker = new typeHelpers.UndefinedType();
 
-    return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
+    return this.addProcessor(checker.check.bind(checker), serializer || checker.serialize.bind(checker));
   },
   addProcessors: function (processors) {
     this._processors.unshift.apply(this._processors, processors);
@@ -465,6 +447,8 @@ var typeHelpers = require('./type_helpers');
 
 var basicTypes = [
   [typeHelpers.AnyType, new typeHelpers.AnyType()],
+  [Array, new typeHelpers.ArrayType()],
+  [typeHelpers.ArrayType, new typeHelpers.ArrayType()],
   [Boolean, new typeHelpers.BooleanType()],
   [typeHelpers.BooleanType, new typeHelpers.BooleanType()],
   [Date, new typeHelpers.DateType()],
@@ -472,6 +456,8 @@ var basicTypes = [
   [typeHelpers.DateType, new typeHelpers.DateType()],
   [Number, new typeHelpers.NumberType()],
   [typeHelpers.NumberType, new typeHelpers.NumberType()],
+  [Object, new typeHelpers.ObjectType()],
+  [typeHelpers.ObjectType, new typeHelpers.ObjectType()],
   [typeHelpers.ShallowCopy, new typeHelpers.ShallowCopy()],
   [String, new typeHelpers.StringType()],
   [typeHelpers.StringType, new typeHelpers.StringType()],

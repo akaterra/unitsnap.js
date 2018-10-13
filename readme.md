@@ -1,10 +1,10 @@
 # UnitSnap.js
 
-The library allows to use the taken or saved snapshot of the units observed during an execution flow as an assertion in unit tests.
-The principle of this stands on the concept of the pure function which always has the same result of execution (may be partially for individual purposes).
-Then this result can be saved as a snapshot and compared with a snapshot of the same execution flow.
+The library allows to use an immediately taken or saved snapshot of the units observed during the execution flow as assertion in the unit tests.
+The principle of this based on the concept of a pure function which always has the same result of execution (may be partially for individual purposes).
+Then this result can be saved as a snapshot and compared after with a snapshot of the same execution flow.
 
-### Contents
+### Table of contents
 
 * [Installation](#installation)
 * [Example of snapshot generation](#example-of-snapshot-generation)
@@ -284,6 +284,10 @@ Epochs can be nested.
 * **flush()** - flushes epochs and collected historical entries.
 
 * **push(entry)** - pushes the historical entry.
+
+##### Value processors
+
+The specific value of some entry can be copied with the custom copier.
 
 ### Mock
 

@@ -6,6 +6,20 @@ describe('History', () => {
   const g = _ => _;
   const observer = new unitsnap.Observer();
 
+  class A {
+  }
+
+  const a = new A();
+
+  class B extends A {
+  }
+
+  const b = new B();
+
+  class C {
+  }
+
+  const c = new C();
 
   const bind = Function.prototype.bind;
 
@@ -43,6 +57,11 @@ describe('History', () => {
     expect(e.link(observer).unlink()._observer).toBeUndefined();
   });
 
+  it('should add processor before previously added', () => {
+    const e = new unitsnap.History().addProcessor(f, f).addProcessor(g, g);
+
+    expect(e._processors).toEqual([{checker: g, copier: g}, {checker: f, copier: f}]);
+  });
 
   it('should add processor with custom checker and copier', () => {
     const e = new unitsnap.History().addProcessor(f, f);
@@ -56,28 +75,118 @@ describe('History', () => {
     expect(e._processors[0].copier instanceof Function).toBeTruthy();
   });
 
-  it('should return true on value match on added processor with custom checker as matcher to primitive value', () => {
-    const e = new unitsnap.History().addProcessor('a', f);
+  it('should add processor of basic type as checker with custom copier', () => {
+    const e = new unitsnap.History().addProcessor(unitsnap.AnyType, f);
 
-    expect(e._processors[0].checker('a')).toBeTruthy();
+    expect(e._processors[0].copier).toBe(f);
   });
 
-  it('should return false on value mismatch on added processor with custom checker as matcher to primitive value', () => {
-    const e = new unitsnap.History().addProcessor('a', f);
+  it('should add processor of basic type as copier with custom checker', () => {
+    const e = new unitsnap.History().addProcessor(f, unitsnap.AnyType);
 
-    expect(e._processors[0].checker('b')).toBeFalsy();
+    expect(e._processors[0].checker).toBe(f);
   });
 
-  it('should add processor before previously added', () => {
-    const e = new unitsnap.History().addProcessor(f, f).addProcessor(g, g);
+  it('should add processor of basic types as checker', () => {
+    const types = [
+      [unitsnap.AnyType],
+      [unitsnap.ArrayType],
+      [Array, unitsnap.ArrayType],
+      [unitsnap.BooleanType],
+      [Boolean, unitsnap.BooleanType],
+      [unitsnap.DateType],
+      [Date, unitsnap.DateType],
+      [unitsnap.NumberType],
+      [Number, unitsnap.NumberType],
+      [unitsnap.ObjectType],
+      [Object, unitsnap.ObjectType],
+      [unitsnap.StringType],
+      [String, unitsnap.StringType],
+      [unitsnap.UndefinedType],
+      [void 0, unitsnap.UndefinedType],
+    ];
 
-    expect(e._processors).toEqual([{checker: g, copier: g}, {checker: f, copier: f}]);
+    for (const type of types) {
+      const e = new unitsnap.History().addProcessor(type[0]);
+
+      if (type.length === 1) {
+        expect(e._processors[0].checker.original).toBe(type[0].prototype.check, type[0]);
+      } else {
+        expect(e._processors[0].checker.original).toBe(type[1].prototype.check, type[1]);
+      }
+    }
   });
 
-  it('should add processor of basic type Any as checker', () => {
-    const e = new unitsnap.History().addProcessor(unitsnap.AnyType);
+  it('should add processor of basic types as copier', () => {
+    const types = [
+      [unitsnap.AnyType],
+      [unitsnap.ArrayType],
+      [Array, unitsnap.ArrayType],
+      [unitsnap.BooleanType],
+      [Boolean, unitsnap.BooleanType],
+      [unitsnap.DateType],
+      [Date, unitsnap.DateType],
+      [unitsnap.NumberType],
+      [Number, unitsnap.NumberType],
+      [unitsnap.ObjectType],
+      [Object, unitsnap.ObjectType],
+      [unitsnap.StringType],
+      [String, unitsnap.StringType],
+      [unitsnap.UndefinedType],
+      [void 0, unitsnap.UndefinedType],
+    ];
 
-    expect(e._processors[0].copier.original).toBe(unitsnap.AnyType.prototype.copy);
+    for (const type of types) {
+      const e = new unitsnap.History().addProcessor(type[0]);
+
+      if (type.length === 1) {
+        expect(e._processors[0].copier.original).toBe(type[0].prototype.copy, type[0]);
+      } else {
+        expect(e._processors[0].copier.original).toBe(type[1].prototype.copy, type[1]);
+      }
+    }
+  });
+
+  it('should add processor of instance of', () => {
+    const e = new unitsnap.History().addInstanceOfProcessor(Date);
+
+    expect(e._processors[0].checker.original).toBe(unitsnap.InstanceOfType.prototype.check);
+  });
+
+  it('should add processor of instance of with custom copier', () => {
+    const e = new unitsnap.History().addInstanceOfProcessor(Date, f);
+
+    expect(e._processors[0].copier).toBe(f);
+  });
+
+  it('should add processor of path with custom copier', () => {
+    const e = new unitsnap.History().addPathProcessor('a', f);
+
+    expect(e._processors[0].copier).toBe(f);
+  });
+
+  it('should add processor of path regex with custom copier', () => {
+    const e = new unitsnap.History().addRegexPathProcessor('a', f);
+
+    expect(e._processors[0].copier).toBe(f);
+  });
+
+  it('should add processor of path regex as prepared regex with custom copier', () => {
+    const e = new unitsnap.History().addRegexPathProcessor(/a/, f);
+
+    expect(e._processors[0].copier).toBe(f);
+  });
+
+  it('should add processor of strict instance of', () => {
+    const e = new unitsnap.History().addStrictInstanceOfProcessor(Date);
+
+    expect(e._processors[0].checker.original).toBe(unitsnap.StrictInstanceOfType.prototype.check);
+  });
+
+  it('should add processor of strict instance of with custom copier', () => {
+    const e = new unitsnap.History().addStrictInstanceOfProcessor(Date, f);
+
+    expect(e._processors[0].copier).toBe(f);
   });
 
   it('should begin epoch', () => {
@@ -186,5 +295,55 @@ describe('History', () => {
     const e = new unitsnap.History().link(observer);
 
     expect(e.filter()._observer).toBe(observer);
+  });
+
+  describe('when copies', () => {
+    it('should copy with custom checker and copier', () => {
+      const e = new unitsnap.History().addProcessor(_ => _ instanceof A, _ => 'copied');
+
+      e.begin().push({result: [{a: a, c: c}]});
+
+      expect(e._entries[0].result).toEqual([{a: 'copied', c: c}]);
+    });
+
+    it('should copy with added processor with custom checker as matcher to primitive value', () => {
+      const e = new unitsnap.History().addProcessor('a', _ => 'copied');
+
+      e.begin().push({result: [{a: 'a', c: c}]});
+
+      expect(e._entries[0].result).toEqual([{a: 'copied', c: c}]);
+    });
+
+    it('should copy with path copier contained "?" as "single arbitrary symbol" pattern', () => {
+      const e = new unitsnap.History().addPathProcessor('[0].?es?lt', _ => 'copied');
+
+      e.begin().push({result: [{a: 'a', c: c}]});
+
+      expect(e._entries[0].result).toEqual('copied');
+    });
+
+    it('should copy with path copier contained "*" as "any arbitrary symbols" pattern', () => {
+      const e = new unitsnap.History().addPathProcessor('[0]*res*ult', _ => 'copied');
+
+      e.begin().push({result: [{a: 'a', c: c}]});
+
+      expect(e._entries[0].result).toEqual('copied');
+    });
+
+    it('should copy with path regex copier', () => {
+      const e = new unitsnap.History().addRegexPathProcessor('[0].*result', _ => 'copied');
+
+      e.begin().push({result: [{a: 'a', c: c}]});
+
+      expect(e._entries[0].result).toEqual('copied');
+    });
+
+    it('should copy ignoring PROCESSED values equal "Ignore" type helper', () => {
+      const e = new unitsnap.History().addProcessor('ignore', unitsnap.Ignore);
+
+      e.begin().push({result: [{a: 'ignore', c: c}]});
+
+      expect(e._entries[0].result).toEqual([{c: c}]);
+    });
   });
 });

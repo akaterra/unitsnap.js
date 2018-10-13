@@ -1,5 +1,9 @@
 function AnyType() {
+  if (this instanceof AnyType) {
 
+  } else {
+    return new AnyType();
+  }
 }
 
 AnyType.prototype = {
@@ -14,8 +18,32 @@ AnyType.prototype = {
   },
 };
 
-function BooleanType() {
+function ArrayType() {
+  if (this instanceof ArrayType) {
 
+  } else {
+    return new ArrayType();
+  }
+}
+
+ArrayType.prototype = {
+  check: function (value) {
+    return Array.isArray(value);
+  },
+  copy: function (value) {
+    return value.slice();
+  },
+  serialize: function (value) {
+    return value;
+  },
+};
+
+function BooleanType() {
+  if (this instanceof BooleanType) {
+
+  } else {
+    return new BooleanType();
+  }
 }
 
 BooleanType.prototype = {
@@ -31,7 +59,11 @@ BooleanType.prototype = {
 };
 
 function DateType() {
+  if (this instanceof DateType) {
 
+  } else {
+    return new DateType();
+  }
 }
 
 DateType.prototype = {
@@ -47,7 +79,11 @@ DateType.prototype = {
 };
 
 function DateToIsoString() {
+  if (this instanceof DateToIsoString) {
 
+  } else {
+    return new DateToIsoString();
+  }
 }
 
 DateToIsoString.prototype = {
@@ -63,7 +99,11 @@ DateToIsoString.prototype = {
 };
 
 function Ignore() {
+  if (this instanceof Ignore) {
 
+  } else {
+    return new Ignore();
+  }
 }
 
 Ignore.prototype = {
@@ -79,7 +119,11 @@ Ignore.prototype = {
 };
 
 function Initial() {
+  if (this instanceof Initial) {
 
+  } else {
+    return new Initial();
+  }
 }
 
 Initial.prototype = {
@@ -95,7 +139,11 @@ Initial.prototype = {
 };
 
 function InstanceOfType(cls) {
-  this._cls = cls;
+  if (this instanceof InstanceOfType) {
+    this._cls = cls;
+  } else {
+    return new InstanceOfType(cls);
+  }
 }
 
 InstanceOfType.prototype = {
@@ -111,7 +159,11 @@ InstanceOfType.prototype = {
 };
 
 function NumberType() {
+  if (this instanceof NumberType) {
 
+  } else {
+    return new NumberType();
+  }
 }
 
 NumberType.prototype = {
@@ -126,8 +178,76 @@ NumberType.prototype = {
   },
 };
 
-function ShallowCopy() {
+function ObjectType() {
+  if (this instanceof ObjectType) {
 
+  } else {
+    return new ObjectType();
+  }
+}
+
+ObjectType.prototype = {
+  check: function (value) {
+    return value && Object.getPrototypeOf(value) === Object.prototype;
+  },
+  copy: function (value) {
+    return Object.assign({}, value);
+  },
+  serialize: function (value) {
+    return value;
+  },
+};
+
+function Path(path) {
+  if (this instanceof Path) {
+    this._checkRegex = new RegExp('^' + path
+        .replace(/[-[\]{}()+.,\\^$|#\s]/g, '\\$&')
+        .replace(/\*/g, '.*')
+        .replace(/\?/g, '.') + '$'
+    );
+  } else {
+    return new Path(path);
+  }
+}
+
+Path.prototype = {
+  check: function (value, path) {
+    return this._checkRegex.test(path);
+  },
+  copy: function (value) {
+    return value;
+  },
+  serialize: function (value) {
+    return value;
+  },
+};
+
+function RegexPath(regex) {
+  if (this instanceof RegexPath) {
+    this._checkRegex = regex instanceof RegExp ? regex : new RegExp(regex);
+  } else {
+    return new RegexPath(regex);
+  }
+}
+
+RegexPath.prototype = {
+  check: function (value, path) {
+    return this._checkRegex.test(path);
+  },
+  copy: function (value) {
+    return value;
+  },
+  serialize: function (value) {
+    return value;
+  },
+};
+
+function ShallowCopy() {
+  if (this instanceof ShallowCopy) {
+
+  } else {
+    return new ShallowCopy();
+  }
 }
 
 ShallowCopy.prototype = {
@@ -151,7 +271,11 @@ ShallowCopy.prototype = {
 };
 
 function StrictInstanceOfType(cls) {
-  this._cls = cls;
+  if (this instanceof StrictInstanceOfType) {
+    this._cls = cls;
+  } else {
+    return new StrictInstanceOfType(cls);
+  }
 }
 
 StrictInstanceOfType.prototype = {
@@ -167,7 +291,11 @@ StrictInstanceOfType.prototype = {
 };
 
 function StringType() {
+  if (this instanceof StringType) {
 
+  } else {
+    return new StringType();
+  }
 }
 
 StringType.prototype = {
@@ -183,7 +311,11 @@ StringType.prototype = {
 };
 
 function ToString() {
+  if (this instanceof ToString) {
 
+  } else {
+    return new ToString();
+  }
 }
 
 ToString.prototype = {
@@ -199,7 +331,11 @@ ToString.prototype = {
 };
 
 function UndefinedType() {
+  if (this instanceof UndefinedType) {
 
+  } else {
+    return new UndefinedType();
+  }
 }
 
 UndefinedType.prototype = {
@@ -216,6 +352,7 @@ UndefinedType.prototype = {
 
 module.exports = {
   AnyType: AnyType,
+  ArrayType: ArrayType,
   BooleanType: BooleanType,
   DateType: DateType,
   DateToIsoString: DateToIsoString,
@@ -223,6 +360,9 @@ module.exports = {
   Initial: Initial,
   InstanceOfType: InstanceOfType,
   NumberType: NumberType,
+  ObjectType: ObjectType,
+  Path: Path,
+  RegexPath: RegexPath,
   ShallowCopy: ShallowCopy,
   StrictInstanceOfType: StrictInstanceOfType,
   StringType: StringType,

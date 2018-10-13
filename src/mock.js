@@ -125,13 +125,8 @@ Descriptor.prototype = {
 
     return this;
   },
-  handler: function (fn) {
+  call: function (fn) {
     this.descriptor.value = fn || Function;
-
-    return this;
-  },
-  value: function (value) {
-    this.descriptor.value = value;
 
     return this;
   },
@@ -670,14 +665,22 @@ Property.prototype = Object.assign(copyPrototype(Descriptor), {
     return this.createGetterSetterDescriptor();
   },
   createValueDescriptor: function () {
-    throw new Error('"createGetterSetterDescriptor" can only be used for: ' + (this.descriptor.name || '?'));
+    throw new Error('Descriptor with getter/setter can only be used for: ' + (this.descriptor.name || '?'));
   },
 });
-StaticProperty.prototype = Object.assign(copyPrototype(Descriptor), {
+StaticMethod.prototype = Object.assign(copyPrototype(Descriptor), {
   create: function () {
     return this.createValueDescriptor();
   },
   createGetterSetterDescriptor: function () {
-    throw new Error('"createValueDescriptor" can only be used for: ' + (this.descriptor.name || '?'));
+    throw new Error('Descriptor with handler can only be used for: ' + (this.descriptor.name || '?'));
   }
+});
+StaticProperty.prototype = Object.assign(copyPrototype(Descriptor), {
+  create: function () {
+    return this.createGetterSetterDescriptor();
+  },
+  createValueDescriptor: function () {
+    throw new Error('Descriptor with getter/setter can only be used for: ' + (this.descriptor.name || '?'));
+  },
 });

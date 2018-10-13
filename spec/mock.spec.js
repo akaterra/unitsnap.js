@@ -26,10 +26,10 @@ describe('Property', () => {
     expect(e.createGetterSetterDescriptor()).toEqual({get: 1, set: 2});
   });
 
-  it('should create value descriptor', () => {
+  it('should not create value descriptor', () => {
     const e = mock.Property().get(1).set(2).handler(3);
 
-    expect(e.createValueDescriptor()).toEqual({value: 3});
+    expect(() => e.createValueDescriptor()).toThrow();
   });
 });
 
@@ -58,10 +58,10 @@ describe('StaticProperty', () => {
     expect(e.createGetterSetterDescriptor()).toEqual({get: 1, set: 2});
   });
 
-  it('should create value descriptor', () => {
+  it('should not create value descriptor', () => {
     const e = mock.StaticProperty().get(1).set(2).handler(3);
 
-    expect(e.createValueDescriptor()).toEqual({value: 3});
+    expect(() => e.createValueDescriptor()).toThrow();
   });
 });
 
@@ -76,6 +76,24 @@ describe('StaticMethod', () => {
   it('should be constructed by "new"', () => {
     expect(new mock.StaticMethod(value) instanceof mock.StaticMethod).toBeTruthy();
     expect(new mock.StaticMethod(value).descriptor.value).toEqual(value);
+  });
+
+  it('should set get/set/handler default value = Function', () => {
+    const e = mock.StaticMethod().get().set().handler();
+
+    expect(e.descriptor).toEqual({get: Function, set: Function, value: Function});
+  });
+
+  it('should create value descriptor', () => {
+    const e = mock.StaticMethod().get(1).set(2).handler(3);
+
+    expect(e.createValueDescriptor()).toEqual({value: 3});
+  });
+
+  it('should not create getter/setter descriptor', () => {
+    const e = mock.StaticMethod().get(1).set(2).handler(3);
+
+    expect(() => e.createGetterSetterDescriptor()).toThrow();
   });
 });
 

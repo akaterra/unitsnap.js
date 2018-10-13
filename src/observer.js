@@ -74,6 +74,7 @@ Observer.prototype = {
 
 module.exports = {
   AnyType: typeHelpers.AnyType,
+  ArrayType: typeHelpers.ArrayType,
   BooleanType: typeHelpers.BooleanType,
   ToString: typeHelpers.ToString,
   ShallowCopy: typeHelpers.ShallowCopy,
@@ -83,6 +84,9 @@ module.exports = {
   Initial: typeHelpers.Initial,
   InstanceOfType: typeHelpers.InstanceOfType,
   NumberType: typeHelpers.NumberType,
+  ObjectType: typeHelpers.ObjectType,
+  Path: typeHelpers.Path,
+  RegexPath: typeHelpers.RegexPath,
   StrictInstanceOfType: typeHelpers.StrictInstanceOfType,
   StringType: typeHelpers.StringType,
   UndefinedType: typeHelpers.UndefinedType,
