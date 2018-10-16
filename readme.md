@@ -296,7 +296,7 @@ const Mock = require('unitsnap.js').Mock;
 ```
 
 The Mock builds a mock that commonly is a fake representation of the initial entity and can be used instead of original entity.
-Static methods, instance properties and static properties of the initial entity can be mocked with the special modifiers **StaticMethod**, **Property** and **StaticProperty**.
+Static methods, instance properties and static properties of the initial entity can be mocked with the special modifiers **StaticMethod**, **Property** and **StaticGetterSetter**.
 Besides, this mock can optionally be linked to the history so that the state of the call observed by the mock will be stored in the history.
 
 * **from(props)** - constructs mock from the props
@@ -307,7 +307,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     const Mock = require('unitsnap.js').Mock;
     const Property = require('unitsnap.js').Property;
     const StaticMethod = require('unitsnap.js').StaticMethod;
-    const StaticProperty = require('unitsnap.js').StaticProperty;
+    const StaticGetterSetter = require('unitsnap.js').StaticGetterSetter;
 
     const mock = new Mock(history);
 
@@ -319,7 +319,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         e: Fixture, // exception - can be linked to observer Fixture only in context of observer
         f: StaticMethod(Function), // custom static method
         g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
-        h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
+        h: StaticGetterSetter().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
     });
 
     const mocked = new Mocked();
@@ -342,7 +342,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     const Observer = require('unitsnap.js').Observer;
     const Property = require('unitsnap.js').Property;
     const StaticMethod = require('unitsnap.js').StaticMethod;
-    const StaticProperty = require('unitsnap.js').StaticProperty;
+    const StaticGetterSetter = require('unitsnap.js').StaticGetterSetter;
 
     const observer = new Observer();
 
@@ -354,7 +354,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         e: Fixture, // linked to observer.Fixture.pop
         f: StaticMethod(2), // custom static method returning "2"
         g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
-        h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
+        h: StaticGetterSetter().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
     });
 
     const mocked = new Mocked();
@@ -399,7 +399,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     const Mock = require('unitsnap.js').Mock;
     const Property = require('unitsnap.js').Property;
     const StaticMethod = require('unitsnap.js').StaticMethod;
-    const StaticProperty = require('unitsnap.js').StaticProperty;
+    const StaticGetterSetter = require('unitsnap.js').StaticGetterSetter;
 
     const mock = new Mock(history);
 
@@ -420,7 +420,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     const Mock = require('unitsnap.js').Mock;
     const Property = require('unitsnap.js').Property;
     const StaticMethod = require('unitsnap.js').StaticMethod;
-    const StaticProperty = require('unitsnap.js').StaticProperty;
+    const StaticGetterSetter = require('unitsnap.js').StaticGetterSetter;
 
     const mock = new Mock(history);
 
@@ -433,7 +433,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         e: Fixture, // exception - can be linked to observer Fixture only in context of observer
         f: StaticMethod(2), // custom static method returning "2"
         g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
-        h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
+        h: StaticGetterSetter().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
     });
 
     const mocked = new Mocked();
@@ -456,7 +456,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     const Observer = require('unitsnap.js').Observer;
     const Property = require('unitsnap.js').Property;
     const StaticMethod = require('unitsnap.js').StaticMethod;
-    const StaticProperty = require('unitsnap.js').StaticProperty;
+    const StaticGetterSetter = require('unitsnap.js').StaticGetterSetter;
 
     const observer = new Observer();
 
@@ -469,7 +469,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         e: Fixture, // linked to observer.Fixture.pop
         f: StaticMethod(2), // custom static method returning "2"
         g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
-        h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
+        h: StaticGetterSetter().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
    });
 
     const mocked = new Mocked();

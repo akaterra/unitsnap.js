@@ -104,7 +104,7 @@ export function Custom(value?: any): MockCustom;
 export function Exclude(value: any): MockCustom;
 export function Initial(): void;
 export function Property(descriptor: Partial<PropertyDescriptor>): MockProperty;
-export function StaticProperty(descriptor: Partial<PropertyDescriptor>): MockProperty;
+export function StaticGetterSetter(descriptor: Partial<PropertyDescriptor>): MockProperty;
 export function StaticMethod(value?: any): MockMethod;
 // observer
 export class Observer {

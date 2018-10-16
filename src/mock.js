@@ -78,9 +78,6 @@ Mock.prototype = {
   },
 };
 
-var propertyGetterSetterProps = ['configurable', 'writable', 'get', 'set'];
-var propertyValueProps = ['configurable', 'writable', 'value'];
-
 function Descriptor(descriptor) {
   if (this instanceof Descriptor) {
     this.descriptor = Object.assign({}, descriptor);
@@ -94,65 +91,81 @@ Descriptor.prototype = {
     throw new Error('"createGetterSetterDescriptor" or "createValueDescriptor" can only be used for' + (this.descriptor.name || '?'));
   },
   createGetterSetterDescriptor: function () {
-    return propertyGetterSetterProps.reduce(function (acc, key) {
-      if (! this.descriptor.hasOwnProperty(key)) {
-        return acc;
-      }
+    var descriptor = {};
 
-      acc[key] = this.descriptor[key];
+    if (this.descriptor.hasOwnProperty('get')) {
+      descriptor.get = this.descriptor.get;
+    }
 
-      return acc;
-    }.bind(this), {get: this.descriptor.get || Function, set: this.descriptor.set || Function});
+    if (this.descriptor.hasOwnProperty('set')) {
+      descriptor.set = this.descriptor.set;
+    }
+
+    return descriptor;
   },
   createValueDescriptor: function () {
-    return propertyValueProps.reduce(function (acc, key) {
-      if (! this.descriptor.hasOwnProperty(key)) {
-        return acc;
-      }
+    var descriptor = {};
 
-      acc[key] = this.descriptor[key];
+    if (this.descriptor.hasOwnProperty('value')) {
+      descriptor.value = this.descriptor.value;
+    }
 
-      return acc;
-    }.bind(this), {value: this.descriptor.value || Function});
+    return descriptor;
   },
   get: function (get) {
-    this.descriptor.get = get || Function;
+    this.descriptor.get = get !== void 0 ? get : Function;
 
     return this;
   },
   set: function (set) {
-    this.descriptor.set = set || Function;
+    this.descriptor.set = set !== void 0 ? set : Function;
 
     return this;
   },
-  call: function (fn) {
-    this.descriptor.value = fn || Function;
+  value: function (value) {
+    this.descriptor.value = value;
 
     return this;
   },
 };
 
-function Property(descriptor) {
-  if (this instanceof Property) {
-    this.descriptor = Object.assign({}, descriptor);
+function GetterSetter(getter, setter) {
+  if (this instanceof GetterSetter) {
+    this.descriptor = {get: getter, set: setter};
   } else {
-    return new Property(descriptor || {});
+    return new GetterSetter(getter, setter);
+  }
+}
+
+function StaticGetterSetter(getter, setter) {
+  if (this instanceof StaticGetterSetter) {
+    this.descriptor = {get: getter, set: setter};
+  } else {
+    return new StaticGetterSetter(getter, setter);
   }
 }
 
 function StaticMethod(value) {
   if (this instanceof StaticMethod) {
-    this.descriptor = {value: value};
+    this.descriptor = {value: value !== void 0 ? value : Function};
   } else {
-    return new StaticMethod(value || Function);
+    return new StaticMethod(value !== void 0 ? value : Function);
   }
 }
 
-function StaticProperty(descriptor) {
-  if (this instanceof StaticProperty) {
-    this.descriptor = Object.assign({}, descriptor);
+function StaticValue(value) {
+  if (this instanceof StaticValue) {
+    this.descriptor = {value: value};
   } else {
-    return new StaticProperty(descriptor || {});
+    return new StaticValue(value);
+  }
+}
+
+function Value(value) {
+  if (this instanceof Value) {
+    this.descriptor = {value: value};
+  } else {
+    return new Value(value);
   }
 }
 
@@ -167,6 +180,11 @@ function Custom(value) {
 Custom.prototype = {
   argsAnnotation: function (argsAnnotation) {
     this.argsAnnotation = argsAnnotation;
+
+    return this;
+  },
+  comment: function (comment) {
+    this.comment = comment;
 
     return this;
   },
@@ -245,7 +263,7 @@ function ClassMaker(mock, cls, props) {
             break;
 
           default:
-            acc[key] = new Property(descriptor.descriptor);
+            acc[key] = new GetterSetter(descriptor.descriptor);
         }
       } else {
         acc[key] = Initial;
@@ -279,7 +297,7 @@ function ClassMaker(mock, cls, props) {
             break;
 
           default:
-            this._props[key] = new Property(descriptor.descriptor);
+            this._props[key] = new GetterSetter(descriptor.descriptor);
         }
 
         this._props[key] = restProp;
@@ -374,10 +392,10 @@ ClassMaker.prototype = {
       var rep = null;
       var repDescriptor = null;
 
-      if (prop instanceof StaticProperty) {
+      if (prop instanceof StaticGetterSetter) {
         repDescriptor = {};
 
-        if (prop.descriptor.get) {
+        if (prop.descriptor.get !== void 0) {
           if (prop.descriptor.get instanceof Custom) {
             customGet = prop.descriptor.get;
           }
@@ -399,7 +417,7 @@ ClassMaker.prototype = {
           }
         }
 
-        if (prop.descriptor.set) {
+        if (prop.descriptor.set !== void 0) {
           if (prop.descriptor.set instanceof Custom) {
             customSet = prop.descriptor.set;
           }
@@ -444,10 +462,10 @@ ClassMaker.prototype = {
             }
           },
         });
-      } else if (prop instanceof Property) {
+      } else if (prop instanceof GetterSetter) {
         repDescriptor = {};
 
-        if (prop.descriptor.get) {
+        if (prop.descriptor.get !== void 0) {
           if (prop.descriptor.get instanceof Custom) {
             customGet = prop.descriptor.get;
           }
@@ -469,7 +487,7 @@ ClassMaker.prototype = {
           }
         }
 
-        if (prop.descriptor.set) {
+        if (prop.descriptor.set !== void 0) {
           if (prop.descriptor.set instanceof Custom) {
             customSet = prop.descriptor.set;
           }
@@ -643,9 +661,11 @@ module.exports = {
   Custom: Custom,
   Initial: Initial,
   Mock: Mock,
-  Property: Property,
+  GetterSetter: GetterSetter,
+  StaticGetterSetter: StaticGetterSetter,
   StaticMethod: StaticMethod,
-  StaticProperty: StaticProperty,
+  StaticValue: StaticValue,
+  Value: Value,
 };
 
 var getAncestors = require('./instance').getAncestors;
@@ -660,27 +680,35 @@ var spyOnFunction = require('./spy').spyOnFunction;
 var spyOnMethod = require('./spy').spyOnMethod;
 var spyOnStaticMethod = require('./spy').spyOnStaticMethod;
 
-Property.prototype = Object.assign(copyPrototype(Descriptor), {
-  create: function () {
-    return this.createGetterSetterDescriptor();
-  },
-  createValueDescriptor: function () {
-    throw new Error('Descriptor with getter/setter can only be used for: ' + (this.descriptor.name || '?'));
-  },
-});
-StaticMethod.prototype = Object.assign(copyPrototype(Descriptor), {
+var descriptorWithValueOnly = {
   create: function () {
     return this.createValueDescriptor();
   },
   createGetterSetterDescriptor: function () {
-    throw new Error('Descriptor with handler can only be used for: ' + (this.descriptor.name || '?'));
-  }
-});
-StaticProperty.prototype = Object.assign(copyPrototype(Descriptor), {
+    throw new Error('Descriptor with value can only be used for: ' + (this.descriptor.name || '?'));
+  },
+  get: function () {
+    throw new Error('Descriptor with value can only be used for: ' + (this.descriptor.name || '?'));
+  },
+  set: function () {
+    throw new Error('Descriptor with value can only be used for: ' + (this.descriptor.name || '?'));
+  },
+};
+
+var descriptorWithGetterSetterOnly = {
   create: function () {
     return this.createGetterSetterDescriptor();
   },
   createValueDescriptor: function () {
     throw new Error('Descriptor with getter/setter can only be used for: ' + (this.descriptor.name || '?'));
   },
-});
+  value: function () {
+    throw new Error('Descriptor with getter/setter can only be used for: ' + (this.descriptor.name || '?'));
+  },
+};
+
+GetterSetter.prototype = Object.assign(copyPrototype(Descriptor), descriptorWithGetterSetterOnly);
+StaticGetterSetter.prototype = Object.assign(copyPrototype(Descriptor), descriptorWithGetterSetterOnly);
+StaticMethod.prototype = Object.assign(copyPrototype(Descriptor), descriptorWithValueOnly);
+StaticValue.prototype = Object.assign(copyPrototype(Descriptor), descriptorWithValueOnly);
+Value.prototype = Object.assign(copyPrototype(Descriptor), descriptorWithValueOnly);

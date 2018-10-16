@@ -109,9 +109,11 @@ module.exports = {
   Exclude: mock.Exclude,
   // Initial: mock.Initial,
 
-  Property: mock.Property,
+  GetterSetter: mock.GetterSetter,
+  StaticGetterSetter: mock.StaticGetterSetter,
   StaticMethod: mock.StaticMethod,
-  StaticProperty: mock.StaticProperty,
+  StaticValue: mock.StaticValue,
+  Value: mock.Value,
 
   create: function () {
     return new Observer();

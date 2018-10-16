@@ -1,97 +1,167 @@
 const unitsnap = require('..');
 const mock = require('../src/mock');
 
-describe('Property', () => {
-  const descriptor = {};
+describe('GetterSetter', () => {
+  const getter = _ => _;
+  const setter = _ => _;
 
   it('should be constructed by call as factory', () => {
-    expect(mock.Property(descriptor) instanceof mock.Property).toBeTruthy();
-    expect(new mock.Property(descriptor).descriptor).toEqual(descriptor);
+    expect(mock.GetterSetter() instanceof mock.GetterSetter).toBeTruthy();
+    expect(mock.GetterSetter().descriptor).toEqual({get: void 0, set: void 0});
+    expect(mock.GetterSetter(getter, setter).descriptor).toEqual({get: getter, set: setter});
   });
 
   it('should be constructed by "new"', () => {
-    expect(new mock.Property(descriptor) instanceof mock.Property).toBeTruthy();
-    expect(new mock.Property(descriptor).descriptor).toEqual(descriptor);
+    expect(new mock.GetterSetter() instanceof mock.GetterSetter).toBeTruthy();
+    expect(new mock.GetterSetter().descriptor).toEqual({get: void 0, set: void 0});
+    expect(new mock.GetterSetter(getter, setter).descriptor).toEqual({get: getter, set: setter});
   });
 
-  it('should set get/set/handler default value = Function', () => {
-    const e = mock.Property().get().set().handler();
+  it('should apply get/set', () => {
+    const e = mock.GetterSetter().get(getter).set(setter);
 
-    expect(e.descriptor).toEqual({get: Function, set: Function, value: Function});
+    expect(e.descriptor).toEqual({get: getter, set: setter});
   });
 
   it('should create getter/setter descriptor', () => {
-    const e = mock.Property().get(1).set(2).handler(3);
+    const e = mock.GetterSetter().get(getter).set(setter);
 
-    expect(e.createGetterSetterDescriptor()).toEqual({get: 1, set: 2});
+    expect(e.createGetterSetterDescriptor()).toEqual({get: getter, set: setter});
   });
 
   it('should not create value descriptor', () => {
-    const e = mock.Property().get(1).set(2).handler(3);
+    const e = mock.GetterSetter();
 
     expect(() => e.createValueDescriptor()).toThrow();
   });
 });
 
-describe('StaticProperty', () => {
-  const descriptor = {};
+describe('StaticGetterSetter', () => {
+  const getter = _ => _;
+  const setter = _ => _;
 
   it('should be constructed by call as factory', () => {
-    expect(mock.StaticProperty(descriptor) instanceof mock.StaticProperty).toBeTruthy();
-    expect(new mock.StaticProperty(descriptor).descriptor).toEqual(descriptor);
+    expect(mock.StaticGetterSetter() instanceof mock.StaticGetterSetter).toBeTruthy();
+    expect(mock.StaticGetterSetter().descriptor).toEqual({get: void 0, set: void 0});
+    expect(mock.StaticGetterSetter(getter, setter).descriptor).toEqual({get: getter, set: setter});
   });
 
   it('should be constructed by "new"', () => {
-    expect(new mock.StaticProperty(descriptor) instanceof mock.StaticProperty).toBeTruthy();
-    expect(new mock.StaticProperty(descriptor).descriptor).toEqual(descriptor);
+    expect(new mock.StaticGetterSetter(descriptor) instanceof mock.StaticGetterSetter).toBeTruthy();
+    expect(new mock.StaticGetterSetter().descriptor).toEqual({get: void 0, set: void 0});
+    expect(new mock.StaticGetterSetter(getter, setter).descriptor).toEqual({get: getter, set: setter});
   });
 
-  it('should set get/set/handler default value = Function', () => {
-    const e = mock.StaticProperty().get().set().handler();
+  it('should apply get/set', () => {
+    const e = mock.StaticGetterSetter().get(getter).set(setter);
 
-    expect(e.descriptor).toEqual({get: Function, set: Function, value: Function});
+    expect(e.descriptor).toEqual({get: getter, set: setter});
   });
 
   it('should create getter/setter descriptor', () => {
-    const e = mock.StaticProperty().get(1).set(2).handler(3);
+    const e = mock.StaticGetterSetter().get(getter).set(setter);
 
-    expect(e.createGetterSetterDescriptor()).toEqual({get: 1, set: 2});
+    expect(e.createGetterSetterDescriptor()).toEqual({get: getter, set: setter});
   });
 
   it('should not create value descriptor', () => {
-    const e = mock.StaticProperty().get(1).set(2).handler(3);
+    const e = mock.StaticGetterSetter();
 
     expect(() => e.createValueDescriptor()).toThrow();
   });
 });
 
 describe('StaticMethod', () => {
-  const value = {};
-
   it('should be constructed by call as factory', () => {
-    expect(mock.StaticMethod(value) instanceof mock.StaticMethod).toBeTruthy();
-    expect(new mock.StaticMethod(value).descriptor.value).toEqual(value);
+    expect(mock.StaticMethod() instanceof mock.StaticMethod).toBeTruthy();
+    expect(mock.StaticMethod().descriptor).toEqual({value: Function});
+    expect(mock.StaticMethod(1).descriptor).toEqual({value: 1});
   });
 
   it('should be constructed by "new"', () => {
-    expect(new mock.StaticMethod(value) instanceof mock.StaticMethod).toBeTruthy();
-    expect(new mock.StaticMethod(value).descriptor.value).toEqual(value);
+    expect(new mock.StaticMethod() instanceof mock.StaticMethod).toBeTruthy();
+    expect(new mock.StaticMethod().descriptor).toEqual({value: Function});
+    expect(new mock.StaticMethod(1).descriptor).toEqual({value: 1});
   });
 
-  it('should set get/set/handler default value = Function', () => {
-    const e = mock.StaticMethod().get().set().handler();
+  it('should apply value', () => {
+    const e = mock.StaticMethod().value(1);
 
-    expect(e.descriptor).toEqual({get: Function, set: Function, value: Function});
+    expect(e.descriptor).toEqual({value: 1});
   });
 
   it('should create value descriptor', () => {
-    const e = mock.StaticMethod().get(1).set(2).handler(3);
+    const e = mock.StaticMethod().value(1);
 
-    expect(e.createValueDescriptor()).toEqual({value: 3});
+    expect(e.createValueDescriptor()).toEqual({value: 1});
   });
 
   it('should not create getter/setter descriptor', () => {
-    const e = mock.StaticMethod().get(1).set(2).handler(3);
+    const e = mock.StaticMethod();
+
+    expect(() => e.createGetterSetterDescriptor()).toThrow();
+  });
+});
+
+describe('StaticValue', () => {
+  it('should be constructed by call as factory', () => {
+    expect(mock.StaticValue() instanceof mock.StaticValue).toBeTruthy();
+    expect(mock.StaticValue().descriptor).toEqual({value: void 0});
+    expect(mock.StaticValue(1).descriptor).toEqual({value: 1});
+  });
+
+  it('should be constructed by "new"', () => {
+    expect(new mock.StaticValue() instanceof mock.StaticValue).toBeTruthy();
+    expect(new mock.StaticValue().descriptor).toEqual({value: void 0});
+    expect(new mock.StaticValue(1).descriptor).toEqual({value: 1});
+  });
+
+  it('should apply value', () => {
+    const e = mock.StaticValue().value(1);
+
+    expect(e.descriptor).toEqual({value: 1});
+  });
+
+  it('should create value descriptor', () => {
+    const e = mock.StaticValue().value(1);
+
+    expect(e.createValueDescriptor()).toEqual({value: 1});
+  });
+
+  it('should not create getter/setter descriptor', () => {
+    const e = mock.StaticValue();
+
+    expect(() => e.createGetterSetterDescriptor()).toThrow();
+  });
+});
+
+describe('Value', () => {
+  it('should be constructed by call as factory', () => {
+    expect(mock.Value() instanceof mock.Value).toBeTruthy();
+    expect(mock.Value().descriptor).toEqual({value: void 0});
+    expect(mock.Value(1).descriptor).toEqual({value: 1});
+  });
+
+  it('should be constructed by "new"', () => {
+    expect(new mock.Value() instanceof mock.Value).toBeTruthy();
+    expect(new mock.Value().descriptor).toEqual({value: void 0});
+    expect(new mock.Value(1).descriptor).toEqual({value: 1});
+  });
+
+  it('should apply value', () => {
+    const e = mock.Value().value(1);
+
+    expect(e.descriptor).toEqual({value: 1});
+  });
+
+  it('should create value descriptor', () => {
+    const e = mock.Value().value(1);
+
+    expect(e.createValueDescriptor()).toEqual({value: 1});
+  });
+
+  it('should not create getter/setter descriptor', () => {
+    const e = mock.Value();
 
     expect(() => e.createGetterSetterDescriptor()).toThrow();
   });
@@ -422,7 +492,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on single getter', () => {
-        const E = new mock.Mock(history).by(B, {d: mock.Property().get(f)});
+        const E = new mock.Mock(history).by(B, {d: mock.GetterSetter().get(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
@@ -430,7 +500,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on single setter', () => {
-        const E = new mock.Mock(history).by(B, {d: mock.Property().set(f)});
+        const E = new mock.Mock(history).by(B, {d: mock.GetterSetter().set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
@@ -438,7 +508,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on getter of getter/setter pair', () => {
-        const E = new mock.Mock(history).by(B, {d: mock.Property().get(f).set(f)});
+        const E = new mock.Mock(history).by(B, {d: mock.GetterSetter().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
@@ -446,7 +516,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on setter of getter/setter pair', () => {
-        const E = new mock.Mock(history).by(B, {d: mock.Property().get(f).set(f)});
+        const E = new mock.Mock(history).by(B, {d: mock.GetterSetter().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
@@ -454,7 +524,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on single getter', () => {
-        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().get(f)});
+        const E = new mock.Mock(history).by(B, {d: mock.StaticGetterSetter().get(f)});
 
         expect(E.a).toBe(B.a);
         expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
@@ -462,7 +532,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on single setter', () => {
-        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().set(f)});
+        const E = new mock.Mock(history).by(B, {d: mock.StaticGetterSetter().set(f)});
 
         expect(E.a).toBe(B.a);
         expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
@@ -470,7 +540,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on getter of getter/setter pair', () => {
-        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().get(f).set(f)});
+        const E = new mock.Mock(history).by(B, {d: mock.StaticGetterSetter().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
         expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
@@ -478,7 +548,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on setter of getter/setter pair', () => {
-        const E = new mock.Mock(history).by(B, {d: mock.StaticProperty().get(f).set(f)});
+        const E = new mock.Mock(history).by(B, {d: mock.StaticGetterSetter().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
         expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
@@ -761,11 +831,11 @@ describe('Mock', () => {
         constructor: Function,
         a: mock.StaticMethod(Function),
         c: B,
-        d: mock.Property().get(1).set(Function),
-        e: mock.StaticProperty().get(1).set(Function),
+        d: mock.GetterSetter().get(1).set(Function),
+        e: mock.StaticGetterSetter().get(1).set(Function),
         x: Function,
-        y: mock.Property().get(1).set(Function),
-        z: mock.StaticProperty().get(1).set(Function),
+        y: mock.GetterSetter().get(1).set(Function),
+        z: mock.StaticGetterSetter().get(1).set(Function),
       });
 
       const e = new E(1);
@@ -1249,11 +1319,11 @@ describe('Mock', () => {
         constructor: custom,
         a: mock.StaticMethod(custom),
         c: custom,
-        d: mock.Property().get(custom).set(custom),
-        e: mock.StaticProperty().get(custom).set(custom),
+        d: mock.GetterSetter().get(custom).set(custom),
+        e: mock.StaticGetterSetter().get(custom).set(custom),
         x: custom,
-        y: mock.Property().get(custom).set(custom),
-        z: mock.StaticProperty().get(custom).set(custom),
+        y: mock.GetterSetter().get(custom).set(custom),
+        z: mock.StaticGetterSetter().get(custom).set(custom),
       });
 
       const e = new E(1, 2, 3);
@@ -1299,11 +1369,11 @@ describe('Mock', () => {
         constructor: custom,
         a: mock.StaticMethod(custom),
         c: custom,
-        d: mock.Property().get(custom).set(custom),
-        e: mock.StaticProperty().get(custom).set(custom),
+        d: mock.GetterSetter().get(custom).set(custom),
+        e: mock.StaticGetterSetter().get(custom).set(custom),
         x: custom,
-        y: mock.Property().get(custom).set(custom),
-        z: mock.StaticProperty().get(custom).set(custom),
+        y: mock.GetterSetter().get(custom).set(custom),
+        z: mock.StaticGetterSetter().get(custom).set(custom),
       });
 
       const e = new E(1, 2, 3);
@@ -1442,7 +1512,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on single getter', () => {
-        const E = new mock.Mock(history).override(B, {d: mock.Property().get(f)});
+        const E = new mock.Mock(history).override(B, {d: mock.GetterSetter().get(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.ORIGIN).toBe(bPrototypeDescriptors.d.get);
@@ -1450,7 +1520,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on single setter', () => {
-        const E = new mock.Mock(history).override(B, {d: mock.Property().set(f)});
+        const E = new mock.Mock(history).override(B, {d: mock.GetterSetter().set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(bPrototypeDescriptors.d.set);
@@ -1458,7 +1528,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on getter of getter/setter pair', () => {
-        const E = new mock.Mock(history).override(B, {d: mock.Property().get(f).set(f)});
+        const E = new mock.Mock(history).override(B, {d: mock.GetterSetter().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').get.ORIGIN).toBe(bPrototypeDescriptors.d.get);
@@ -1466,7 +1536,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on setter of getter/setter pair', () => {
-        const E = new mock.Mock(history).override(B, {d: mock.Property().get(f).set(f)});
+        const E = new mock.Mock(history).override(B, {d: mock.GetterSetter().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(Object.getOwnPropertyDescriptor(E.prototype, 'd').set.ORIGIN).toBe(bPrototypeDescriptors.d.set);
@@ -1474,7 +1544,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on single getter', () => {
-        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().get(f)});
+        const E = new mock.Mock(history).override(B, {d: mock.StaticGetterSetter().get(f)});
 
         expect(E.a).toBe(B.a);
         expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(bPropertiesDescriptors.d.get);
@@ -1482,7 +1552,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on single setter', () => {
-        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().set(f)});
+        const E = new mock.Mock(history).override(B, {d: mock.StaticGetterSetter().set(f)});
 
         expect(E.a).toBe(B.a);
         expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(bPropertiesDescriptors.d.set);
@@ -1490,7 +1560,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on getter of getter/setter pair', () => {
-        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().get(f).set(f)});
+        const E = new mock.Mock(history).override(B, {d: mock.StaticGetterSetter().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
         expect(Object.getOwnPropertyDescriptor(E, 'd').get.ORIGIN).toBe(bPropertiesDescriptors.d.get);
@@ -1498,7 +1568,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on setter of getter/setter pair', () => {
-        const E = new mock.Mock(history).override(B, {d: mock.StaticProperty().get(f).set(f)});
+        const E = new mock.Mock(history).override(B, {d: mock.StaticGetterSetter().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
         expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(bPropertiesDescriptors.d.set);
@@ -1779,11 +1849,11 @@ describe('Mock', () => {
         constructor: Function,
         a: mock.StaticMethod(Function),
         c: B,
-        d: mock.Property().get(1).set(Function),
-        e: mock.StaticProperty().get(1).set(Function),
+        d: mock.GetterSetter().get(1).set(Function),
+        e: mock.StaticGetterSetter().get(1).set(Function),
         x: Function,
-        y: mock.Property().get(1).set(Function),
-        z: mock.StaticProperty().get(1).set(Function),
+        y: mock.GetterSetter().get(1).set(Function),
+        z: mock.StaticGetterSetter().get(1).set(Function),
       });
 
       const e = new E(1);
@@ -2278,8 +2348,8 @@ describe('Mock', () => {
       const E = new mock.Mock(history).override(B, {
         a: B,
         b: mock.StaticMethod(B),
-        d: mock.Property(),
-        e: mock.StaticProperty(),
+        d: mock.GetterSetter(),
+        e: mock.StaticGetterSetter(),
         m: f,
         x: f
       }).RESTORE();
