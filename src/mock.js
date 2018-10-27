@@ -137,6 +137,14 @@ function GetterSetter(getter, setter) {
   }
 }
 
+function Method(value) {
+  if (this instanceof Method) {
+    this.descriptor = {value: value !== void 0 ? value : Function};
+  } else {
+    return new Method(value !== void 0 ? value : Function);
+  }
+}
+
 function StaticGetterSetter(getter, setter) {
   if (this instanceof StaticGetterSetter) {
     this.descriptor = {get: getter, set: setter};
@@ -263,7 +271,7 @@ function ClassMaker(mock, cls, props) {
             break;
 
           default:
-            acc[key] = new GetterSetter(descriptor.descriptor);
+            acc[key] = new GetterSetter(descriptor.descriptor.get, descriptor.descriptor.set);
         }
       } else {
         acc[key] = Initial;
@@ -283,27 +291,27 @@ function ClassMaker(mock, cls, props) {
       return acc;
     }.bind(this), {});
 
-  if (restProp) {
-    Object.keys(this._clsProtoPropsDescriptors).forEach(function (key) {
-      if (this._clsProtoPropsDescriptors[key].level === 0 && ! this._props.hasOwnProperty(key)) {
-        var descriptor = this._clsProtoPropsDescriptors[key];
-
-        switch (descriptor.type) {
-          case 'function':
-            this._props[key] = restProp instanceof Descriptor
-              ? restProp.createGetterSetterDescriptor()
-              : restProp;
-
-            break;
-
-          default:
-            this._props[key] = new GetterSetter(descriptor.descriptor);
-        }
-
-        this._props[key] = restProp;
-      }
-    }.bind(this));
-  }
+  //if (restProp) {
+  //  Object.keys(this._clsProtoPropsDescriptors).forEach(function (key) {
+  //    if (this._clsProtoPropsDescriptors[key].level === 0 && ! this._props.hasOwnProperty(key)) {
+  //      var descriptor = this._clsProtoPropsDescriptors[key];
+  //
+  //      switch (descriptor.type) {
+  //        case 'function':
+  //          this._props[key] = restProp instanceof Descriptor
+  //            ? restProp.createGetterSetterDescriptor()
+  //            : restProp;
+  //
+  //          break;
+  //
+  //        default:
+  //          this._props[key] = new GetterSetter(descriptor.descriptor);
+  //      }
+  //
+  //      this._props[key] = restProp;
+  //    }
+  //  }.bind(this));
+  //}
 
   this._propsMetadata = { extraStaticProps: [], extraProps: [] };
 }
@@ -662,6 +670,7 @@ module.exports = {
   Initial: Initial,
   Mock: Mock,
   GetterSetter: GetterSetter,
+  Method: Method,
   StaticGetterSetter: StaticGetterSetter,
   StaticMethod: StaticMethod,
   StaticValue: StaticValue,
@@ -708,6 +717,7 @@ var descriptorWithGetterSetterOnly = {
 };
 
 GetterSetter.prototype = Object.assign(copyPrototype(Descriptor), descriptorWithGetterSetterOnly);
+Method.prototype = Object.assign(copyPrototype(Descriptor), descriptorWithValueOnly);
 StaticGetterSetter.prototype = Object.assign(copyPrototype(Descriptor), descriptorWithGetterSetterOnly);
 StaticMethod.prototype = Object.assign(copyPrototype(Descriptor), descriptorWithValueOnly);
 StaticValue.prototype = Object.assign(copyPrototype(Descriptor), descriptorWithValueOnly);

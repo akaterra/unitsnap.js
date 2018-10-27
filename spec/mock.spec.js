@@ -47,7 +47,7 @@ describe('StaticGetterSetter', () => {
   });
 
   it('should be constructed by "new"', () => {
-    expect(new mock.StaticGetterSetter(descriptor) instanceof mock.StaticGetterSetter).toBeTruthy();
+    expect(new mock.StaticGetterSetter() instanceof mock.StaticGetterSetter).toBeTruthy();
     expect(new mock.StaticGetterSetter().descriptor).toEqual({get: void 0, set: void 0});
     expect(new mock.StaticGetterSetter(getter, setter).descriptor).toEqual({get: getter, set: setter});
   });
