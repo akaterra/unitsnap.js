@@ -446,13 +446,21 @@ ClassMaker.prototype = {
           propsDescriptor: self._clsPropsDescriptors,
           spyOn: spyOnStaticMethod,
         }
-      } else {
+      } else if (prop instanceof GetterSetter) {
         scope = {
           extraProps: self._propsMetadata.extraProps,
           obj: self._cls,
           objProps: self._clsProtoScope,
           propsDescriptor: self._clsProtoPropsDescriptors,
           spyOn: spyOnDescriptor,
+        }
+      } else {
+        scope = {
+          extraProps: self._propsMetadata.extraProps,
+          obj: self._cls,
+          objProps: self._clsProtoScope,
+          propsDescriptor: self._clsProtoPropsDescriptors,
+          spyOn: spyOnMethod,
         }
       }
 
@@ -467,13 +475,13 @@ ClassMaker.prototype = {
           replacementDescriptor.get = classMakerGetReplacement(
             customGet ? customGet.value : prop.descriptor.get,
             key,
-            scope.obj, //self._cls,
-            scope.objProps, // self._clsProps,
-            scope.extraProps, // self._propsMetadata.extraStaticProps
+            scope.obj,
+            scope.objProps,
+            scope.extraProps,
           );
 
           if (replacementDescriptor.get === self._cls) {
-            replacementDescriptor.get = scope.propsDescriptor[key].descriptor.get; //self._clsPropsDescriptors[key].descriptor.get;
+            replacementDescriptor.get = scope.propsDescriptor[key].descriptor.get;
           }
 
           if (replacementDescriptor.get === fixture.Fixture) {
@@ -489,13 +497,13 @@ ClassMaker.prototype = {
           replacementDescriptor.set = classMakerGetReplacement(
             customSet ? customSet.value : prop.descriptor.set,
             key,
-            scope.obj, //self._cls,
-            scope.objProps, // self._clsProps,
-            scope.extraProps, // self._propsMetadata.extraStaticProps
+            scope.obj,
+            scope.objProps,
+            scope.extraProps,
           );
 
           if (replacementDescriptor.set === self._cls) {
-            replacementDescriptor.set = scope.propsDescriptor[key].descriptor.set; //self._clsPropsDescriptors[key].descriptor.set;
+            replacementDescriptor.set = scope.propsDescriptor[key].descriptor.set;
           }
 
           if (replacementDescriptor.set === fixture.Fixture) {
@@ -509,7 +517,7 @@ ClassMaker.prototype = {
               name: self._clsConstructorName + '.' + key,
               type: prop instanceof StaticGetterSetter ? 'staticGetter' : 'getter',
             },
-            origin: scope.propsDescriptor[key] && scope.propsDescriptor[key].descriptor.get, //self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.get,
+            origin: scope.propsDescriptor[key] && scope.propsDescriptor[key].descriptor.get,
             replacement: prop.descriptor.get,
           }, customGet || {}),
           set: Object.assign({
@@ -517,7 +525,7 @@ ClassMaker.prototype = {
               name: self._clsConstructorName + '.' + key,
               type: prop instanceof StaticGetterSetter ? 'staticSetter' : 'setter',
             },
-            origin: scope.propsDescriptor[key] && scope.propsDescriptor[key].descriptor.set, // self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.set,
+            origin: scope.propsDescriptor[key] && scope.propsDescriptor[key].descriptor.set,
             replacement: prop.descriptor.set,
           }, customSet || {}),
           onCall: function (context, state) {
@@ -526,21 +534,23 @@ ClassMaker.prototype = {
             }
           },
         });
-      } else if (prop instanceof StaticMethod) {
-        if (prop.descriptor.value instanceof Custom) {
+      } else {
+        if (prop instanceof Custom) {
+          custom = prop;
+        } else if (prop instanceof StaticMethod && prop.descriptor.value instanceof Custom) {
           custom = prop.descriptor.value;
         }
 
         replacement = classMakerGetReplacement(
-          custom ? custom.value : prop.descriptor.value,
+          custom ? custom.value : (prop instanceof StaticMethod ? prop.descriptor.value : prop),
           key,
-          self._cls,
-          self._clsProps,
-          self._propsMetadata.extraStaticProps
+          scope.obj,
+          scope.objProps,
+          scope.extraProps,
         );
 
         if (replacement === self._cls) {
-          replacement = self._clsPropsDescriptors[key].descriptor.value;
+          replacement = scope.propsDescriptor[key].descriptor.value;
         }
 
         if (replacement === fixture.Fixture) {
@@ -549,48 +559,12 @@ ClassMaker.prototype = {
 
         Object.defineProperty(replacement, 'name', {value: key, writable: false});
 
-        spyOnStaticMethod(cls, key, replacement, Object.assign({
+        scope.spyOn(cls, key, replacement, Object.assign({
           extra: {
             name: self._clsConstructorName + '.' + key,
-            type: 'staticMethod',
+            type: prop instanceof StaticMethod ? 'staticMethod' : 'method',
           },
-          origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.value,
-          replacement: replacement,
-          onCall: function (context, state) {
-            if (self._mock._history) {
-              self._mock._history.push(state);
-            }
-          },
-        }, custom || {}));
-      } else {
-        if (prop instanceof Custom) {
-          custom = prop;
-        }
-
-        replacement = classMakerGetReplacement(
-          custom ? custom.value : prop,
-          key,
-          self._cls,
-          self._clsProtoScope,
-          self._propsMetadata.extraProps
-        );
-
-        if (replacement === self._cls) {
-          replacement = self._clsProtoPropsDescriptors[key].descriptor.value;
-        }
-
-        if (replacement === fixture.Fixture) {
-          replacement = mockGetFixturePop(self._mock);
-        }
-
-        Object.defineProperty(replacement, 'name', {value: key, writable: false});
-
-        spyOnMethod(cls, key, replacement, Object.assign({
-          extra: {
-            name: self._clsConstructorName + '.' + key,
-            type: 'method',
-          },
-          origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.value,
+          origin: scope.propsDescriptor[key] && scope.propsDescriptor[key].descriptor.value,
           replacement: replacement,
           onCall: function (context, state) {
             if (self._mock._history) {
