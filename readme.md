@@ -509,6 +509,14 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
 * **spy(function)** - spies on a single function
 
+##### ES6 Generator
+
+ES6 Generator can be wrapped to be observed with the **Generator** entity.
+
+```javascript
+
+```
+
 ##### Customization
 
 Properties can be customized with the **Custom** entity.
