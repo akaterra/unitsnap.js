@@ -178,10 +178,10 @@ function Value(value) {
 }
 
 function Custom(value) {
-  if (! (this instanceof Custom)) {
-    return new Custom(value || Function);
-  } else {
+  if (this instanceof Custom) {
     this.value = value;
+  } else {
+    return new Custom(value || Function);
   }
 }
 
@@ -205,7 +205,7 @@ Custom.prototype = {
 
 function ArgsAnnotation(value, argsAnnotation) {
   if (value instanceof Custom) {
-    value = Custom(value.value);
+    value = value.value;
   }
 
   return Custom(value).argsAnnotation(argsAnnotation);
@@ -213,10 +213,39 @@ function ArgsAnnotation(value, argsAnnotation) {
 
 function Exclude(value) {
   if (value instanceof Custom) {
-    value = Custom(value.value);
+    value = value.value;
   }
 
   return Custom(value).exclude();
+}
+
+function Generator(fn, onValue, onException) {
+  return function *() {
+    var generator = fn.apply(this, arguments);
+    var received = void 0;
+
+    try {
+      while (true) {
+        var generatorValue = generator.next(received);
+
+        if (onValue) {
+          onValue(generatorValue, received);
+        }
+
+        if (generatorValue.done) {
+          return;
+        }
+
+        received = yield generatorValue.value;
+      }
+    } catch (e) {
+      if (onException) {
+        onException(e);
+      }
+
+      throw e;
+    }
+  };
 }
 
 function Initial() {
@@ -667,6 +696,7 @@ module.exports = {
   ArgsAnnotation: ArgsAnnotation,
   Exclude: Exclude,
   Custom: Custom,
+  Generator: Generator,
   Initial: Initial,
   Mock: Mock,
   GetterSetter: GetterSetter,

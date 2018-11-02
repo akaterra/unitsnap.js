@@ -2,31 +2,28 @@ const unitsnap = require('..');
 const mock = require('../src/mock');
 
 describe('GetterSetter', () => {
-  const getter = _ => _;
-  const setter = _ => _;
-
   it('should be constructed by call as factory', () => {
     expect(mock.GetterSetter() instanceof mock.GetterSetter).toBeTruthy();
     expect(mock.GetterSetter().descriptor).toEqual({get: void 0, set: void 0});
-    expect(mock.GetterSetter(getter, setter).descriptor).toEqual({get: getter, set: setter});
+    expect(mock.GetterSetter(1, 2).descriptor).toEqual({get: 1, set: 2});
   });
 
   it('should be constructed by "new"', () => {
     expect(new mock.GetterSetter() instanceof mock.GetterSetter).toBeTruthy();
     expect(new mock.GetterSetter().descriptor).toEqual({get: void 0, set: void 0});
-    expect(new mock.GetterSetter(getter, setter).descriptor).toEqual({get: getter, set: setter});
+    expect(new mock.GetterSetter(1, 2).descriptor).toEqual({get: 1, set: 2});
   });
 
   it('should apply get/set', () => {
-    const e = mock.GetterSetter().get(getter).set(setter);
+    const e = mock.GetterSetter().get(1).set(2);
 
-    expect(e.descriptor).toEqual({get: getter, set: setter});
+    expect(e.descriptor).toEqual({get: 1, set: 2});
   });
 
   it('should create getter/setter descriptor', () => {
-    const e = mock.GetterSetter().get(getter).set(setter);
+    const e = mock.GetterSetter().get(1).set(2);
 
-    expect(e.createGetterSetterDescriptor()).toEqual({get: getter, set: setter});
+    expect(e.createGetterSetterDescriptor()).toEqual({get: 1, set: 2});
   });
 
   it('should not create value descriptor', () => {
@@ -37,31 +34,28 @@ describe('GetterSetter', () => {
 });
 
 describe('StaticGetterSetter', () => {
-  const getter = _ => _;
-  const setter = _ => _;
-
   it('should be constructed by call as factory', () => {
     expect(mock.StaticGetterSetter() instanceof mock.StaticGetterSetter).toBeTruthy();
     expect(mock.StaticGetterSetter().descriptor).toEqual({get: void 0, set: void 0});
-    expect(mock.StaticGetterSetter(getter, setter).descriptor).toEqual({get: getter, set: setter});
+    expect(mock.StaticGetterSetter(1, 2).descriptor).toEqual({get: 1, set: 2});
   });
 
   it('should be constructed by "new"', () => {
     expect(new mock.StaticGetterSetter() instanceof mock.StaticGetterSetter).toBeTruthy();
     expect(new mock.StaticGetterSetter().descriptor).toEqual({get: void 0, set: void 0});
-    expect(new mock.StaticGetterSetter(getter, setter).descriptor).toEqual({get: getter, set: setter});
+    expect(new mock.StaticGetterSetter(1, 2).descriptor).toEqual({get: 1, set: 2});
   });
 
   it('should apply get/set', () => {
-    const e = mock.StaticGetterSetter().get(getter).set(setter);
+    const e = mock.StaticGetterSetter().get(1).set(2);
 
-    expect(e.descriptor).toEqual({get: getter, set: setter});
+    expect(e.descriptor).toEqual({get: 1, set: 2});
   });
 
   it('should create getter/setter descriptor', () => {
-    const e = mock.StaticGetterSetter().get(getter).set(setter);
+    const e = mock.StaticGetterSetter().get(1).set(2);
 
-    expect(e.createGetterSetterDescriptor()).toEqual({get: getter, set: setter});
+    expect(e.createGetterSetterDescriptor()).toEqual({get: 1, set: 2});
   });
 
   it('should not create value descriptor', () => {
@@ -184,6 +178,94 @@ describe('Custom', () => {
       expect(e instanceof mock.Custom).toBeTruthy();
       expect(e.exclude).toBeTruthy();
     });
+  });
+});
+
+describe('Generator', () => {
+  const gen = function *() {
+    this.args = [...arguments];
+    this.s = yield 1;
+    yield 2;
+  };
+
+  const genWithException = function *() {
+    this.args = [...arguments];
+    this.s = yield 1;
+    throw new Error();
+  };
+
+  it('should create wrapper around generator func', () => {
+    const wrappedGenerator = mock.Generator(gen);
+    const values = [];
+
+    for (const value of wrappedGenerator()) {
+      values.push(value);
+    }
+
+    expect(values).toEqual([1, 2]);
+  });
+
+  it('should create wrapper around generator func with exception', () => {
+    const wrapperGenerator = mock.Generator(genWithException);
+    const values = [];
+
+    expect(() => {
+      for (const value of wrapperGenerator()) {
+
+      }
+    }).toThrow();
+  });
+
+  it('should pass parameters to wrapped generator func', () => {
+    const wrappedGenerator = mock.Generator(gen);
+    const context = {};
+    const generator = wrappedGenerator.call(context, 1, 2, 3);
+
+    generator.next();
+    generator.next();
+
+    expect(context.args).toEqual([1, 2, 3]);
+  });
+
+  it('should pass "send" value to wrapped generator func', () => {
+    const wrappedGenerator = mock.Generator(gen);
+    const context = {};
+    const generator = wrappedGenerator.call(context);
+
+    generator.next(5);
+    generator.next(5);
+
+    expect(context.s).toEqual(5);
+  });
+
+  it('should call on value callback', () => {
+    const wrappedGenerator = mock.Generator(genWithException, (received, value) => values.push([received, value]));
+    const values = [];
+    const generator = wrappedGenerator();
+
+    try {
+      generator.next(5);
+      generator.next(5);
+    } catch (e) {
+
+    }
+
+    expect(values).toEqual([[{value: 1, done: false}, void 0]]);
+  });
+
+  it('should call on exception callback', () => {
+    const wrappedGenerator = mock.Generator(genWithException, void 0, (error) => values.push(error));
+    const values = [];
+    const generator = wrappedGenerator();
+
+    try {
+      generator.next(5);
+      generator.next(5);
+    } catch (e) {
+
+    }
+
+    expect(values).toEqual([new Error()]);
   });
 });
 

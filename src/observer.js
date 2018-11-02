@@ -97,6 +97,7 @@ module.exports = {
   FixtureQueueStrategy: fixture.FixtureQueueStrategy,
   FixtureFsProvider: fixture.FixtureFsProvider,
   FixtureMemoryProvider: fixture.FixtureMemoryProvider,
+  Generator: mock.Generator,
   History: history.History,
   Mock: mock.Mock,
   Observer: Observer,
@@ -110,6 +111,7 @@ module.exports = {
   // Initial: mock.Initial,
 
   GetterSetter: mock.GetterSetter,
+  Method: mock.Method,
   StaticGetterSetter: mock.StaticGetterSetter,
   StaticMethod: mock.StaticMethod,
   StaticValue: mock.StaticValue,

@@ -12,6 +12,7 @@ Then this result can be saved as a snapshot and compared after with a snapshot o
 * [Observer](#observer)
 * [History](#history)
 * [Mock](#mock)
+  * [ES6-Generators](#es6-generators)
   * [Customization](#customization)
 * [Fixture](#fixture)
   * [FixtureCallbackStrategy](#fixturecallbackstrategy)
