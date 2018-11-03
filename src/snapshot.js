@@ -157,7 +157,7 @@ Snapshot.prototype = {
     return this;
   },
   includeIsAsync: function (flag) {
-    this._config.isAsync = flag !== false;
+    this._config.isAsyncResult = flag !== false;
 
     return this;
   },
@@ -356,8 +356,8 @@ function snapshotMapEntry(snapshot, entry) {
     mappedEntry.exceptionsCount = entry.exceptionsCount;
   }
 
-  if (snapshot.isEnabled('isAsync')) {
-    mappedEntry.isAsync = entry.isAsync;
+  if (snapshot.isEnabled('isAsyncResult')) {
+    mappedEntry.isAsyncResult = entry.isAsyncResult;
   }
 
   return mappedEntry;

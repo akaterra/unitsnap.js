@@ -638,11 +638,11 @@ module.exports = {
   Value: Value,
 };
 
-var getAncestors = require('./instance').getAncestors;
-var copyConstructor = require('./instance').copyConstructor;
-var copyPrototype = require('./instance').copyPrototype;
-var copyScope = require('./instance').copyScope;
-var copyScopeDescriptors = require('./instance').copyScopeDescriptors;
+var getAncestors = require('./inspection').getAncestors;
+var copyConstructor = require('./inspection').copyConstructor;
+var copyPrototype = require('./inspection').copyPrototype;
+var copyScope = require('./inspection').copyScope;
+var copyScopeDescriptors = require('./inspection').copyScopeDescriptors;
 var fixture = require('./fixture');
 var spyOnDescriptor = require('./spy').spyOnDescriptor;
 var spyOnStaticDescriptor = require('./spy').spyOnStaticDescriptor;

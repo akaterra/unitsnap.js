@@ -78,14 +78,14 @@ function spyOnFunction(callable, options, asConstructor) {
       }
 
       if (result instanceof Promise) {
-        callable.IS_ASYNC = true;
-        callable.IS_ASYNC_PENDING = true;
+        callable.IS_ASYNC_RESULT = true;
+        callable.IS_ASYNC_RESULT_PENDING = true;
         callable.RESULT = result;
 
         return result.then(
           function (result) {
             callable.EXCEPTION = void 0;
-            callable.IS_ASYNC_PENDING = false;
+            callable.IS_ASYNC_RESULT_PENDING = false;
             callable.IS_EXCEPTION = false;
             callable.RESULT = result;
 
@@ -102,7 +102,7 @@ function spyOnFunction(callable, options, asConstructor) {
           },
           function (error) {
             callable.EXCEPTION = error;
-            callable.IS_ASYNC_PENDING = false;
+            callable.IS_ASYNC_RESULT_PENDING = false;
             callable.IS_EXCEPTION = true;
             callable.RESULT = void 0;
 
@@ -120,9 +120,13 @@ function spyOnFunction(callable, options, asConstructor) {
         );
       }
 
+      //if (result instanceof Generator) {
+      //
+      //}
+
       callable.EXCEPTION = void 0;
-      callable.IS_ASYNC = false;
-      callable.IS_ASYNC_PENDING = false;
+      callable.IS_ASYNC_RESULT = false;
+      callable.IS_ASYNC_RESULT_PENDING = false;
       callable.IS_EXCEPTION = false;
       callable.RESULT = result;
 
@@ -131,8 +135,8 @@ function spyOnFunction(callable, options, asConstructor) {
       callable.EXCEPTIONS_COUNT ++;
 
       callable.EXCEPTION = e;
-      callable.IS_ASYNC = false;
-      callable.IS_ASYNC_PENDING = false;
+      callable.IS_ASYNC_RESULT = false;
+      callable.IS_ASYNC_RESULT_PENDING = false;
       callable.IS_EXCEPTION = true;
       callable.RESULT = void 0;
 
@@ -156,9 +160,10 @@ function spyOnFunction(callable, options, asConstructor) {
   callable.CALLS_COUNT = 0;
   callable.EXCEPTION = void 0;
   callable.EXCEPTIONS_COUNT = 0;
-  callable.IS_ASYNC_PENDING = false;
-  callable.IS_ASYNC = false;
+  callable.IS_ASYNC_RESULT_PENDING = false;
+  callable.IS_ASYNC_RESULT = false;
   callable.IS_EXCEPTION = false;
+  callable.IS_GENERATOR = false;
   callable.ORIGIN = options && options.origin || originalCallable;
   callable.REPLACEMENT = options && options.replacement || callable;
   callable.RESULT = void 0;
@@ -168,6 +173,35 @@ function spyOnFunction(callable, options, asConstructor) {
   return callable;
 }
 
+function spyOnGenerator(fn, options) {
+  return function *() {
+    var generator = fn.apply(this, arguments);
+    var received = void 0;
+
+    try {
+      while (true) {
+        var generatorValue = generator.next(received);
+
+        if (options && options.onValue) {
+          options.onValue(this, generatorValue, received);
+        }
+
+        if (generatorValue.done) {
+          return;
+        }
+
+        received = yield generatorValue.value;
+      }
+    } catch (e) {
+      if (options && options.onException) {
+        options.onException(this, e);
+      }
+
+      throw e;
+    }
+  };
+}
+
 function spyOnFunctionCreateArgsReport(callable, context, originalCallable, options) {
   return {
     args: callable.ARGS,
@@ -175,8 +209,8 @@ function spyOnFunctionCreateArgsReport(callable, context, originalCallable, opti
     context: context,
     //exception: callable.EXCEPTION,
     //exceptionsCount: callable.EXCEPTIONS_COUNT,
-    //isAsync: callable.IS_ASYNC,
-    //isAsyncPending: callable.IS_ASYNC_PENDING,
+    //isAsyncResult: callable.IS_ASYNC_RESULT,
+    //isAsyncResultPending: callable.IS_ASYNC_RESULT_PENDING,
     //isException: callable.IS_EXCEPTION,
     origin: options && options.origin || originalCallable,
     replacement: options && options.replacement || originalCallable.REPLACEMENT,
@@ -189,8 +223,8 @@ function spyOnFunctionCreateResultReport(callable, context, originalCallable, op
     context: context,
     exception: callable.EXCEPTION,
     exceptionsCount: callable.EXCEPTIONS_COUNT,
-    isAsync: callable.IS_ASYNC,
-    isAsyncPending: callable.IS_ASYNC_PENDING,
+    isAsyncResult: callable.IS_ASYNC_RESULT,
+    isAsyncResultPending: callable.IS_ASYNC_RESULT_PENDING,
     isException: callable.IS_EXCEPTION,
     origin: options && options.origin || originalCallable,
     replacement: options && options.replacement || originalCallable.REPLACEMENT,
@@ -276,8 +310,8 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
         descriptor.get.CALLS_COUNT = 0;
         descriptor.get.EXCEPTIONS_COUNT = 0;
         descriptor.get.EXCEPTION = void 0;
-        descriptor.get.IS_ASYNC = false;
-        descriptor.get.IS_ASYNC_PENDING = false;
+        descriptor.get.IS_ASYNC_RESULT = false;
+        descriptor.get.IS_ASYNC_RESULT_PENDING = false;
         descriptor.get.IS_EXCEPTION = false;
         descriptor.get.ORIGIN = options && options.get && options.get.origin;
         descriptor.get.REPLACEMENT = options && options.get && options.get.replacement;
@@ -311,8 +345,8 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
         descriptor.set.CALLS_COUNT = 0;
         descriptor.set.EXCEPTIONS_COUNT = 0;
         descriptor.set.EXCEPTION = void 0;
-        descriptor.set.IS_ASYNC = false;
-        descriptor.set.IS_ASYNC_PENDING = false;
+        descriptor.set.IS_ASYNC_RESULT = false;
+        descriptor.set.IS_ASYNC_RESULT_PENDING = false;
         descriptor.set.IS_EXCEPTION = false;
         descriptor.set.ORIGIN = options && options.set && options.set.origin;
         descriptor.set.REPLACEMENT = options && options.set && options.set.replacement;
@@ -342,8 +376,8 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
       descriptor.value.CALLS_COUNT = 0;
       descriptor.value.EXCEPTIONS_COUNT = 0;
       descriptor.value.EXCEPTION = void 0;
-      descriptor.value.IS_ASYNC = false;
-      descriptor.value.IS_ASYNC_PENDING = false;
+      descriptor.value.IS_ASYNC_RESULT = false;
+      descriptor.value.IS_ASYNC_RESULT_PENDING = false;
       descriptor.value.IS_EXCEPTION = false;
       descriptor.value.ORIGIN = options && options.origin;
       descriptor.value.REPLACEMENT = options && options.replacement;
@@ -380,6 +414,7 @@ function spyOnStaticMethod(cls, key, rep, options) {
 
 module.exports = {
   spyOnFunction: spyOnFunction,
+  spyOnGenerator: spyOnGenerator,
 
   spyOnDescriptor: spyOnDescriptor,
   spyOnMethod: spyOnMethod,
@@ -388,4 +423,4 @@ module.exports = {
   spyOnStaticMethod: spyOnStaticMethod,
 };
 
-var instance = require('./instance');
+var instance = require('./inspection');

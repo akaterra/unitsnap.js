@@ -84,7 +84,7 @@ describe('Spy', () => {
 
       spied().then((result) => {
         expect(result).toBe(1);
-        expect(spied.IS_ASYNC).toBe(true);
+        expect(spied.IS_ASYNC_RESULT).toBe(true);
         expect(spied.IS_EXCEPTION).toBe(false);
 
         done();
@@ -100,7 +100,7 @@ describe('Spy', () => {
 
       spied().catch((result) => {
         expect(result).toBe(1);
-        expect(spied.IS_ASYNC).toBe(true);
+        expect(spied.IS_ASYNC_RESULT).toBe(true);
         expect(spied.IS_EXCEPTION).toBe(true);
 
         done();

@@ -1,5 +1,5 @@
-var FN_ARGUMENT_NAMES = /(\.*[\w\d_]+(\s*:\s*[\w\d_]+)?(\s*=\s*['"\w\d_]+)?|\{.*})/g;
-var FN_ES5_DECLARATION = /^(async\s*|)function\*?\s*(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
+var FN_ARGUMENT_NAMES = /(\.*[\w\d_$]+(\s*:\s*[\w\d_$]+)?(\s*=\s*['"\w\d_]+)?|\{.*})/g;
+var FN_ES5_DECLARATION = /^(async\s*|)function\s*(\*?)\s*(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
 var FN_ES6_CLASS_CONSTRUCTOR_DECLARATION = /^class\s*(\w*).*[\r\n\s]*\{[\r\n\s]*()constructor\s*\((.*)\)[\r\n\s]*\{/g;
 var FN_ES6_CLASS_METHOD_DECLARATION = /^(static\s*|)(async\s*|)(get\s*|set\s*|)(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
 var FN_ES6_DECLARATION = /^(async\s*|)\(?(.*?)\)?\s*=>/g;
@@ -8,21 +8,27 @@ var FN_STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 function parseFunctionAnnotation(func) {
   var fnStr = func.toString().replace(FN_STRIP_COMMENTS, '');
   var fnArgStr = null;
+  var fnIsAsync = false;
+  var fnIsGenerator = false;
   var fnName = null;
   var matches;
 
-  if (fnStr.substr(0, 8) === 'function') {
+  if (new RegExp(FN_ES5_DECLARATION).test(fnStr)) {
     matches = regexExecAll(FN_ES5_DECLARATION, fnStr);
 
     if (matches.length) {
-      fnArgStr = matches[3];
-      fnName = matches[2];
+      fnArgStr = matches[4];
+      fnIsAsync = matches[1].trim() === 'async';
+      fnIsGenerator = matches[2] === '*';
+      fnName = matches[3];
     }
   } else if (new RegExp(FN_ES6_DECLARATION).test(fnStr)) {
     matches = regexExecAll(FN_ES6_DECLARATION, fnStr);
 
     if (matches.length) {
       fnArgStr = matches[2];
+      fnIsAsync = matches[1].trim() === 'async';
+      fnIsGenerator = false;
       fnName = null;
     }
   } else if (new RegExp(FN_ES6_CLASS_METHOD_DECLARATION).test(fnStr)) {
@@ -30,6 +36,8 @@ function parseFunctionAnnotation(func) {
 
     if (matches.length) {
       fnArgStr = matches[5];
+      fnIsAsync = false;
+      fnIsGenerator = false;
       fnName = matches[4];
     }
   } else if (fnStr.substr(0, 5) === 'class') {
@@ -40,6 +48,8 @@ function parseFunctionAnnotation(func) {
 
       if (matches.length) {
         fnArgStr = matches[3];
+        fnIsAsync = false;
+        fnIsGenerator = false;
         fnName = matches[2];
 
         break;
@@ -57,26 +67,35 @@ function parseFunctionAnnotation(func) {
     return [];
   }
 
-  if (fnArgStr === null) {
-    return {args: [], argsDeclaration: '', name: fnName};
-  }
-
-  var annotations = {
+  var annotation = {
     args: [],
-    argsDeclaration: (fnArgStr.match(FN_ARGUMENT_NAMES) || []).join(','),
-    name: fnName,
+    argsDeclaration: '',
+    isAsync: fnIsAsync,
+    isGenerator: fnIsGenerator,
+    name: fnName
   };
 
+  if (fnArgStr === null) {
+    return annotation;
+  }
+
+  annotation.argsDeclaration = (fnArgStr.match(FN_ARGUMENT_NAMES) || []).join(',');
+
   (fnArgStr.match(FN_ARGUMENT_NAMES) || []).forEach(function (arg) {
-    annotations.args.push(parseFunctionAnnotationCreateArgDescriptor(arg));
+    annotation.args.push(parseFunctionAnnotationCreateArgDescriptor(arg));
   });
 
-  return annotations;
+  return annotation;
 }
 
 function parseFunctionAnnotationCreateArgDescriptor(arg) {
   if (arg.substr(0, 3) === '...') {
-    return {alias: null, default: void 0, name: arg.substr(3), type: 'rest'};
+    return {
+      alias: null,
+      default: void 0,
+      name: arg.substr(3),
+      type: 'rest',
+    };
   } else if (arg.substr(0, 1) === '{') {
     return {
       alias: null,
@@ -342,6 +361,20 @@ function copyScopeDescriptors(cls, options, maxDepth) {
   }
 
   return scope;
+}
+
+function isGeneratorFunction(fn) {
+  var constructor = fn.constructor;
+
+  if (! constructor) {
+    return false;
+  }
+
+  if ('GeneratorFunction' === constructor.name) {
+    return true;
+  }
+
+  return isGenerator(constructor.prototype);
 }
 
 module.exports = {
