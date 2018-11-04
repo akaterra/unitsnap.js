@@ -118,6 +118,7 @@ export class Observer {
 }
 export interface ObserverConfig {
     fixture: Fixture;
+    history: History;
     mock: Mock;
     snapshot: Snapshot;
 }
