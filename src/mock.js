@@ -252,6 +252,10 @@ function Initial() {
 
 }
 
+function This() {
+
+}
+
 var classNativeProps = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
 
 function ClassMaker(mock, cls, props) {
@@ -635,6 +639,7 @@ module.exports = {
   StaticGetterSetter: StaticGetterSetter,
   StaticMethod: StaticMethod,
   StaticValue: StaticValue,
+  This: This,
   Value: Value,
 };
 

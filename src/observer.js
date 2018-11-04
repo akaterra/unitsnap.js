@@ -119,6 +119,7 @@ module.exports = {
   StaticGetterSetter: mock.StaticGetterSetter,
   StaticMethod: mock.StaticMethod,
   StaticValue: mock.StaticValue,
+  This: mock.This,
   Value: mock.Value,
 
   create: function () {
