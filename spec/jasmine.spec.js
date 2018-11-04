@@ -3,7 +3,7 @@ const unitsnap = require('..');
 describe('some suite 1', () => {
   const observer = unitsnap.default;
 
-  observer.config().snapshot.setFsProvider(__dirname + '/snapshots').includeName();
+  observer.config.snapshot.setFsProvider(__dirname + '/snapshots').includeName();
 
   beforeAll(() => unitsnap.extendJasmine());
   beforeEach(() => observer.begin());
@@ -34,12 +34,12 @@ describe('some suite 1', () => {
 describe('some suite 2', () => {
   const observer = unitsnap.default;
 
-  observer.config().snapshot.setFsProvider(__dirname + '/snapshots');
+  observer.config.snapshot.setFsProvider(__dirname + '/snapshots');
 
   beforeAll(() => unitsnap.extendJasmine());
   beforeEach(() => {
-    observer.begin()
-    observer.config().snapshot.remove('some spec 2');
+    observer.begin();
+    observer.config.snapshot.remove('some spec 2');
   });
   afterEach(() => observer.end());
 

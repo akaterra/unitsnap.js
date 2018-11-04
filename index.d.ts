@@ -109,8 +109,8 @@ export function StaticMethod(value?: any): MockMethod;
 // observer
 export class Observer {
     new(): Observer;
+    config: ObserverConfig;
     setName(name: string): this;
-    config(): ObserverConfig;
     begin(epoch?: string, comment?: string): this;
     end(): this;
     by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
@@ -123,6 +123,7 @@ export class Observer {
 }
 export interface ObserverConfig {
     fixture: Fixture;
+    history: History;
     mock: Mock;
     snapshot: Snapshot;
 }

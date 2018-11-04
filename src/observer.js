@@ -10,7 +10,14 @@ function Observer() {
   this._history = new history.History().link(this);
   this._mock = new mock.Mock(this._history);
   this._snapshot = new snapshot.Snapshot([]).link(this);
-  this._config = {fixture: this._fixture, history: this._history, mock: this._mock, snapshot: this._snapshot};
+
+  var config = {fixture: this._fixture, history: this._history, mock: this._mock, snapshot: this._snapshot};
+
+  Object.defineProperty(this, 'config', {
+    get: function () {
+      return config;
+    },
+  });
 }
 
 Observer.prototype = {
@@ -20,9 +27,6 @@ Observer.prototype = {
     this._snapshot.setName(name);
 
     return this;
-  },
-  config: function () {
-    return this._config;
   },
 
   begin: function (epoch, comment) {

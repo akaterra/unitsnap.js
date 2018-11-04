@@ -43,7 +43,7 @@ describe('Observer', () => {
     expect(e._mock._history).toBe(e._history);
     expect(e._snapshot instanceof unitsnap.Snapshot);
     expect(e._snapshot._observer).toBe(e);
-    expect(e._config).toEqual({
+    expect(e.config).toEqual({
       fixture: e._fixture,
       history: e._history,
       mock: e._mock,
@@ -58,7 +58,7 @@ describe('Observer', () => {
   it('should get config', () => {
     const e = new unitsnap.Observer();
 
-    expect(e.config()).toBe(e._config);
+    expect(e.config).toEqual({fixture: e._fixture, history: e._history, mock: e._mock, snapshot: e._snapshot});
   });
 
   it('should set name', () => {
