@@ -10,7 +10,7 @@ function Observer() {
   this._history = new history.History().link(this);
   this._mock = new mock.Mock(this._history);
   this._snapshot = new snapshot.Snapshot([]).link(this);
-  this._config = {fixture: this._fixture, mock: this._mock, snapshot: this._snapshot};
+  this._config = {fixture: this._fixture, history: this._history, mock: this._mock, snapshot: this._snapshot};
 }
 
 Observer.prototype = {
