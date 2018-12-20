@@ -134,7 +134,7 @@ export class Snapshot {
     setMemoryProvider(dictionary: {[key: string]: Partial<State>[]}): this;
     link(observer: Observer): this;
     unlink(): this;
-    addProcessor(checker: (value: any) => boolean, serializer: ((value: any) => any)|{new(): Ignore}): this;
+    addProcessor(checker: (value: any) => boolean, serializer?: ((value: any) => any)|{new(): Ignore}): this;
     addClassOfProcessor(cls: {new(...args: any[]): any}, serializer?: ((value: any) => any)|{new(): Ignore}): this;
     addInstanceOfProcessor(cls: {new(...args: any[]): any}, serializer?: ((value: any) => any)|{new(): Ignore}): this;
     addPathProcessor(path: string, serializer: ((value: any) => any)|{new(): Ignore}): this;

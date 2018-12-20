@@ -240,7 +240,7 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
   });
 
   if (processor) {
-    value = processor.serializer(value);
+    return processor.serializer(value);
   }
 
   if (! circular) {
