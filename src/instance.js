@@ -244,11 +244,11 @@ function callConstructor(cls, context, a) {
   return c;
 }
 
-function copyConstructor(cls) {
+function copyConstructor(cls, explicitInstance) {
   var Constructor = function () {
     var instance = callConstructor(cls, this, arguments);
 
-    return instance instanceof cls ? void 0 : instance;
+    return explicitInstance || instance instanceof cls ? this : instance;
   };
 
   Constructor.prototype = cls.prototype;

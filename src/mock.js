@@ -7,22 +7,27 @@ function Mock(history) {
 }
 
 Mock.prototype = {
+  setExplicitInstance: function () {
+    this.explicitInstance = true;
+
+    return this;
+  },
   by: function (cls, props) {
     var maker = new ClassMaker(this, cls, props);
 
-    return maker.makePrototypeFor(maker.makeConstructor(cls, true));
+    return maker.makePrototypeFor(maker.makeConstructor(cls, true, this.explicitInstance));
   },
   from: function (props) {
     var maker = new ClassMaker(this, function () {}, props);
 
-    return maker.makePrototypeFor(maker.makeConstructor(maker._cls, true), true);
+    return maker.makePrototypeFor(maker.makeConstructor(maker._cls, true, this.explicitInstance), true);
   },
   override: function (cls, props) {
     var maker = new ClassMaker(this, cls, props);
 
     var clazz = maker.makePrototypeFor(cls, true);
 
-    clazz.RESTORE = function () {
+    clazz.RESTORE = cls.prototype.constructor.RESTORE = function () {
       // class properties
       Object.keys(maker._clsPropsDescriptors).forEach(function (key) {
         var descriptor = maker._clsPropsDescriptors[key];
@@ -48,6 +53,7 @@ Mock.prototype = {
       maker._propsMetadata.extraProps.forEach(function (key) { delete cls.prototype[key]; });
 
       delete cls.RESTORE;
+      delete cls.prototype.constructor.RESTORE;
 
       return cls;
     };
@@ -218,7 +224,7 @@ function ClassMaker(mock, cls, props) {
 }
 
 ClassMaker.prototype = {
-  makeConstructor: function (cls, useOriginPrototype) {
+  makeConstructor: function (cls, useOriginPrototype, explicitInstance) {
     if (! (cls instanceof Function)) {
       throw new Error('Class constructor must be function');
     }
@@ -255,7 +261,7 @@ ClassMaker.prototype = {
         },
       }, custom || {}), true);
     } else {
-      cls = copyConstructor(cls);
+      cls = copyConstructor(cls, explicitInstance);
     }
 
     Object.keys(self._clsProps).forEach(function (key) {

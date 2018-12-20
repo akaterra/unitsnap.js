@@ -19,7 +19,7 @@ export class Fixture {
     setName(name: string): this;
     setStrategy(strategy: FixtureCallbackStrategy|FixtureQueueStrategy): this;
     setCallbackStrategy(cb: (...args) => any): this;
-    setQueueStrategy(values: any[]): this;
+    setQueueStrategy(values?: any[]): this;
     setFsProvider(dirOrProvider: string|FixtureFsProvider): this;
     setMemoryProvider(dirOrProvider: {[key: string]: any[]}|FixtureMemoryProvider): this;
     pop(): any;
@@ -71,6 +71,7 @@ export interface HistoryEpoch {
 // mock
 export class Mock {
     new(history?: History): Mock;
+    setExplicitInstance(): this;
     by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
     from<T=object>(props: {[key: string]: any}): {new(...args: any[]): T};
     override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
