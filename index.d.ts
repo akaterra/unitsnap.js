@@ -1,6 +1,6 @@
 // filter
 export class Filter {
-    new(): Filter;
+    constructor();
     link(observer: Observer): this;
     unlink(): this;
     context(context: any): this;
@@ -15,7 +15,7 @@ export class Filter {
 }
 // fixture
 export class Fixture {
-    new(): Fixture;
+    constructor();
     setName(name: string): this;
     setStrategy(strategy: FixtureCallbackStrategy|FixtureQueueStrategy): this;
     setCallbackStrategy(cb: (...args) => any): this;
@@ -29,13 +29,13 @@ export class Fixture {
     throwOnInstanceOf(cls: {new(...args: any[]): any}): this;
 }
 export class FixtureCallbackStrategy {
-    new(cb: (...args: any[]) => any): FixtureCallbackStrategy;
+    constructor(cb: (...args: any[]) => any);
     set(cb: (...args: any[]) => any): this;
     pop(): any;
     push(...args: any[]): this;
 }
 export class FixtureQueueStrategy {
-    new(values: any[]): FixtureQueueStrategy;
+    constructor(values: any[]);
     set(values: any[]): this;
     pop(): any;
     push(...args: any[]): this;
@@ -45,14 +45,14 @@ export abstract class FixtureProvider {
     load(name: string): this;
 }
 export class FixtureFsProvider extends FixtureProvider{
-    new(dir: string): FixtureFsProvider;
+    constructor(dir: string);
 }
 export class FixtureMemoryProvider extends FixtureProvider {
-    new(values: any[]): FixtureMemoryProvider;
+    constructor(values: any[]);
 }
 // history
 export class History {
-    new(): History;
+    constructor();
     getCurrentEpoch(): null|HistoryEpoch;
     link(observer: Observer): this;
     unlink(): this;
@@ -70,7 +70,7 @@ export interface HistoryEpoch {
 }
 // mock
 export class Mock {
-    new(history?: History): Mock;
+    constructor(history?: History);
     setExplicitInstance(): this;
     by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
     from<T=object>(props: {[key: string]: any}): {new(...args: any[]): T};
@@ -104,7 +104,7 @@ export function StaticProperty(descriptor: Partial<PropertyDescriptor>): MockPro
 export function StaticMethod(value?: any): MockMethod;
 // observer
 export class Observer {
-    new(): Observer;
+    constructor();
     setName(name: string): this;
     config(): ObserverConfig;
     begin(epoch?: string, comment?: string): this;
@@ -125,7 +125,7 @@ export interface ObserverConfig {
 }
 // snapshot
 export class Snapshot {
-    new(): Snapshot;
+    constructor();
     setConfig(config: SnapshotConfig): this;
     setMapper(mapper: (state: State) => any): this;
     setName(name: string): this;
@@ -134,13 +134,13 @@ export class Snapshot {
     setMemoryProvider(dictionary: {[key: string]: Partial<State>[]}): this;
     link(observer: Observer): this;
     unlink(): this;
-    addProcessor(checker: (value: any) => boolean, serializer?: ((value: any) => any)|{new(): Ignore}): this;
-    addClassOfProcessor(cls: {new(...args: any[]): any}, serializer?: ((value: any) => any)|{new(): Ignore}): this;
-    addInstanceOfProcessor(cls: {new(...args: any[]): any}, serializer?: ((value: any) => any)|{new(): Ignore}): this;
-    addPathProcessor(path: string, serializer: ((value: any) => any)|{new(): Ignore}): this;
-    addRegexPathProcessor(regex: RegExp, serializer: ((value: any) => any)|{new(): Ignore}): this;
-    addUndefinedProcessor(serializer: ((value: any) => any)|{new(): Ignore}): this;
-    addProcessors(processors: {checker: (value: any) => boolean, serializer: ((value: any) => any)|{new(): Ignore}}[]): this;
+    addProcessor(checker: {new(): TypeHelper} | ((value: any) => boolean), serializer?: {new(): TypeHelper} | ((value: any) => any)): this;
+    addClassOfProcessor(cls: {new(...args: any[]): any}, serializer?: {new(): TypeHelper} | ((value: any) => any)): this;
+    addInstanceOfProcessor(cls: {new(...args: any[]): any}, serializer?: {new(): TypeHelper} | ((value: any) => any)): this;
+    addPathProcessor(path: string, serializer: {new(): TypeHelper} | ((value: any) => any)): this;
+    addRegexPathProcessor(regex: RegExp, serializer: {new(): TypeHelper} | ((value: any) => any)): this;
+    addUndefinedProcessor(serializer: {new(): TypeHelper} | ((value: any) => any)): this;
+    addProcessors(processors: {checker: {new(): TypeHelper} | ((value: any) => boolean), serializer?: {new(): TypeHelper} | ((value: any) => any)}[]): this;
     assert(snapshot: Partial<State>[]|Snapshot): true|string;
     assertSaved(name: string): true|string;
     exists(name?: string): boolean;
@@ -176,10 +176,10 @@ export abstract class SnapshotProvider {
     save(name: string, snapshot: Partial<State>[]|Snapshot): this;
 }
 export class SnapshotFsProvider extends SnapshotProvider {
-    new(dir: string): SnapshotFsProvider;
+    constructor(dir: string);
 }
 export class SnapshotMemoryProvider extends SnapshotProvider {
-    new(dictionary: {[key: string]: Partial<State>[]}): SnapshotMemoryProvider;
+    constructor(dictionary: {[key: string]: Partial<State>[]});
 }
 // state
 export interface State {
@@ -212,13 +212,16 @@ export abstract class TypeHelper<T=any> {
 export class AnyType extends TypeHelper {}
 export class BooleanType extends TypeHelper {}
 export class ClassOfType extends TypeHelper {
-    new(value: {new(...args: any[]): any}): ClassOfType;
+    constructor(value: {new(...args: any[]): any});
+}
+export class Continue extends TypeHelper {
+    constructor(value: any);
 }
 export class DateType extends TypeHelper {}
 export class DateValue extends TypeHelper {}
 export class Ignore extends TypeHelper {}
 export class InstanceOfType extends TypeHelper {
-    new(value: {new(...args: any[]): any}): InstanceOfType;
+    constructor(value: {new(...args: any[]): any});
 }
 export class NumberType extends TypeHelper {}
 export class StringType extends TypeHelper {}
