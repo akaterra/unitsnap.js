@@ -73,6 +73,7 @@ module.exports = {
   AnyType: typeHelpers.AnyType,
   BooleanType: typeHelpers.BooleanType,
   ClassOfType: typeHelpers.ClassOfType,
+  Continue: typeHelpers.Continue,
   DateType: typeHelpers.DateType,
   DateValue: typeHelpers.DateValue,
   Ignore: typeHelpers.Ignore,

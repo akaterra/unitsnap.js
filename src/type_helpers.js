@@ -37,6 +37,19 @@ ClassOfType.prototype = {
   },
 };
 
+function Continue(value) {
+  this.value = value;
+}
+
+Continue.prototype = {
+  check: function (value) {
+    return true;
+  },
+  serialize: function () {
+    return Continue;
+  },
+};
+
 function DateType() {
 
 }
@@ -132,6 +145,7 @@ module.exports = {
   AnyType: AnyType,
   BooleanType: BooleanType,
   ClassOfType: ClassOfType,
+  Continue: Continue,
   DateType: DateType,
   DateValue: DateValue,
   Ignore: Ignore,

@@ -240,7 +240,13 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
   });
 
   if (processor) {
-    return processor.serializer(value);
+    var value = processor.serializer(value);
+
+    if (! (value instanceof typeHelpers.Continue)) {
+      return value;
+    }
+
+    value = value.value;
   }
 
   if (! circular) {
