@@ -700,6 +700,11 @@ Note, that each added processor will be inserted into beginning of the processor
   }
   ```
 
+If matched and serialized value has to be continued with the rest processors use **Continue** type helper.
+```javascript
+snapshot.addProcessor((value) => value === 5, (value) => new Continue(value));
+```
+
 ##### Type helpers
 
 The set of special type helpers can be used with value processors that can be useful in some cases.
@@ -751,6 +756,8 @@ Available helpers:
     $$type: "classOf"
   }
   ```
+
+* **Continue** - the value will be continued with the rest processors.
 
 * **DateType (or JS Date type)** - checks the value to be instance of Date and serializes the value as:
   ```javascript
