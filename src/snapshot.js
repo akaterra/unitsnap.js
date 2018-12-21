@@ -235,19 +235,17 @@ function snapshotAssert(source, target, path) {
 }
 
 function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) {
-  var processor = snapshot._processors.length && snapshot._processors.find(function (p) {
-    return p.checker(value, path);
-  });
+  snapshot._processors.length && snapshot._processors.some(function (p) {
+    if (p.checker(value, path)) {
+      value = p.serializer(value);
 
-  if (processor) {
-    var value = processor.serializer(value);
+      if (! (value instanceof typeHelpers.Continue)) {
+        return true;
+      }
 
-    if (! (value instanceof typeHelpers.Continue)) {
-      return value;
+      value = value.value;
     }
-
-    value = value.value;
-  }
+  });
 
   if (! circular) {
     circular = [];
