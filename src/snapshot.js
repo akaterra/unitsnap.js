@@ -429,6 +429,7 @@ var basicTypes = [
   [Date, new typeHelpers.DateType()],
   [typeHelpers.Ignore, new typeHelpers.Ignore()],
   [typeHelpers.DateType, new typeHelpers.DateType()],
+  [typeHelpers.DateValue, new typeHelpers.DateValue()],
   [Number, new typeHelpers.NumberType()],
   [typeHelpers.NumberType, new typeHelpers.NumberType()],
   [String, new typeHelpers.StringType()],
