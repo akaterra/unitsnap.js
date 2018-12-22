@@ -143,6 +143,11 @@ Custom.prototype = {
 
     return this;
   },
+  epoch: function (epoch) {
+    this.epoch = epoch;
+
+    return this;
+  },
   exclude: function () {
     this.exclude = true;
 
@@ -156,6 +161,14 @@ function ArgsAnnotation(value, argsAnnotation) {
   }
 
   return Custom(value).argsAnnotation(argsAnnotation);
+}
+
+function Epoch(value, epoch) {
+  if (value instanceof Custom) {
+    value = Custom(value.value);
+  }
+
+  return Custom(value).epoch(epoch);
 }
 
 function Exclude(value) {
@@ -569,6 +582,7 @@ module.exports = {
   ArgsAnnotation: ArgsAnnotation,
   Exclude: Exclude,
   Custom: Custom,
+  Epoch: Epoch,
   Initial: Initial,
   Mock: Mock,
   Property: Property,

@@ -97,6 +97,7 @@ module.exports = {
 
   ArgsAnnotation: mock.ArgsAnnotation,
   Custom: mock.Custom,
+  Epoch: mock.Epoch,
   Exclude: mock.Exclude,
   Initial: mock.Initial,
 
