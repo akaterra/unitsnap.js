@@ -85,6 +85,7 @@ export interface PropertyDescriptor {
 export interface MockCustom {
     value: any;
     argsAnnotation(argsAnnotation: ((...args) => any)|string[]): this;
+    epoch(epoch: string): this;
     exclude(): this;
 }
 export interface MockProperty {
@@ -97,6 +98,7 @@ export interface MockMethod {
 }
 export function ArgsAnnotation(value: any, argsAnnotation: ((...args) => any)|string[]): MockCustom;
 export function Custom(value?: any): MockCustom;
+export function Epoch(epoch: any): MockCustom;
 export function Exclude(value: any): MockCustom;
 export function Initial(): void;
 export function Property(descriptor: Partial<PropertyDescriptor>): MockProperty;
