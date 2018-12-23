@@ -1,7 +1,7 @@
 var FN_ARGUMENT_NAMES = /(\.*[\w\d_]+(\s*:\s*[\w\d_]+)?(\s*=\s*['"\w\d_]+)?|\{.*})/g;
-var FN_ES5_DECLARATION = /^(async\s*|)function\*?\s*(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
+var FN_ES5_DECLARATION = /^(async\s*|)function\*?\s*(\w*)\s*\((.*?)\)[\r\n\s]*\{/g;
 var FN_ES6_CLASS_CONSTRUCTOR_DECLARATION = /^class\s*(\w*).*[\r\n\s]*\{[\r\n\s]*()constructor\s*\((.*)\)[\r\n\s]*\{/g;
-var FN_ES6_CLASS_METHOD_DECLARATION = /^(static\s*|)(async\s*|)(get\s*|set\s*|)(\w*)\s*\((.*)\)[\r\n\s]*\{/g;
+var FN_ES6_CLASS_METHOD_DECLARATION = /^(static\s*|)(async\s*|)(get\s*|set\s*|)(\w*)\s*\((.*?)\)[\r\n\s]*\{/g;
 var FN_ES6_DECLARATION = /^(async\s*|)\(?(.*?)\)?\s*=>/g;
 var FN_STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 
@@ -11,19 +11,12 @@ function parseFunctionAnnotation(func) {
   var fnName = null;
   var matches;
 
-  if (fnStr.substr(0, 8) === 'function') {
+  if (new RegExp(FN_ES5_DECLARATION).test(fnStr)) {
     matches = regexExecAll(FN_ES5_DECLARATION, fnStr);
 
     if (matches.length) {
       fnArgStr = matches[3];
       fnName = matches[2];
-    }
-  } else if (new RegExp(FN_ES6_DECLARATION).test(fnStr)) {
-    matches = regexExecAll(FN_ES6_DECLARATION, fnStr);
-
-    if (matches.length) {
-      fnArgStr = matches[2];
-      fnName = null;
     }
   } else if (new RegExp(FN_ES6_CLASS_METHOD_DECLARATION).test(fnStr)) {
     matches = regexExecAll(FN_ES6_CLASS_METHOD_DECLARATION, fnStr);
@@ -31,6 +24,13 @@ function parseFunctionAnnotation(func) {
     if (matches.length) {
       fnArgStr = matches[5];
       fnName = matches[4];
+    }
+  } else if (new RegExp(FN_ES6_DECLARATION).test(fnStr)) {
+    matches = regexExecAll(FN_ES6_DECLARATION, fnStr);
+
+    if (matches.length) {
+      fnArgStr = matches[2];
+      fnName = null;
     }
   } else if (fnStr.substr(0, 5) === 'class') {
 
@@ -64,7 +64,7 @@ function parseFunctionAnnotation(func) {
   var annotations = {
     args: [],
     argsDeclaration: (fnArgStr.match(FN_ARGUMENT_NAMES) || []).join(','),
-    name: fnName,
+    name: fnName || null,
   };
 
   (fnArgStr.match(FN_ARGUMENT_NAMES) || []).forEach(function (arg) {
@@ -167,7 +167,12 @@ function getDescriptorAndType(obj, key) {
         descriptor.set = parseFunctionAnnotation(descriptor.descriptor.set);
       }
     } else if (descriptor.descriptor.hasOwnProperty('value')) {
-      descriptor.type = descriptor.descriptor.value instanceof Function ? 'function' : 'value'
+      if (typeof descriptor.descriptor.value === 'function') { // @
+        descriptor.function = parseFunctionAnnotation(descriptor.descriptor.value);
+        descriptor.type = 'function';
+      } else {
+        descriptor.type = 'value';
+      }
     }
   }
 
