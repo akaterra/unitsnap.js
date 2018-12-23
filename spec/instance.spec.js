@@ -253,4 +253,146 @@ describe('instance', () => {
       A,
     ]);
   });
+
+  describe('when parses function annotation', () => {
+    it('should parse anonymous es5 function declaration', () => {
+      const e = instance.parseFunctionAnnotation(function (a, b, c) { return (x) => {
+        return 1;
+      }});
+
+      expect(e).toEqual({
+        args: [
+          {alias: null, default: void 0, name: 'a', type: 'positional'},
+          {alias: null, default: void 0, name: 'b', type: 'positional'},
+          {alias: null, default: void 0, name: 'c', type: 'positional'},
+        ],
+        argsDeclaration: 'a,b,c',
+        name: null,
+      });
+    });
+
+    it('should parse named es5 function declaration', () => {
+      const e = instance.parseFunctionAnnotation(function name(a, b, c) { return (x) => {
+        return 1;
+      }});
+
+      expect(e).toEqual({
+        args: [
+          {alias: null, default: void 0, name: 'a', type: 'positional'},
+          {alias: null, default: void 0, name: 'b', type: 'positional'},
+          {alias: null, default: void 0, name: 'c', type: 'positional'},
+        ],
+        argsDeclaration: 'a,b,c',
+        name: 'name',
+      });
+    });
+
+    it('should parse async anonymous es5 function declaration', () => {
+      const e = instance.parseFunctionAnnotation(async function (a, b, c) { return (x) => {
+        return 1;
+      }});
+
+      expect(e).toEqual({
+        args: [
+          {alias: null, default: void 0, name: 'a', type: 'positional'},
+          {alias: null, default: void 0, name: 'b', type: 'positional'},
+          {alias: null, default: void 0, name: 'c', type: 'positional'},
+        ],
+        argsDeclaration: 'a,b,c',
+        name: null,
+      });
+    });
+
+    it('should parse async named es5 function declaration', () => {
+      const e = instance.parseFunctionAnnotation(async function name(a, b, c) { return (x) => {
+        return 1;
+      }});
+
+      expect(e).toEqual({
+        args: [
+          {alias: null, default: void 0, name: 'a', type: 'positional'},
+          {alias: null, default: void 0, name: 'b', type: 'positional'},
+          {alias: null, default: void 0, name: 'c', type: 'positional'},
+        ],
+        argsDeclaration: 'a,b,c',
+        name: 'name',
+      });
+    });
+
+    it('should parse anonymous es6 function declaration', () => {
+      const e = instance.parseFunctionAnnotation((a, b, c) => (x) => {
+        return 1;
+      });
+
+      expect(e).toEqual({
+        args: [
+          {alias: null, default: void 0, name: 'a', type: 'positional'},
+          {alias: null, default: void 0, name: 'b', type: 'positional'},
+          {alias: null, default: void 0, name: 'c', type: 'positional'},
+        ],
+        argsDeclaration: 'a,b,c',
+        name: null,
+      });
+    });
+
+    it('should parse async anonymous es6 function declaration', () => {
+      const e = instance.parseFunctionAnnotation(async (a, b, c) => (x) => {
+        return 1;
+      });
+
+      expect(e).toEqual({
+        args: [
+          {alias: null, default: void 0, name: 'a', type: 'positional'},
+          {alias: null, default: void 0, name: 'b', type: 'positional'},
+          {alias: null, default: void 0, name: 'c', type: 'positional'},
+        ],
+        argsDeclaration: 'a,b,c',
+        name: null,
+      });
+    });
+
+    it('should parse es6 class function declaration', () => {
+      class A {
+        a(a, b, c) {
+          (x) => {
+            return 1;
+          }
+        }
+      }
+
+      const e = instance.parseFunctionAnnotation(A.prototype.a);
+
+      expect(e).toEqual({
+        args: [
+          {alias: null, default: void 0, name: 'a', type: 'positional'},
+          {alias: null, default: void 0, name: 'b', type: 'positional'},
+          {alias: null, default: void 0, name: 'c', type: 'positional'},
+        ],
+        argsDeclaration: 'a,b,c',
+        name: 'a',
+      });
+    });
+
+    it('should parse es6 class async function declaration', () => {
+      class A {
+        async a(a, b, c) {
+          (x) => {
+            return 1;
+          }
+        }
+      }
+
+      const e = instance.parseFunctionAnnotation(A.prototype.a);
+
+      expect(e).toEqual({
+        args: [
+          {alias: null, default: void 0, name: 'a', type: 'positional'},
+          {alias: null, default: void 0, name: 'b', type: 'positional'},
+          {alias: null, default: void 0, name: 'c', type: 'positional'},
+        ],
+        argsDeclaration: 'a,b,c',
+        name: 'a',
+      });
+    });
+  });
 });
