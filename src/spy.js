@@ -324,19 +324,27 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
     case 'function':
       descriptor = descriptor.descriptor;
 
-      descriptor.value = (function (descriptor) {
-        return function () {
-          descriptor.value = spyOnFunction(repDescriptor.value, Object.assign({}, options, {
-            extra: Object.assign({
-              name: (objIsClass ? obj.constructor.name + '.' : '') + key,
-            }, options.extra),
-          }));
+      if (options.bypassOnBehalfOfInstanceReplacement) {
+        descriptor.value = spyOnFunction(repDescriptor.value, Object.assign({}, options, {
+          extra: Object.assign({
+            name: (objIsClass ? obj.constructor.name + '.' : '') + key,
+          }, options.extra),
+        }));
+      } else {
+        descriptor.value = (function (descriptor) {
+          return function () {
+            descriptor.value = spyOnFunction(repDescriptor.value, Object.assign({}, options, {
+              extra: Object.assign({
+                name: (objIsClass ? obj.constructor.name + '.' : '') + key,
+              }, options.extra),
+            }));
 
-          Object.defineProperty(this, key, descriptor);
+            Object.defineProperty(this, key, descriptor);
 
-          return this[key].apply(this, arguments);
-        }
-      })(descriptor);
+            return this[key].apply(this, arguments);
+          }
+        })(descriptor);
+      }
 
       descriptor.value.ARGS = {'*': []};
       descriptor.value.CALLS_COUNT = 0;

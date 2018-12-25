@@ -5,12 +5,17 @@ var mock = require('./mock');
 var snapshot = require('./snapshot');
 var typeHelpers = require('./type_helpers');
 
+var observerId = 1000;
+
 function Observer() {
   this._fixture = new fixture.Fixture();
   this._history = new history.History().link(this);
+  this._id = observerId;
   this._mock = new mock.Mock(this._history);
   this._snapshot = new snapshot.Snapshot([]).link(this);
   this._config = {fixture: this._fixture, history: this._history, mock: this._mock, snapshot: this._snapshot};
+
+  observerId += 1;
 }
 
 Observer.prototype = {
@@ -36,14 +41,24 @@ Observer.prototype = {
     return this;
   },
 
-  by: function (cls, props) {
-    return this._mock.by(cls, props);
+  by: function (cls, props, bypassOnBehalfOfInstanceReplacement) {
+    var mockedCls = this._mock.by(cls, props,bypassOnBehalfOfInstanceReplacement);
+
+    mockedCls.OBSERVER = this;
+
+    return mockedCls;
   },
-  from: function (props) {
-    return this._mock.from(props);
+  from: function (props, bypassOnBehalfOfInstanceReplacement) {
+    var mockedCls = this._mock.from(props, bypassOnBehalfOfInstanceReplacement);
+
+    mockedCls.OBSERVER = this;
+
+    return mockedCls;
   },
-  override: function (cls, props) {
-    var mockedCls = this._mock.override(cls, props);
+  override: function (cls, props, bypassOnBehalfOfInstanceReplacement) {
+    var mockedCls = this._mock.override(cls, props, bypassOnBehalfOfInstanceReplacement);
+
+    mockedCls.OBSERVER = this;
 
     this._history.addOnEndCallback(function () {
       mockedCls.RESTORE();

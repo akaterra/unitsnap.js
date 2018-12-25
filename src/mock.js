@@ -12,18 +12,19 @@ Mock.prototype = {
 
     return this;
   },
-  by: function (cls, props) {
-    var maker = new ClassMaker(this, cls, props);
+  by: function (cls, props, bypassOnBehalfOfInstanceReplacement) {
+    var maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
 
     return maker.makePrototypeFor(maker.makeConstructor(cls, true, this.explicitInstance));
   },
-  from: function (props) {
-    var maker = new ClassMaker(this, function () {}, props);
+
+  from: function (props, bypassOnBehalfOfInstanceReplacement) {
+    var maker = new ClassMaker(this, function () {}, props, bypassOnBehalfOfInstanceReplacement);
 
     return maker.makePrototypeFor(maker.makeConstructor(maker._cls, true, this.explicitInstance), true);
   },
-  override: function (cls, props) {
-    var maker = new ClassMaker(this, cls, props);
+  override: function (cls, props, bypassOnBehalfOfInstanceReplacement) {
+    var maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
 
     var clazz = maker.makePrototypeFor(cls, true);
 
@@ -52,6 +53,7 @@ Mock.prototype = {
       });
       maker._propsMetadata.extraProps.forEach(function (key) { delete cls.prototype[key]; });
 
+      delete cls.OBSERVER;
       delete cls.RESTORE;
       delete cls.prototype.constructor.RESTORE;
 
@@ -185,11 +187,12 @@ function Initial() {
 
 var classNativeProps = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
 
-function ClassMaker(mock, cls, props) {
+function ClassMaker(mock, cls, props, bypassOnBehalfOfInstanceReplacement) {
   if (! (cls instanceof Function)) {
     throw new Error('Class constructor must be function');
   }
 
+  this._bypassOnBehalfOfInstanceReplacement = bypassOnBehalfOfInstanceReplacement;
   this._cls = cls;
   this._clsConstructorName = cls.prototype.hasOwnProperty('constructor') ? cls.prototype.constructor.name : cls.name;
   this._clsProps = copyScope(cls, {enumerable: true}, 1);
@@ -367,6 +370,7 @@ ClassMaker.prototype = {
         }
 
         spyOnStaticDescriptor(cls, key, repDescriptor, {
+          bypassOnBehalfOfInstanceReplacement: self._bypassOnBehalfOfInstanceReplacement,
           get: Object.assign({
             extra: {
               name: self._clsConstructorName + '.' + key,
@@ -437,6 +441,7 @@ ClassMaker.prototype = {
         }
 
         spyOnDescriptor(cls, key, repDescriptor, {
+          bypassOnBehalfOfInstanceReplacement: self._bypassOnBehalfOfInstanceReplacement,
           get: Object.assign({
             extra: {
               name: self._clsConstructorName + '.' + key,
@@ -483,6 +488,7 @@ ClassMaker.prototype = {
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
         spyOnStaticMethod(cls, key, rep, Object.assign({
+          bypassOnBehalfOfInstanceReplacement: self._bypassOnBehalfOfInstanceReplacement,
           extra: {
             name: self._clsConstructorName + '.' + key,
             type: 'staticMethod',
@@ -519,6 +525,7 @@ ClassMaker.prototype = {
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
         spyOnMethod(cls, key, rep, Object.assign({
+          bypassOnBehalfOfInstanceReplacement: self._bypassOnBehalfOfInstanceReplacement,
           extra: {
             name: self._clsConstructorName + '.' + key,
             type: 'method',

@@ -88,7 +88,7 @@ describe('Observer', () => {
 
     const E = e.from({a: f});
 
-    expect(e._mock.from.calls.first().args).toEqual([{a: f}]);
+    expect(e._mock.from.calls.first().args).toEqual([{a: f}, void 0]);
     expect(e._mock.from.calls.first().returnValue).toBe(true);
   });
 
@@ -99,7 +99,7 @@ describe('Observer', () => {
 
     const E = e.by(A, ['a']);
 
-    expect(e._mock.by.calls.first().args).toEqual([A, ['a']]);
+    expect(e._mock.by.calls.first().args).toEqual([A, ['a'], void 0]);
     expect(e._mock.by.calls.first().returnValue).toBe(true);
   });
 
@@ -110,7 +110,7 @@ describe('Observer', () => {
 
     const E = e.override(A, ['a']);
 
-    expect(e._mock.override.calls.first().args).toEqual([A, ['a']]);
+    expect(e._mock.override.calls.first().args).toEqual([A, ['a'], void 0]);
     expect(e._mock.override.calls.first().returnValue).toBe(B);
   });
 
