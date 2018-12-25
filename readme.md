@@ -504,6 +504,39 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
 * **spy(function)** - spies on a single function
 
+Note, that the mocked method will be dynamically replaced by its copy on the first call of this method.
+This make for the ability to collect call statistic on behalf of the instance but not its prototype.
+```javascript
+const Mock = require('unitsnap.js').Mock;
+
+const mock = new Mock(history);
+
+const MockA = mock.by(A, {
+    x: 1
+});
+
+const a = new MockA();
+
+a.x(); // statistics available now by "a.x", not by "a.prototype.x"
+```
+
+To leave statistics collection on behalf of prototype:
+```javascript
+const Mock = require('unitsnap.js').Mock;
+
+const mock = new Mock(history);
+
+const MockA = mock.by(A, {
+    x: 1
+}, true);
+
+const a = new MockA();
+
+a.x(); // statistics available by "a.prototype.x"
+```
+
+Same is for the "from" and the "override".
+
 ##### Customization
 
 Properties can be customized with the **Custom** entity.

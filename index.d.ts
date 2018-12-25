@@ -72,9 +72,9 @@ export interface HistoryEpoch {
 export class Mock {
     constructor(history?: History);
     setExplicitInstance(): this;
-    by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
-    from<T=object>(props: {[key: string]: any}): {new(...args: any[]): T};
-    override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
+    by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any}), bypassOnBehalfOfInstanceReplacement?: boolean): {new(...args: any[]): T};
+    from<T=object>(props: {[key: string]: any}, bypassOnBehalfOfInstanceReplacement?: boolean): {new(...args: any[]): T};
+    override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any}), bypassOnBehalfOfInstanceReplacement?: boolean): {new(...args: any[]): T};
     spy(fn: (...args) => any): (...args) => any;
 }
 export interface PropertyDescriptor {
@@ -111,9 +111,9 @@ export class Observer {
     config(): ObserverConfig;
     begin(epoch?: string, comment?: string): this;
     end(): this;
-    by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
-    from<T=object>(props: {[key: string]: any}): {new(...args: any[]): T};
-    override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any})): {new(...args: any[]): T};
+    by<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any}), bypassOnBehalfOfInstanceReplacement?: boolean): {new(...args: any[]): T};
+    from<T=object>(props: {[key: string]: any}, bypassOnBehalfOfInstanceReplacement?: boolean): {new(...args: any[]): T};
+    override<T=object>(cls: {new(...args: any[]): T}, props?: (string[]|{[key: string]: any}), bypassOnBehalfOfInstanceReplacement?: boolean): {new(...args: any[]): T};
     spy(fn: (...args) => any): (...args) => any;
     push(...args: any[]): this;
     filter(): Filter;
