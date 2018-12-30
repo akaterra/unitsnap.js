@@ -578,6 +578,10 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
     return prop.pop.bind(prop);
   }
 
+  if (prop === typeHelpers.This) {
+    return function () { return this; }
+  }
+
   if (prop instanceof Function) {
     return prop;
   }
@@ -608,3 +612,4 @@ var spyOnStaticDescriptor = require('./spy').spyOnStaticDescriptor;
 var spyOnFunction = require('./spy').spyOnFunction;
 var spyOnMethod = require('./spy').spyOnMethod;
 var spyOnStaticMethod = require('./spy').spyOnStaticMethod;
+var typeHelpers = require('./type_helpers');

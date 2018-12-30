@@ -95,6 +95,7 @@ module.exports = {
   InstanceOfType: typeHelpers.InstanceOfType,
   NumberType: typeHelpers.NumberType,
   StringType: typeHelpers.StringType,
+  This: typeHelpers.This,
   UndefinedType: typeHelpers.UndefinedType,
 
   Filter: filter.Filter,

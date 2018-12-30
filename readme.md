@@ -316,6 +316,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         f: StaticMethod(Function), // custom static method
         g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
         h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
+        i: typeHelpers.This, // stub function returning this
     });
 
     const mocked = new Mocked();
@@ -330,6 +331,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     mocked.g = 2;
     mocked.h; // returns 1
     mocked.h = 2;
+    mocked.i(); // return this
     ```
 
     Mock in context of observer:
@@ -351,6 +353,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         f: StaticMethod(2), // custom static method returning "2"
         g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
         h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
+        i: typeHelpers.This, // stub function returning this
     });
 
     const mocked = new Mocked();
@@ -365,6 +368,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     mocked.g = 2;
     mocked.h; // returns "1"
     mocked.h = 2;
+    mocked.i(); // return this
     ```
 
 * **by(class, props)** - constructs mock by the class with the custom props
@@ -430,6 +434,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         f: StaticMethod(2), // custom static method returning "2"
         g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
         h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
+        i: typeHelpers.This, // stub function returning this
     });
 
     const mocked = new Mocked();
@@ -444,6 +449,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     mocked.g = 2;
     mocked.h; // returns "1"
     mocked.h = 2;
+    mocked.i(); // return this
     ```
 
     Mock with a custom props in the Observer's context:
@@ -466,6 +472,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         f: StaticMethod(2), // custom static method returning "2"
         g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
         h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
+        i: typeHelpers.This, // stub function returning this
    });
 
     const mocked = new Mocked();
@@ -480,6 +487,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     mocked.g = 2;
     mocked.h; // returns "1"
     mocked.h = 2;
+    mocked.i(); // return this
     ```
 
 * **override(class, props)** - overrides props of the class

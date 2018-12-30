@@ -1,5 +1,6 @@
 const unitsnap = require('..');
 const mock = require('../src/mock');
+const typeHelpers = require('../src/type_helpers');
 
 describe('Property', () => {
   const descriptor = {};
@@ -429,6 +430,22 @@ describe('Mock', () => {
         expect(E.a).toBe(B.a);
         expect(Object.getOwnPropertyDescriptor(E, 'd').set.ORIGIN).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
         expect(Object.getOwnPropertyDescriptor(E, 'd').set.REPLACEMENT).toBe(f);
+      });
+
+      it('should stub methods marked as This', () => {
+        const E = new mock.Mock(history).by(B, {c: typeHelpers.This});
+
+        expect(E.prototype.a).toBe(B.prototype.a);
+        expect(E.prototype.c.ORIGIN).toBe(B.prototype.c);
+        expect(E.prototype.c instanceof Function).toBeTruthy();
+      });
+
+      it('should stub static methods marked as This', () => {
+        const E = new mock.Mock(history).by(B, {c: mock.StaticMethod(typeHelpers.This)});
+
+        expect(E.a).toBe(B.a);
+        expect(E.c.ORIGIN).toBe(B.c);
+        expect(E.c instanceof Function).toBeTruthy();
       });
 
       it('should stub methods marked as Function', () => {
@@ -1275,6 +1292,11 @@ describe('Mock', () => {
       expect(history._entries).toEqual([]);
     });
 
+    it('should return mocked this value', () => {
+      const e = new (new mock.Mock(history.begin()).by(B, {c: typeHelpers.This}))();
+
+      expect(e.c()).toBe(e);
+    });
 
     it('should return mocked primitive value', () => {
       const e = new (new mock.Mock(history.begin()).by(B, {c: 123}))();
@@ -2204,6 +2226,12 @@ describe('Mock', () => {
         time: history._entries[25].time,
         type: 'staticSetter',
       }]);
+    });
+
+    it('should return mocked this value', () => {
+      const e = new (new mock.Mock(history.begin()).override(B, {c: typeHelpers.This}))();
+
+      expect(e.c()).toBe(e);
     });
 
     it('should return mocked primitive value', () => {
