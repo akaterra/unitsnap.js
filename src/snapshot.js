@@ -432,6 +432,7 @@ var basicTypes = [
   [typeHelpers.NumberType, new typeHelpers.NumberType()],
   [String, new typeHelpers.StringType()],
   [typeHelpers.StringType, new typeHelpers.StringType()],
+  [typeHelpers.This, new typeHelpers.This()],
   [void 0, new typeHelpers.UndefinedType()],
   [typeHelpers.UndefinedType, new typeHelpers.UndefinedType()],
 ];

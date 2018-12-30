@@ -6,7 +6,7 @@ var FN_ES6_DECLARATION = /^(async\s*|)\(?(.*?)\)?\s*=>/g;
 var FN_STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 
 function parseFunctionAnnotation(func) {
-  var fnStr = func.toString().replace(FN_STRIP_COMMENTS, '');
+  var fnStr = func.toString().replace(FN_STRIP_COMMENTS, '').replace(/\n/g, '');
   var fnArgStr = null;
   var fnName = null;
   var matches;

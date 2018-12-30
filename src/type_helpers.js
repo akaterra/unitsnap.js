@@ -128,6 +128,20 @@ StringType.prototype = {
   },
 };
 
+function This() {
+
+}
+
+This.prototype = {
+  check: function () {
+    return true;
+  },
+  serialize: function () {
+    return this;
+  },
+};
+
+
 function UndefinedType() {
 
 }
@@ -152,5 +166,6 @@ module.exports = {
   InstanceOfType: InstanceOfType,
   NumberType: NumberType,
   StringType: StringType,
+  This: This,
   UndefinedType: UndefinedType,
 };

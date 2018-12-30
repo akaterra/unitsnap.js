@@ -227,6 +227,7 @@ export class InstanceOfType extends TypeHelper {
 }
 export class NumberType extends TypeHelper {}
 export class StringType extends TypeHelper {}
+export class This extends TypeHelper {}
 export class UndefinedType extends TypeHelper {}
 // index
 export function create(): Observer;
