@@ -101,8 +101,8 @@ export function Custom(value?: any): MockCustom;
 export function Epoch(epoch: any): MockCustom;
 export function Exclude(value: any): MockCustom;
 export function Initial(): void;
-export function Property(descriptor: Partial<PropertyDescriptor>): MockProperty;
-export function StaticProperty(descriptor: Partial<PropertyDescriptor>): MockProperty;
+export function Property(descriptor?: Partial<PropertyDescriptor>): MockProperty;
+export function StaticProperty(descriptor?: Partial<PropertyDescriptor>): MockProperty;
 export function StaticMethod(value?: any): MockMethod;
 // observer
 export class Observer {
@@ -231,4 +231,18 @@ export class This extends TypeHelper {}
 export class UndefinedType extends TypeHelper {}
 // index
 export function create(): Observer;
+export function getSpyStats(fn: Function): {
+    args: {
+        '*': any[];
+        [key: string]: any;
+    };
+    callsCount: number;
+    exceptionsCount:number;
+    exception: any;
+    isAsync: boolean;
+    isAsyncPending: boolean;
+    isException: boolean;
+    origin: Function;
+    replacement: Function;
+};
 export function extendJasmine();
