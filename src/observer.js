@@ -124,6 +124,19 @@ module.exports = {
   create: function () {
     return new Observer();
   },
+  getSpyStats: function (fn) {
+    return {
+      args: fn.ARGS,
+      callsCount: fn.CALLS_COUNT,
+      exceptionsCount: fn.EXCEPTIONS_COUNT,
+      exception: fn.EXCEPTION,
+      isAsync: fn.IS_ASYNC,
+      isAsyncPending: fn.IS_ASYNC_PENDING,
+      isException: fn.IS_EXCEPTION,
+      origin: fn.ORIGIN,
+      replacement: fn.REPLACEMENT,
+    };
+  },
 
   default: new Observer(),
 };
