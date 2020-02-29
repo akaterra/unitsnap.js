@@ -188,7 +188,7 @@ function Initial() {
 var classNativeProps = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
 
 function ClassMaker(mock, cls, props, bypassOnBehalfOfInstanceReplacement) {
-  if (! (cls instanceof Function)) {
+  if (typeof cls !== 'function') {
     throw new Error('Class constructor must be function');
   }
 
@@ -241,7 +241,7 @@ function ClassMaker(mock, cls, props, bypassOnBehalfOfInstanceReplacement) {
 
 ClassMaker.prototype = {
   makeConstructor: function (cls, useOriginPrototype, explicitInstance) {
-    if (! (cls instanceof Function)) {
+    if (typeof cls !== 'function') {
       throw new Error('Class constructor must be function');
     }
 
@@ -297,7 +297,7 @@ ClassMaker.prototype = {
     return cls;
   },
   makePrototypeFor: function (cls, useOriginPrototype) {
-    if (! (cls instanceof Function)) {
+    if (typeof cls !== 'function') {
       throw new Error('Class constructor must be function');
     }
 
@@ -582,7 +582,7 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
     return function () { return this; }
   }
 
-  if (prop instanceof Function) {
+  if (typeof prop === 'function') {
     return prop;
   }
 
