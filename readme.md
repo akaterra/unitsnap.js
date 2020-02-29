@@ -1,4 +1,4 @@
-# UnitSnap.js
+# UnitSnap
 
 The library allows to use the taken or saved snapshot of the units observed during an execution flow as an assertion in unit tests.
 The principle of this stands on the concept of the pure function which always has the same result of execution (may be partially for individual purposes).
