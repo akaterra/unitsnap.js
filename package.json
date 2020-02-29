@@ -1,5 +1,5 @@
 {
-  "name": "unitsnap.js",
+  "name": "unitsnap",
   "version": "1.5.2",
   "description": "Library for snapshot based unit testing",
   "main": "index.js",
