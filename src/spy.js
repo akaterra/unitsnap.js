@@ -51,7 +51,7 @@ function spyOnFunction(callable, options, asConstructor) {
       }
 
       if (isRest) {
-        callable.ARGS[isRestEs6Ind ? originalCallableAnnotation.args[isRestEs6Ind].name : '*'].push(val);
+        callable.ARGS[isRestEs6Ind !== null ? originalCallableAnnotation.args[isRestEs6Ind].name : '*'].push(val);
       } else {
         callable.ARGS[originalCallableAnnotation.args[ind].name] = val;
       }
