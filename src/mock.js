@@ -376,7 +376,7 @@ ClassMaker.prototype = {
               name: self._clsConstructorName + '.' + key,
               type: 'staticGetter',
             },
-            origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.get,
+            origin: hasOwnProperty(self._clsPropsDescriptors, key) && self._clsPropsDescriptors[key].descriptor.get,
             replacement: self._props[key].descriptor.get,
           }, customGet || {}),
           set: Object.assign({
@@ -384,7 +384,7 @@ ClassMaker.prototype = {
               name: self._clsConstructorName + '.' + key,
               type: 'staticSetter',
             },
-            origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.set,
+            origin: hasOwnProperty(self._clsPropsDescriptors, key) && self._clsPropsDescriptors[key].descriptor.set,
             replacement: self._props[key].descriptor.set,
           }, customSet || {}),
           onCall: function (context, state) {
@@ -447,7 +447,7 @@ ClassMaker.prototype = {
               name: self._clsConstructorName + '.' + key,
               type: 'getter',
             },
-            origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.get,
+            origin: hasOwnProperty(self._clsProtoPropsDescriptors, key) && self._clsProtoPropsDescriptors[key].descriptor.get,
             replacement: self._props[key].descriptor.get,
           }, customGet || {}),
           set: Object.assign({
@@ -455,7 +455,7 @@ ClassMaker.prototype = {
               name: self._clsConstructorName + '.' + key,
               type: 'setter',
             },
-            origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.set,
+            origin: hasOwnProperty(self._clsProtoPropsDescriptors, key) && self._clsProtoPropsDescriptors[key].descriptor.set,
             replacement: self._props[key].descriptor.set,
           }, customSet || {}),
           onCall: function (context, state) {
@@ -493,7 +493,7 @@ ClassMaker.prototype = {
             name: self._clsConstructorName + '.' + key,
             type: 'staticMethod',
           },
-          origin: self._clsPropsDescriptors[key] && self._clsPropsDescriptors[key].descriptor.value,
+          origin: hasOwnProperty(self._clsPropsDescriptors, key) && self._clsPropsDescriptors[key].descriptor.value,
           replacement: rep,
           onCall: function (context, state) {
             if (self._mock._history) {
@@ -530,7 +530,7 @@ ClassMaker.prototype = {
             name: self._clsConstructorName + '.' + key,
             type: 'method',
           },
-          origin: self._clsProtoPropsDescriptors[key] && self._clsProtoPropsDescriptors[key].descriptor.value,
+          origin: hasOwnProperty(self._clsProtoPropsDescriptors, key) && self._clsProtoPropsDescriptors[key].descriptor.value,
           replacement: rep,
           onCall: function (context, state) {
             if (self._mock._history) {
@@ -613,3 +613,7 @@ var spyOnFunction = require('./spy').spyOnFunction;
 var spyOnMethod = require('./spy').spyOnMethod;
 var spyOnStaticMethod = require('./spy').spyOnStaticMethod;
 var typeHelpers = require('./type_helpers');
+
+function hasOwnProperty(obj, key) {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}

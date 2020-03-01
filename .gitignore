@@ -1,5 +1,6 @@
 .env
 .idea/
+*ignore.js
 dist/
 coverage/
 node_modules/
