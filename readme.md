@@ -30,13 +30,13 @@ Then this result can be saved as a snapshot and compared with a snapshot of the 
 ### Installation
 
 ```bash
-npm install unitsnap.js
+npm install @akaterra.co/unitsnap
 ```
 
 ### Example of snapshot generation
 
 ```javascript
-const observer = require('unitsnap.js').default; // default pre-created UnitSnap observer
+const observer = require('@akaterra.co/unitsnap').default; // default pre-created UnitSnap observer
 
 class A {
     a(a, b, c) {
@@ -84,7 +84,7 @@ snapshot.setFsProvider(__dirname).save('snapshot');
 ### Example of snapshot assertion
 
 ```javascript
-const observer = require('unitsnap.js').default; // default pre-created UnitSnap observer
+const observer = require('@akaterra/unitsnap').default; // default pre-created UnitSnap observer
 
 class A {
     a(a, b, c) {
@@ -132,7 +132,7 @@ const checkResult = snapshot.setFsProvider(__dirname).assertSaved('snapshot'); /
 ### Observer
 
 ```javascript
-const Observer = require('unitsnap.js').Observer;
+const Observer = require('@akaterra/unitsnap').Observer;
 ```
 
 Observer provides a isolated context within which the History, Mock, Fixture and Snapshot (see description below) modules will be created and within which their intercommunication will be organized.
@@ -173,7 +173,7 @@ For ease of use, Observer also implements a set of methods that are proxy method
 ### History
 
 ```javascript
-const History = require('unitsnap.js').History;
+const History = require('@akaterra/unitsnap').History;
 ```
 
 History chronologically collects the entries with results of execution of each single observed function of the execution flow.
@@ -288,7 +288,7 @@ Epochs can be nested.
 ### Mock
 
 ```javascript
-const Mock = require('unitsnap.js').Mock;
+const Mock = require('@akaterra/unitsnap').Mock;
 ```
 
 The Mock builds a mock that commonly is a fake representation of the initial entity and can be used instead of original entity.
@@ -300,10 +300,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Single mock:
 
     ```javascript
-    const Mock = require('unitsnap.js').Mock;
-    const Property = require('unitsnap.js').Property;
-    const StaticMethod = require('unitsnap.js').StaticMethod;
-    const StaticProperty = require('unitsnap.js').StaticProperty;
+    const Mock = require('@akaterra/unitsnap').Mock;
+    const Property = require('@akaterra/unitsnap').Property;
+    const StaticMethod = require('@akaterra/unitsnap').StaticMethod;
+    const StaticProperty = require('@akaterra/unitsnap').StaticProperty;
 
     const mock = new Mock(history);
 
@@ -337,10 +337,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Mock in context of observer:
 
     ```javascript
-    const Observer = require('unitsnap.js').Observer;
-    const Property = require('unitsnap.js').Property;
-    const StaticMethod = require('unitsnap.js').StaticMethod;
-    const StaticProperty = require('unitsnap.js').StaticProperty;
+    const Observer = require('@akaterra/unitsnap').Observer;
+    const Property = require('@akaterra/unitsnap').Property;
+    const StaticMethod = require('@akaterra/unitsnap').StaticMethod;
+    const StaticProperty = require('@akaterra/unitsnap').StaticProperty;
 
     const observer = new Observer();
 
@@ -396,10 +396,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Mock by entire class:
 
     ```javascript
-    const Mock = require('unitsnap.js').Mock;
-    const Property = require('unitsnap.js').Property;
-    const StaticMethod = require('unitsnap.js').StaticMethod;
-    const StaticProperty = require('unitsnap.js').StaticProperty;
+    const Mock = require('@akaterra/unitsnap').Mock;
+    const Property = require('@akaterra/unitsnap').Property;
+    const StaticMethod = require('@akaterra/unitsnap').StaticMethod;
+    const StaticProperty = require('@akaterra/unitsnap').StaticProperty;
 
     const mock = new Mock(history);
 
@@ -417,10 +417,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Single mock with a custom props:
 
     ```javascript
-    const Mock = require('unitsnap.js').Mock;
-    const Property = require('unitsnap.js').Property;
-    const StaticMethod = require('unitsnap.js').StaticMethod;
-    const StaticProperty = require('unitsnap.js').StaticProperty;
+    const Mock = require('@akaterra/unitsnap').Mock;
+    const Property = require('@akaterra/unitsnap').Property;
+    const StaticMethod = require('@akaterra/unitsnap').StaticMethod;
+    const StaticProperty = require('@akaterra/unitsnap').StaticProperty;
 
     const mock = new Mock(history);
 
@@ -455,10 +455,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Mock with a custom props in the Observer's context:
 
     ```javascript
-    const Observer = require('unitsnap.js').Observer;
-    const Property = require('unitsnap.js').Property;
-    const StaticMethod = require('unitsnap.js').StaticMethod;
-    const StaticProperty = require('unitsnap.js').StaticProperty;
+    const Observer = require('@akaterra/unitsnap').Observer;
+    const Property = require('@akaterra/unitsnap').Property;
+    const StaticMethod = require('@akaterra/unitsnap').StaticMethod;
+    const StaticProperty = require('@akaterra/unitsnap').StaticProperty;
 
     const observer = new Observer();
 
@@ -496,7 +496,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
     The overridden props can be restored after by calling **RESTORE**:
 
     ```javascript
-    const Mock = require('unitsnap.js').Mock;
+    const Mock = require('@akaterra/unitsnap').Mock;
 
     const mock = new Mock(history);
 
@@ -515,7 +515,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
 Note, that the mocked method will be dynamically replaced by its copy on the first call of this method.
 This make for the ability to collect call statistic on behalf of the instance but not its prototype.
 ```javascript
-const Mock = require('unitsnap.js').Mock;
+const Mock = require('@akaterra/unitsnap').Mock;
 
 const mock = new Mock(history);
 
@@ -530,7 +530,7 @@ a.x(); // statistics available now by "a.x", not by "a.prototype.x"
 
 To leave statistics collection on behalf of prototype:
 ```javascript
-const Mock = require('unitsnap.js').Mock;
+const Mock = require('@akaterra/unitsnap').Mock;
 
 const mock = new Mock(history);
 
@@ -550,10 +550,10 @@ Same is for the "from" and the "override".
 Properties can be customized with the **Custom** entity.
 
 ```javascript
-const ArgsAnnotation = require('unitsnap.js').ArgsAnnotation;
-const Custom = require('unitsnap.js').Custom;
-const Exclude = require('unitsnap.js').Exclude;
-const Mock = require('unitsnap.js').Mock;
+const ArgsAnnotation = require('@akaterra/unitsnap').ArgsAnnotation;
+const Custom = require('@akaterra/unitsnap').Custom;
+const Exclude = require('@akaterra/unitsnap').Exclude;
+const Mock = require('@akaterra/unitsnap').Mock;
 
 const mock = new Mock(history);
 
@@ -568,7 +568,7 @@ const Mocked = mock.by(A, {
 ### Fixture
 
 ```javascript
-const Fixture = require('unitsnap.js').Fixture;
+const Fixture = require('@akaterra/unitsnap').Fixture;
 ```
 
 Fixture provides a fake data to be used as a result of the function call.
@@ -881,7 +881,7 @@ The special Jasmine matcher **toMatchSnapshot** can be used in specs for snapsho
 Enable the matcher and configure default snapshot, for example, to use the file system provider:
 
 ```javascript
-var unitsnap = require('unitsnap.js');
+var unitsnap = require('@akaterra/unitsnap');
 
 unitsnap.extendJasmine();
 
@@ -909,7 +909,7 @@ It will throw standard Jasmine **toEqual** error on mismatch.
 Example (see full example /spec/jasmine.spec.js):
 
 ```javascript
-const unitsnap = require('unitsnap.js');
+const unitsnap = require('@akaterra/unitsnap');
 
 describe('some suite', () => {
     const observer = unitsnap.default;
