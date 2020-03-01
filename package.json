@@ -1,6 +1,6 @@
 {
   "name": "@akaterra.co/unitsnap",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Library for snapshot based unit testing",
   "main": "index.js",
   "types": "index.d.ts",
