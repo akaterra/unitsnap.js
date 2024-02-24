@@ -1,24 +1,33 @@
-function History() {
-  this.flush();
-}
+import * as filter from './filter';
 
-History.prototype = {
-  getCurrentEpoch: function () {
+export class History {
+  private _entries: any[];
+  private _epochs: any[];
+  private _observer: any;
+
+  constructor() {
+    this.flush();
+  }
+
+  getCurrentEpoch() {
     return this._epochs.length
       ? this._epochs[this._epochs.length - 1]
       : null;
-  },
-  link: function (observer) {
+  }
+
+  link(observer) {
     this._observer = observer;
 
     return this;
-  },
-  unlink: function () {
+  }
+
+  unlink() {
     this._observer = void 0;
 
     return this;
-  },
-  begin: function (epoch, comment, callbacks) {
+  }
+
+  begin(epoch, comment, callbacks) {
     if (this._epochs.length === 0) {
       this._entries = [];
     }
@@ -26,8 +35,9 @@ History.prototype = {
     this._epochs.push({callbacks: callbacks || [], comment: comment, epoch: epoch});
 
     return this;
-  },
-  end: function () {
+  }
+
+  end() {
     if (this._epochs.length === 0) {
       return this;
     }
@@ -35,8 +45,9 @@ History.prototype = {
     this._epochs.pop().callbacks.forEach(function (cb) {cb()});
 
     return this;
-  },
-  addOnEndCallback: function (cb) {
+  }
+
+  addOnEndCallback(cb) {
     var epoch = this.getCurrentEpoch();
 
     if (epoch) {
@@ -44,17 +55,20 @@ History.prototype = {
     }
 
     return this;
-  },
-  flush: function () {
+  }
+
+  flush() {
     this._entries = [];
     this._epochs = [];
 
     return this;
-  },
-  filter: function () {
+  }
+
+  filter() {
     return new filter.Filter([].concat(this._entries)).link(this._observer);
-  },
-  push: function (state, tags) {
+  }
+
+  push(state, tags?) {
     if (this._epochs.length === 0) {
       throw new Error('History is not yet begun');
     }
@@ -69,11 +83,5 @@ History.prototype = {
     }, state));
 
     return this;
-  },
-};
-
-module.exports = {
-  History: History,
-};
-
-var filter = require('./filter');
+  }
+}

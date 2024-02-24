@@ -1,4 +1,4 @@
-const unitsnap = require('..');
+import unitsnap from '..';
 
 describe('Filter', () => {
   const f = _ => _;

@@ -1,65 +1,87 @@
-function Filter(entries) {
-  this._entries = entries || [];
-  this._not = false;
-}
+import * as snapshot from './snapshot';
 
-Filter.prototype = {
-  link: function (observer) {
+export class Filter {
+  private _entries: any[];
+  private _not: boolean;
+  private _observer: any;
+  private _context: any[];
+  private _custom: any[];
+  private _epoch: any[];
+  private _fn: any[];
+  private _notPromiseResult: boolean;
+  private _tags: any[];
+
+  constructor(entries) {
+    this._entries = entries || [];
+    this._not = false;
+  }
+
+  link(observer) {
     this._observer = observer;
 
     return this;
-  },
-  unlink: function () {
+  }
+
+  unlink() {
     this._observer = void 0;
 
     return this;
-  },
-  context: function (context) {
-    this._context = [context, notGetAndReset(this)];
+  }
+
+  context(context) {
+    this._context = [context, this.notGetAndReset()];
 
     return this;
-  },
-  ctx: function (ctx) {
-    this._context = [ctx, notGetAndReset(this)];
+  }
+
+  ctx(ctx) {
+    this._context = [ctx, this.notGetAndReset()];
 
     return this;
-  },
-  custom: function (fn) {
+  }
+
+  custom(fn) {
     if (fn !== void 0 && ! (fn instanceof Function)) {
       throw new Error('Filter "custom" must be callable');
     }
 
-    this._custom = [fn, notGetAndReset(this)];
+    this._custom = [fn, this.notGetAndReset()];
 
     return this;
-  },
-  epoch: function (epoch) {
-    this._epoch = [epoch, notGetAndReset(this)];
+  }
+
+  epoch(epoch) {
+    this._epoch = [epoch, this.notGetAndReset()];
 
     return this;
-  },
-  fn: function (fn) {
-    this._fn = [fn, notGetAndReset(this)];
+  }
+
+  fn(fn) {
+    this._fn = [fn, this.notGetAndReset()];
 
     return this;
-  },
-  notPromiseResult: function () {
-    this._notPromiseResult = notGetAndReset(this);
+  }
+
+  notPromiseResult() {
+    this._notPromiseResult = this.notGetAndReset();
 
     return this;
-  },
-  tags: function () {
-    this._tags = [Array.prototype.slice.call(arguments), notGetAndReset(this)];
+  }
+
+  tags() {
+    this._tags = [Array.prototype.slice.call(arguments), this.notGetAndReset()];
 
     return this;
-  },
-  not: function () {
+  }
+
+  not() {
     this._not = true;
 
     return this;
-  },
-  snapshot: function () {
-    var newSnapshot = new snapshot.Snapshot(this._entries.filter(function (entry) {
+  }
+
+  snapshot() {
+    const newSnapshot = new snapshot.Snapshot(this._entries.filter((entry) => {
       if (this._context !== void 0 && assert(this._context[0] !== entry.context, this._context[1])) {
         return false;
       }
@@ -89,7 +111,7 @@ Filter.prototype = {
       }
 
       return true;
-    }.bind(this)));
+    }));
 
     if (this._observer) {
       newSnapshot
@@ -102,22 +124,15 @@ Filter.prototype = {
 
     return newSnapshot;
   }
-};
+
+  private notGetAndReset() {
+    const not = this._not;
+    this._not = false;
+  
+    return not;
+  }
+}
 
 function assert(result, not) {
   return not ? ! result : result;
 }
-
-function notGetAndReset(filter) {
-  var not = filter._not;
-
-  filter._not = false;
-
-  return not;
-}
-
-module.exports = {
-  Filter: Filter,
-};
-
-var snapshot = require('./snapshot');

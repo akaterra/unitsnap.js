@@ -1,4 +1,4 @@
-const unitsnap = require('..');
+import unitsnap from '..';
 const spy = require('../src/spy');
 
 describe('Spy', () => {

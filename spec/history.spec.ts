@@ -1,4 +1,4 @@
-const unitsnap = require('..');
+import unitsnap from '..';
 
 describe('History', () => {
   const callback = jasmine.createSpy();

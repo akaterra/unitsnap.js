@@ -1,37 +1,56 @@
-function Mock(history) {
-  this._history = history;
+import * as fixture from './fixture';
+import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod } from './spy';
+import * as typeHelpers from './type_helpers';
+import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
+import { History } from './history';
 
-  if (history && history._observer) {
-    this._fixturePop = history._observer._fixture.pop.bind(history._observer._fixture);
+export class Mock {
+  explicitInstance: boolean;
+
+  private _history: History;
+  private _fixturePop: any;
+
+  get fixturePop() {
+    if (!this._fixturePop) {
+      throw new Error('Mock observer must be defined in linked history before "Fixture" reference can be used');
+    }
+
+    return this._fixturePop;
   }
-}
 
-Mock.prototype = {
-  setExplicitInstance: function () {
+  constructor(history) {
+    this._history = history;
+
+    if (history && history._observer) {
+      this._fixturePop = history._observer._fixture.pop.bind(history._observer._fixture);
+    }
+  }
+
+  setExplicitInstance() {
     this.explicitInstance = true;
 
     return this;
-  },
-  by: function (cls, props, bypassOnBehalfOfInstanceReplacement) {
-    var maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
+  }
+
+  by(cls, props, bypassOnBehalfOfInstanceReplacement) {
+    const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
 
     return maker.makePrototypeFor(maker.makeConstructor(cls, true, this.explicitInstance));
-  },
+  }
 
-  from: function (props, bypassOnBehalfOfInstanceReplacement) {
-    var maker = new ClassMaker(this, function () {}, props, bypassOnBehalfOfInstanceReplacement);
+  from(props, bypassOnBehalfOfInstanceReplacement) {
+    const maker = new ClassMaker(this, function () {}, props, bypassOnBehalfOfInstanceReplacement);
 
-    return maker.makePrototypeFor(maker.makeConstructor(maker._cls, true, this.explicitInstance), true);
-  },
-  override: function (cls, props, bypassOnBehalfOfInstanceReplacement) {
-    var maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
+    return maker.makePrototypeFor(maker.makeConstructor(maker.cls, true, this.explicitInstance), true);
+  }
 
-    var clazz = maker.makePrototypeFor(cls, true);
+  override(cls, props, bypassOnBehalfOfInstanceReplacement) {
+    const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
+    const clazz = maker.makePrototypeFor(cls, true);
 
     clazz.RESTORE = cls.prototype.constructor.RESTORE = function () {
-      // class properties
-      Object.keys(maker._clsPropsDescriptors).forEach(function (key) {
-        var descriptor = maker._clsPropsDescriptors[key];
+      Object.keys(maker.clsPropsDescriptors).forEach(function (key) {
+        var descriptor = maker.clsPropsDescriptors[key];
 
         if (descriptor.level === 0) {
           Object.defineProperty(cls, key, descriptor.descriptor);
@@ -39,11 +58,10 @@ Mock.prototype = {
           delete cls[key];
         }
       });
-      maker._propsMetadata.extraStaticProps.forEach(function (key) { delete cls[key]; });
+      maker.propsMetadata.extraStaticProps.forEach(function (key) { delete cls[key]; });
 
-      // instance properties
-      Object.keys(maker._clsProtoPropsDescriptors).forEach(function (key) {
-        var descriptor = maker._clsProtoPropsDescriptors[key];
+      Object.keys(maker.clsPropsDescriptors).forEach(function (key) {
+        var descriptor = maker.clsPropsDescriptors[key];
 
         if (descriptor.level === 0) {
           Object.defineProperty(cls.prototype, key, descriptor.descriptor);
@@ -51,7 +69,7 @@ Mock.prototype = {
           delete cls.prototype[key];
         }
       });
-      maker._propsMetadata.extraProps.forEach(function (key) { delete cls.prototype[key]; });
+      maker.propsMetadata.extraProps.forEach(function (key) { delete cls.prototype[key]; });
 
       delete cls.OBSERVER;
       delete cls.RESTORE;
@@ -61,8 +79,9 @@ Mock.prototype = {
     };
 
     return clazz;
-  },
-  spy: function (fn) {
+  }
+
+  spy(fn) {
     var self = this;
 
     return spyOnFunction(fn, {
@@ -78,169 +97,241 @@ Mock.prototype = {
         }
       }
     });
-  },
-};
-
-function Property(descriptor) {
-  if (this instanceof Property) {
-    this.descriptor = descriptor;
-  } else {
-    return new Property(descriptor || {});
   }
 }
 
-Property.prototype = {
-  get: function (get) {
+export class Property {
+  private descriptor: any;
+
+  constructor(descriptor) {
+    if (this instanceof Property) {
+      this.descriptor = descriptor;
+    } else {
+      return new Property(descriptor || {});
+    }
+  }
+
+  get(get) {
     this.descriptor.get = get;
 
     return this;
-  },
-  set: function (set) {
+  }
+
+  set(set) {
     this.descriptor.set = set;
 
     return this;
-  },
-};
-
-function StaticMethod(value) {
-  if (this instanceof StaticMethod) {
-    this.value = value;
-  } else {
-    return new StaticMethod(value || Function);
   }
 }
 
-function StaticProperty(descriptor) {
-  if (this instanceof StaticProperty) {
-    this.descriptor = descriptor;
-  } else {
-    return new StaticProperty(descriptor || {});
+export class StaticMethod {
+  private value: any;
+
+  constructor(value) {
+    if (this instanceof StaticMethod) {
+      this.value = value;
+    } else {
+      return new StaticMethod(value || Function);
+    }
   }
 }
 
-StaticProperty.prototype = {
-  get: function (get) {
+export class StaticProperty {
+  private descriptor: any;
+
+  constructor(descriptor) {
+    if (this instanceof StaticProperty) {
+      this.descriptor = descriptor;
+    } else {
+      return new StaticProperty(descriptor || {});
+    }
+  }
+
+  get(get) {
     this.descriptor.get = get;
 
     return this;
-  },
-  set: function (set) {
+  }
+
+  set(set) {
     this.descriptor.set = set;
 
     return this;
-  },
-};
-
-function Custom(value) {
-  if (! (this instanceof Custom)) {
-    return new Custom(value || Function);
-  } else {
-    this.value = value;
   }
 }
 
-Custom.prototype = {
-  argsAnnotation: function (argsAnnotation) {
-    this.argsAnnotation = argsAnnotation;
-
-    return this;
-  },
-  epoch: function (epoch) {
-    this.epoch = epoch;
-
-    return this;
-  },
-  exclude: function () {
-    this.exclude = true;
-
-    return this;
-  },
-};
-
-function ArgsAnnotation(value, argsAnnotation) {
-  if (value instanceof Custom) {
-    value = Custom(value.value);
-  }
-
-  return Custom(value).argsAnnotation(argsAnnotation);
+export declare const Custom: {
+  new (value): _Custom;
+  (value): _Custom;
 }
 
-function Epoch(value, epoch) {
-  if (value instanceof Custom) {
-    value = Custom(value.value);
+export class _Custom {
+  private value: any;
+
+  constructor(value) {
+    if (this instanceof _Custom) {
+      this.value = value;
+    } else {
+      return new _Custom(value || Function);
+    }
   }
 
-  return Custom(value).epoch(epoch);
+  argsAnnotation(argsAnnotation) {
+    return new ArgsAnnotation(this.value, argsAnnotation);
+  }
+
+  epoch(epoch) {
+    return new Epoch(this.value, epoch);
+  }
+
+  exclude() {
+    return new Exclude(this.value);
+  }
 }
 
-function Exclude(value) {
-  if (value instanceof Custom) {
-    value = Custom(value.value);
-  }
-
-  return Custom(value).exclude();
+export declare const ArgsAnnotation: {
+  new (value, argsAnnotation): _ArgsAnnotation;
+  (value, argsAnnotation): _ArgsAnnotation;
 }
 
-function Initial() {
+export class _ArgsAnnotation {
+  value: any;
+  argsAnnotation: any;
 
+  constructor(value, argsAnnotation) {
+    if (this instanceof _ArgsAnnotation) {
+      this.value = value;
+      this.argsAnnotation = argsAnnotation;
+    } else {
+      return new _ArgsAnnotation(value, argsAnnotation);
+    }
+  }
 }
 
-var classNativeProps = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
+export declare const Epoch: {
+  new (value, epoch): _Epoch;
+  (value, epoch): _Epoch;
+}
 
-function ClassMaker(mock, cls, props, bypassOnBehalfOfInstanceReplacement) {
-  if (typeof cls !== 'function') {
-    throw new Error('Class constructor must be function');
+export class _Epoch {
+  value: any;
+  epoch: any;
+
+  constructor(value, epoch) {
+    if (this instanceof _Epoch) {
+      this.value = value;
+      this.epoch = epoch;
+    } else {
+      return new _Epoch(value, epoch);
+    }
+  }
+}
+
+export declare const Exclude: {
+  new (value): _Exclude;
+  (value): _Exclude;
+}
+
+export class _Exclude {
+  value: any;
+
+  constructor(value) {
+    if (this instanceof _Exclude) {
+      this.value = value;
+    } else {
+      return new _Exclude(value);
+    }
+  }
+}
+
+export const Initial = Symbol('Initial');
+export const Observe = Initial;
+export const Null = Symbol('Null');
+export const Undefined = Symbol('Undefined');
+
+const CLASS_NATIVE_PROPS = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
+
+export class ClassMaker {
+  private _bypassOnBehalfOfInstanceReplacement: boolean;
+  private _cls: any;
+  private _clsConstructorName: string;
+  private _clsProps: any;
+  private _clsPropsDescriptors: any;
+  private _clsProtoPropsDescriptors: any;
+  private _clsProtoScope: any;
+  private _mock: any;
+  private _props: any;
+  private _propsMetadata: any;
+
+  get cls() {
+    return this._cls;
   }
 
-  this._bypassOnBehalfOfInstanceReplacement = bypassOnBehalfOfInstanceReplacement;
-  this._cls = cls;
-  this._clsConstructorName = cls.prototype.hasOwnProperty('constructor') ? cls.prototype.constructor.name : cls.name;
-  this._clsProps = copyScope(cls, {enumerable: true}, 1);
-  this._clsProps = Object.keys(this._clsProps).filter(function (key) {
-    return classNativeProps.indexOf(key) === - 1;
-  }).reduce(function (acc, key) {
-    Object.defineProperty(acc, key, Object.getOwnPropertyDescriptor(this._clsProps, key));
-
-    return acc;
-  }.bind(this), {});
-  this._clsPropsDescriptors = copyScopeDescriptors(cls);
-  this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype);
-  this._clsProtoScope = copyScope(cls.prototype);
-  this._mock = mock;
-
-  if (! props) {
-    props = Object.getOwnPropertyNames(cls.prototype);
-
-    props.push('constructor');
+  get clsConstructorName() {
+    return this._clsConstructorName;
   }
 
-  this._props = Array.isArray(props)
-    ? props.reduce(function (acc, key) {
-      if (key in this._clsProtoPropsDescriptors) {
-        var descriptor = this._clsProtoPropsDescriptors[key];
+  get clsPropsDescriptors() {
+    return this._clsPropsDescriptors;
+  }
 
-        switch (descriptor.type) {
-          case 'function':
-            acc[key] = cls;
+  get propsMetadata() {
+    return this._propsMetadata;
+  }
 
-            break;
+  constructor(mock, cls, props, bypassOnBehalfOfInstanceReplacement) {
+    if (typeof cls !== 'function') {
+      throw new Error('Class constructor must be function');
+    }
 
-          default:
-            acc[key] = new Property(descriptor.descriptor);
-        }
-      } else {
-        acc[key] = cls;
-      }
+    this._bypassOnBehalfOfInstanceReplacement = bypassOnBehalfOfInstanceReplacement;
+    this._cls = cls;
+    this._clsConstructorName = cls.prototype.hasOwnProperty('constructor') ? cls.prototype.constructor.name : cls.name;
+    this._clsProps = copyScope(cls, {enumerable: true}, 1);
+    this._clsProps = Object.keys(this._clsProps).filter(function (key) {
+      return CLASS_NATIVE_PROPS.indexOf(key) === - 1;
+    }).reduce(function (acc, key) {
+      Object.defineProperty(acc, key, Object.getOwnPropertyDescriptor(this._clsProps, key));
 
       return acc;
-    }.bind(this), {})
-    : props;
+    }.bind(this), {});
+    this._clsPropsDescriptors = copyScopeDescriptors(cls);
+    this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype);
+    this._clsProtoScope = copyScope(cls.prototype);
+    this._mock = mock;
 
-  this._propsMetadata = { extraStaticProps: [], extraProps: [] };
-}
+    if (! props) {
+      props = Object.getOwnPropertyNames(cls.prototype);
 
-ClassMaker.prototype = {
-  makeConstructor: function (cls, useOriginPrototype, explicitInstance) {
+      props.push('constructor');
+    }
+
+    this._props = Array.isArray(props)
+      ? props.reduce(function (acc, key) {
+        if (key in this._clsProtoPropsDescriptors) {
+          var descriptor = this._clsProtoPropsDescriptors[key];
+
+          switch (descriptor.type) {
+            case 'function':
+              acc[key] = cls;
+
+              break;
+
+            default:
+              acc[key] = new Property(descriptor.descriptor);
+          }
+        } else {
+          acc[key] = cls;
+        }
+
+        return acc;
+      }.bind(this), {})
+      : props;
+
+    this._propsMetadata = { extraStaticProps: [], extraProps: [] };
+  }
+
+  makeConstructor(cls, useOriginPrototype, explicitInstance) {
     if (typeof cls !== 'function') {
       throw new Error('Class constructor must be function');
     }
@@ -295,8 +386,9 @@ ClassMaker.prototype = {
     cls.COPY_OF = this._cls;
 
     return cls;
-  },
-  makePrototypeFor: function (cls, useOriginPrototype) {
+  }
+
+  makePrototypeFor(cls, useOriginPrototype?) {
     if (typeof cls !== 'function') {
       throw new Error('Class constructor must be function');
     }
@@ -343,7 +435,7 @@ ClassMaker.prototype = {
           }
 
           if (repDescriptor.get === fixture.Fixture) {
-            repDescriptor.get = mockGetFixturePop(self._mock);
+            repDescriptor.get = self._mock.fixturePop;
           }
         }
 
@@ -365,7 +457,7 @@ ClassMaker.prototype = {
           }
 
           if (repDescriptor.set === fixture.Fixture) {
-            repDescriptor.set = mockGetFixturePop(self._mock);
+            repDescriptor.set = self._mock.fixturePop;
           }
         }
 
@@ -414,7 +506,7 @@ ClassMaker.prototype = {
           }
 
           if (repDescriptor.get === fixture.Fixture) {
-            repDescriptor.get = mockGetFixturePop(self._mock);
+            repDescriptor.get = self._mock.fixturePop;
           }
         }
 
@@ -436,7 +528,7 @@ ClassMaker.prototype = {
           }
 
           if (repDescriptor.set === fixture.Fixture) {
-            repDescriptor.set = mockGetFixturePop(self._mock);
+            repDescriptor.set = self._mock.fixturePop;
           }
         }
 
@@ -482,7 +574,7 @@ ClassMaker.prototype = {
         }
 
         if (rep === fixture.Fixture) {
-          rep = mockGetFixturePop(self._mock);
+          rep = self._mock.fixturePop;
         }
 
         Object.defineProperty(rep, 'name', {value: key, writable: false});
@@ -519,7 +611,7 @@ ClassMaker.prototype = {
         }
 
         if (rep === fixture.Fixture) {
-          rep = mockGetFixturePop(self._mock);
+          rep = self._mock.fixturePop;
         }
 
         Object.defineProperty(rep, 'name', {value: key, writable: false});
@@ -542,15 +634,7 @@ ClassMaker.prototype = {
     });
 
     return cls;
-  },
-};
-
-function mockGetFixturePop(mock) {
-  if (! mock._fixturePop) {
-    throw new Error('Mock observer must be defined in linked history before "Fixture" reference can be used');
   }
-
-  return mock._fixturePop;
 }
 
 function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
@@ -588,31 +672,6 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
 
   return function () { return prop; };
 }
-
-module.exports = {
-  ArgsAnnotation: ArgsAnnotation,
-  Exclude: Exclude,
-  Custom: Custom,
-  Epoch: Epoch,
-  Initial: Initial,
-  Mock: Mock,
-  Property: Property,
-  StaticMethod: StaticMethod,
-  StaticProperty: StaticProperty,
-};
-
-var getAncestors = require('./instance').getAncestors;
-var copyConstructor = require('./instance').copyConstructor;
-var copyPrototype = require('./instance').copyPrototype;
-var copyScope = require('./instance').copyScope;
-var copyScopeDescriptors = require('./instance').copyScopeDescriptors;
-var fixture = require('./fixture');
-var spyOnDescriptor = require('./spy').spyOnDescriptor;
-var spyOnStaticDescriptor = require('./spy').spyOnStaticDescriptor;
-var spyOnFunction = require('./spy').spyOnFunction;
-var spyOnMethod = require('./spy').spyOnMethod;
-var spyOnStaticMethod = require('./spy').spyOnStaticMethod;
-var typeHelpers = require('./type_helpers');
 
 function hasOwnProperty(obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key);

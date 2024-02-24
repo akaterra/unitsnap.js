@@ -6,7 +6,7 @@
   "types": "index.d.ts",
   "scripts": {
     "coveralls": "node ./node_modules/.bin/istanbul cover --root src ./node_modules/.bin/jasmine JASMINE_CONFIG_PATH=jasmine.json",
-    "test": "node $NODE_DEBUG_OPTION ./node_modules/.bin/jasmine JASMINE_CONFIG_PATH=jasmine.json"
+    "test": "npx ts-node node_modules/jasmine/bin/jasmine JASMINE_CONFIG_PATH=jasmine.json"
   },
   "author": "akaterra",
   "license": "ISC",
@@ -20,7 +20,25 @@
     "url": "http://github.com/akaterra/unitsnap.js.git"
   },
   "devDependencies": {
+    "@types/jasmine": "^5.1.4",
+    "@types/node": "^20.11.20",
     "istanbul": "0.4.5",
-    "jasmine": "3.1.0"
+    "jasmine": "^5.1.0",
+    "typescript": "^5.3.3"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".spec.ts$",
+    "transform": {
+      ".+\\.(t|j)s$": "ts-jest"
+    },
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "testTimeout": 60000
   }
 }

@@ -1,24 +1,59 @@
-function Snapshot(entries) {
-  this._config = {
-    args: true,
-    exception: true,
-    result: true,
-  };
-  this._entries = entries || [];
-  this._mapper = snapshotMapEntry;
-  this._name = this._provider = null;
-  this._processors = [];
+import * as filter from './filter';
+import * as typeHelpers from './type_helpers';
 
-  this.setMemoryProvider({});
+export interface State {
+  args?: {
+      '*': any[];
+      [key: string]: any;
+  };
+  callsCount?: number;
+  comment?: string;
+  context?: any;
+  epoch?: string;
+  exception?: Error;
+  exceptionsCount?: number;
+  isAsync?: boolean;
+  isAsyncPending?: boolean;
+  isException?: boolean;
+  name?: string;
+  origin?: (...args: any[]) => any;
+  replacement?: (...args: any[]) => any;
+  result?: any;
+  tags?: string[];
+  time?: Date;
+  type?: 'constructor'|'method'|'getter'|'setter'|'single'|'staticMethod'|'staticGetter'|'staticSetter';
 }
 
-Snapshot.prototype = {
-  setConfig: function (config) {
+export class Snapshot {
+  private _config: any;
+  private _entries: any[];
+  private _mapper: any;
+  private _name: string;
+  private _observer: any;
+  private _processors: any[];
+  private _provider: any;
+
+  constructor(entries) {
+    this._config = {
+      args: true,
+      exception: true,
+      result: true,
+    };
+    this._entries = entries || [];
+    this._mapper = snapshotMapEntry;
+    this._name = this._provider = null;
+    this._processors = [];
+
+    this.setMemoryProvider({});
+  }
+
+  setConfig(config) {
     this._config = config;
 
     return this;
-  },
-  setMapper: function (mapper) {
+  }
+
+  setMapper(mapper) {
     if (mapper !== void 0 && ! (mapper instanceof Function)) {
       throw new Error('Snapshot mapper must be callable');
     }
@@ -26,49 +61,56 @@ Snapshot.prototype = {
     this._mapper = mapper;
 
     return this;
-  },
-  setName: function (name) {
+  }
+
+  setName(name) {
     this._name = name;
 
     return this;
-  },
-  setProvider: function (provider) {
+  }
+
+  setProvider(provider) {
     this._provider = provider;
 
     return this;
-  },
-  setFsProvider: function (dir) {
+  }
+
+  setFsProvider(dir) {
     this._provider = new SnapshotFsProvider(dir);
 
     return this;
-  },
-  setMemoryProvider: function (dictionary) {
+  }
+
+  setMemoryProvider(dictionary) {
     this._provider = new SnapshotMemoryProvider(dictionary);
 
     return this;
-  },
-  link: function (observer) {
+  }
+
+  link(observer) {
     this._observer = observer;
 
     return this;
-  },
-  unlink: function () {
+  }
+
+  unlink() {
     this._observer = void 0;
 
     return this;
-  },
-  addProcessor: function (checker, serializer) {
-    var basicTypeChecker = basicTypes.find(function (basicType) {
+  }
+
+  addProcessor(checker, serializer) {
+    let [ ,basicTypeChecker ] = basicTypes.find(function (basicType) {
       return basicType[0] === checker;
-    });
+    }) ?? [];
 
     basicTypeChecker = basicTypeChecker
       ? basicTypeChecker[1].check.bind(basicTypeChecker[1])
       : checker;
 
-    var basicTypeSerializer = basicTypes.find(function (basicType) {
+    let [ ,basicTypeSerializer ] = basicTypes.find(function (basicType) {
       return basicType[0] === (serializer === void 0 ? checker : serializer);
-    });
+    }) ?? [];
 
     basicTypeSerializer = basicTypeSerializer
       ? basicTypeSerializer[1].serialize.bind(basicTypeSerializer[1])
@@ -80,18 +122,21 @@ Snapshot.prototype = {
     });
 
     return this;
-  },
-  addClassOfProcessor: function (cls, serializer) {
+  }
+
+  addClassOfProcessor(cls, serializer) {
     var usefulCls = new typeHelpers.ClassOfType(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
-  },
-  addInstanceOfProcessor: function (cls, serializer) {
+  }
+
+  addInstanceOfProcessor(cls, serializer) {
     var usefulCls = new typeHelpers.InstanceOfType(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
-  },
-  addPathProcessor: function (path, serializer) {
+  }
+
+  addPathProcessor(path, serializer) {
     var usefulRegex = RegExp('^' + path
       .replace(/[-[\]{}()+?.,\\^$|#\s]/g, '\\$&')
       .replace(/\*/g, '.*')
@@ -101,103 +146,124 @@ Snapshot.prototype = {
     return this.addProcessor(function (value, path) {
       return usefulRegex.test(path);
     }, serializer);
-  },
-  addRegexPathProcessor: function (regex, serializer) {
+  }
+
+  addRegexPathProcessor(regex, serializer) {
     var usefulRegex = regex instanceof RegExp ? regex : RegExp(regex);
 
     return this.addProcessor(function (value, path) {
       return usefulRegex.test(path);
     }, serializer);
-  },
-  addUndefinedProcessor: function (serializer) {
+  }
+
+  addUndefinedProcessor(serializer) {
     var usefulCls = new typeHelpers.UndefinedType();
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
-  },
-  addProcessors: function (processors) {
+  }
+
+  addProcessors(processors) {
     this._processors.unshift.apply(this._processors, processors);
 
     return this;
-  },
-  assert: function (snapshot) {
+  }
+
+  assert(snapshot) {
     return snapshotAssert(this.serialize(), snapshot instanceof Snapshot ? snapshot.serialize() : snapshot, '');
-  },
-  assertSaved: function (name) {
+  }
+
+  assertSaved(name) {
     return this.assert(this.loadCopy(name));
-  },
-  exists: function (name) {
+  }
+
+  exists(name) {
     return this._provider.exists(name || this._name);
-  },
-  filter: function () {
+  }
+
+  filter() {
     return new filter.Filter(this._entries).link(this._observer);
-  },
-  includeArgs: function (flag) {
+  }
+
+  includeArgs(flag) {
     this._config.args = flag !== false;
 
     return this;
-  },
-  includeCallsCount: function (flag) {
+  }
+
+  includeCallsCount(flag) {
     this._config.callsCount = flag !== false;
 
     return this;
-  },
-  includeEpoch: function (flag) {
+  }
+
+  includeEpoch(flag) {
     this._config.epoch = flag !== false;
 
     return this;
-  },
-  includeException: function (flag) {
+  }
+
+  includeException(flag) {
     this._config.exception = flag !== false;
 
     return this;
-  },
-  includeExceptionsCount: function (flag) {
+  }
+
+  includeExceptionsCount(flag) {
     this._config.exceptionsCount = flag !== false;
 
     return this;
-  },
-  includeIsAsync: function (flag) {
+  }
+
+  includeIsAsync(flag) {
     this._config.isAsync = flag !== false;
 
     return this;
-  },
-  includeName: function (flag) {
+  }
+
+  includeName(flag) {
     this._config.name = flag !== false;
 
     return this;
-  },
-  includeType: function (flag) {
+  }
+
+  includeType(flag) {
     this._config.type = flag !== false;
 
     return this;
-  },
-  isEnabled: function (flag) {
+  }
+
+  isEnabled(flag) {
     return this._config[flag] === true;
-  },
-  load: function (name) {
+  }
+
+  load(name) {
     this._entries = this._provider.load(name || this._name);
 
     return this;
-  },
-  loadCopy: function (name) {
+  }
+
+  loadCopy (name) {
     return new Snapshot(this._provider.load(name || this._name))
       .setConfig(Object.assign({}, this._config))
       .setName(this._name)
       .setProvider(this._provider)
       .addProcessors([].concat(this._processors))
       .link(this._observer);
-  },
-  remove: function (name) {
+  }
+
+  remove(name) {
     this._provider.remove(name || this._name);
 
     return this;
-  },
-  save: function (name) {
+  }
+
+  save(name) {
     this._provider.save(name || this._name, this);
 
     return this;
-  },
-  serialize: function () {
+  }
+
+  serialize() {
     return this._entries.map(function (entry, ind) {
       return snapshotSerializeValue(
         this,
@@ -205,8 +271,8 @@ Snapshot.prototype = {
         '[' + ind + ']'
       );
     }.bind(this));
-  },
-};
+  }
+}
 
 function snapshotAssert(source, target, path) {
   if (Array.isArray(source)) {
@@ -234,7 +300,7 @@ function snapshotAssert(source, target, path) {
   return source === target ? true : path;
 }
 
-function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) {
+function snapshotSerializeValue(snapshot, value, path, primitiveOnly?, circular?) {
   snapshot._processors.length && snapshot._processors.some(function (p) {
     if (p.checker(value, path)) {
       value = p.serializer(value);
@@ -243,7 +309,7 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
         return true;
       }
 
-      value = value.value;
+      value = (value as any).value;
     }
   });
 
@@ -296,8 +362,8 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly, circular) 
   return value;
 }
 
-function snapshotMapEntry(snapshot, entry) {
-  var mappedEntry = {};
+function snapshotMapEntry(snapshot, entry: State): State {
+  const mappedEntry: State = {};
 
   if (snapshot.isEnabled('name')) {
     mappedEntry.name = entry.name;
@@ -350,27 +416,32 @@ function every(arr, fn) {
   return true;
 }
 
-function SnapshotFsProvider(dir) {
-  this._dir = dir;
-}
+export class SnapshotFsProvider {
+  private _dir: string;
 
-SnapshotFsProvider.prototype = {
-  exists: function (name) {
+  constructor(dir) {
+    this._dir = dir;
+  }
+
+  exists(name) {
     return require('fs').existsSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
-  },
-  load: function (name) {
+  }
+
+  load(name) {
     var snapshot = JSON.parse(require('fs').readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json'));
 
     return snapshot;
-  },
-  remove: function (name) {
+  }
+
+  remove(name) {
     if (name && this.exists(name)) {
       require('fs').unlinkSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
     }
 
     return this;
-  },
-  save: function (name, snapshot) {
+  }
+
+  save(name, snapshot) {
     require('fs').writeFileSync(
       this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json',
       JSON.stringify(
@@ -381,46 +452,42 @@ SnapshotFsProvider.prototype = {
     );
 
     return this;
-  },
-};
-
-function SnapshotMemoryProvider(dictionary) {
-  this._dictionary = dictionary || {};
+  }
 }
 
-SnapshotMemoryProvider.prototype = {
-  exists: function (name) {
+export class SnapshotMemoryProvider {
+  private _dictionary: any;
+
+  constructor(dictionary) {
+    this._dictionary = dictionary || {};
+  }
+
+  exists(name) {
     return name in this._dictionary;
-  },
-  load: function (name) {
+  }
+
+  load(name) {
     if (name in this._dictionary) {
       return this._dictionary[name];
     }
 
     throw new Error('Snapshot not exists: ' + name);
-  },
-  remove: function (name) {
+  }
+
+  remove(name) {
     delete this._dictionary[name];
 
     return this;
-  },
-  save: function (name, snapshot) {
+  }
+
+  save(name, snapshot) {
     this._dictionary[name] = snapshot instanceof Snapshot ? snapshot.serialize() : snapshot;
 
     return this;
   }
-};
+}
 
-module.exports = {
-  Snapshot: Snapshot,
-  SnapshotFsProvider: SnapshotFsProvider,
-  SnapshotMemoryProvider: SnapshotMemoryProvider,
-};
-
-var filter = require('./filter');
-var typeHelpers = require('./type_helpers');
-
-var basicTypes = [
+const basicTypes = [
   [typeHelpers.AnyType, new typeHelpers.AnyType()],
   [Boolean, new typeHelpers.BooleanType()],
   [typeHelpers.BooleanType, new typeHelpers.BooleanType()],

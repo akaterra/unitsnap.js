@@ -1,4 +1,4 @@
-const unitsnap = require('..');
+import unitsnap from '..';
 
 describe('some suite 1', () => {
   const observer = unitsnap.default;

@@ -1,4 +1,6 @@
-function spyOnFunction(callable, options, asConstructor) {
+import * as instance from './instance';
+
+export function spyOnFunction(callable, options, asConstructor?) {
   if (! (callable instanceof Function)) {
     throw new Error('Callable fn must be callable');
   }
@@ -168,7 +170,7 @@ function spyOnFunction(callable, options, asConstructor) {
   return callable;
 }
 
-function spyOnFunctionCreateArgsReport(callable, context, originalCallable, options) {
+export function spyOnFunctionCreateArgsReport(callable, context, originalCallable, options) {
   return {
     args: callable.ARGS,
     callsCount: callable.CALLS_COUNT,
@@ -183,7 +185,7 @@ function spyOnFunctionCreateArgsReport(callable, context, originalCallable, opti
   };
 }
 
-function spyOnFunctionCreateResultReport(callable, context, originalCallable, options) {
+export function spyOnFunctionCreateResultReport(callable, context, originalCallable, options) {
   return {
     callsCount: callable.CALLS_COUNT,
     context: context,
@@ -198,7 +200,7 @@ function spyOnFunctionCreateResultReport(callable, context, originalCallable, op
   };
 }
 
-function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
+export function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass?) {
   var initialObj = obj;
   var objIsClass = obj instanceof Function;
 
@@ -222,7 +224,7 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
     repDescriptor = {value: repDescriptor};
   }
 
-  var descriptor = instance.getPropertyType(obj, key);
+  var descriptor = instance.getDescriptorAndType(obj, key);
 
   if (! descriptor.descriptor) {
     descriptor = {
@@ -368,32 +370,20 @@ function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass) {
   return initialObj;
 }
 
-function spyOnMethod(cls, key, rep, options) {
+export function spyOnMethod(cls, key, rep, options) {
   spyOnDescriptor(cls, key, rep || cls.prototype[key], options);
 
   return cls;
 }
 
-function spyOnStaticDescriptor(cls, key, repDescriptor, options) {
+export function spyOnStaticDescriptor(cls, key, repDescriptor, options) {
   spyOnDescriptor(cls, key, repDescriptor || Object.getOwnPropertyDescriptor(cls, key), options, true);
 
   return cls;
 }
 
-function spyOnStaticMethod(cls, key, rep, options) {
+export function spyOnStaticMethod(cls, key, rep, options) {
   spyOnDescriptor(cls, key, rep || cls[key], options, true);
 
   return cls;
 }
-
-module.exports = {
-  spyOnFunction: spyOnFunction,
-
-  spyOnDescriptor: spyOnDescriptor,
-  spyOnMethod: spyOnMethod,
-
-  spyOnStaticDescriptor: spyOnStaticDescriptor,
-  spyOnStaticMethod: spyOnStaticMethod,
-};
-
-var instance = require('./instance');

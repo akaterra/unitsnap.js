@@ -1,4 +1,4 @@
-const unitsnap = require('..');
+import unitsnap from '..';
 
 const filter = require('../src/filter');
 const fixture = require('../src/fixture');

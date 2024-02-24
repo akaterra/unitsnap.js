@@ -1,4 +1,4 @@
-const unitsnap = require('..');
+import unitsnap from '..';
 const mock = require('../src/mock');
 const typeHelpers = require('../src/type_helpers');
 

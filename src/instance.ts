@@ -1,15 +1,15 @@
-var FN_ARGUMENT_NAMES = /(\.*[\w\d_]+(\s*:\s*[\w\d_]+)?(\s*=\s*['"\w\d_]+)?|\{.*})/g;
-var FN_ES5_DECLARATION = /^(async\s*|)function\*?\s*(\w*)\s*\((.*?)\)[\r\n\s]*\{/g;
-var FN_ES6_CLASS_CONSTRUCTOR_DECLARATION = /^class\s*(\w*).*[\r\n\s]*\{[\r\n\s]*()constructor\s*\((.*)\)[\r\n\s]*\{/g;
-var FN_ES6_CLASS_METHOD_DECLARATION = /^(static\s*|)(async\s*|)(get\s*|set\s*|)(\w*)\s*\((.*?)\)[\r\n\s]*\{/g;
-var FN_ES6_DECLARATION = /^(async\s*|)\(?(.*?)\)?\s*=>/g;
-var FN_STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+const FN_ARGUMENT_NAMES = /(\.*[\w\d_]+(\s*:\s*[\w\d_]+)?(\s*=\s*['"\w\d_]+)?|\{.*})/g;
+const FN_ES5_DECLARATION = /^(async\s*|)function\*?\s*(\w*)\s*\((.*?)\)[\r\n\s]*\{/g;
+const FN_ES6_CLASS_CONSTRUCTOR_DECLARATION = /^class\s*(\w*).*[\r\n\s]*\{[\r\n\s]*()constructor\s*\((.*)\)[\r\n\s]*\{/g;
+const FN_ES6_CLASS_METHOD_DECLARATION = /^(static\s*|)(async\s*|)(get\s*|set\s*|)(\w*)\s*\((.*?)\)[\r\n\s]*\{/g;
+const FN_ES6_DECLARATION = /^(async\s*|)\(?(.*?)\)?\s*=>/g;
+const FN_STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 
-function parseFunctionAnnotation(func) {
-  var fnStr = func.toString().replace(FN_STRIP_COMMENTS, '').replace(/\n/g, '');
-  var fnArgStr = null;
-  var fnName = null;
-  var matches;
+export function parseFunctionAnnotation(func) {
+  let fnStr = func.toString().replace(FN_STRIP_COMMENTS, '').replace(/\n/g, '');
+  let fnArgStr = null;
+  let fnName = null;
+  let matches;
 
   if (new RegExp(FN_ES5_DECLARATION).test(fnStr)) {
     matches = regexExecAll(FN_ES5_DECLARATION, fnStr);
@@ -61,7 +61,7 @@ function parseFunctionAnnotation(func) {
     return {args: [], argsDeclaration: '', name: fnName};
   }
 
-  var annotations = {
+  let annotations = {
     args: [],
     argsDeclaration: (fnArgStr.match(FN_ARGUMENT_NAMES) || []).join(','),
     name: fnName || null,
@@ -74,7 +74,7 @@ function parseFunctionAnnotation(func) {
   return annotations;
 }
 
-function parseFunctionAnnotationCreateArgDescriptor(arg) {
+export function parseFunctionAnnotationCreateArgDescriptor(arg) {
   if (arg.substr(0, 3) === '...') {
     return {alias: null, default: void 0, name: arg.substr(3), type: 'rest'};
   } else if (arg.substr(0, 1) === '{') {
@@ -86,16 +86,16 @@ function parseFunctionAnnotationCreateArgDescriptor(arg) {
     };
   }
 
-  var argDefault = void 0;
-  var argDefaultIndex = arg.indexOf('=');
+  let argDefault = void 0;
+  let argDefaultIndex = arg.indexOf('=');
 
   if (argDefaultIndex !== - 1) {
     argDefault = arg.substr(argDefaultIndex + 1).trim();
     arg = arg.substr(0, argDefaultIndex).trim();
   }
 
-  var argAlias = null;
-  var argAliasIndex = arg.indexOf(':');
+  let argAlias = null;
+  let argAliasIndex = arg.indexOf(':');
 
   if (argAliasIndex !== - 1) {
     argAlias = arg.substr(argAliasIndex + 1).trim();
@@ -113,8 +113,8 @@ function parseFunctionAnnotationCreateArgDescriptor(arg) {
 function regexExecAll(rgx, str) {
   rgx = new RegExp(rgx, 'mg');
 
-  var matches = [];
-  var sub;
+  let matches = [];
+  let sub;
 
   while (sub = rgx.exec(str)) {
     matches = matches.concat(sub);
@@ -123,12 +123,12 @@ function regexExecAll(rgx, str) {
   return matches;
 }
 
-function getAncestors(cls) {
+export function getAncestors(cls) {
   if (! cls) {
     return [];
   }
 
-  var ancestors = [cls];
+  let ancestors = [cls];
 
   while (true) {
     cls = Object.getPrototypeOf(cls);
@@ -143,14 +143,17 @@ function getAncestors(cls) {
   return ancestors;
 }
 
-function getDescriptorAndType(obj, key) {
-  var name = obj instanceof Function
+export function getDescriptorAndType(obj, key) {
+  let name = obj instanceof Function
     ? obj.prototype.constructor.name
     : Object.getPrototypeOf(obj) && Object.getPrototypeOf(obj).constructor.name || null;
 
-  var descriptor = {
+  const descriptor: any = {
     contextName: name,
     descriptor: Object.getOwnPropertyDescriptor(obj, key),
+    get: null,
+    set: null,
+    function: null,
     name: name ? name + '.' + key : key,
     type: null,
   };
@@ -179,65 +182,54 @@ function getDescriptorAndType(obj, key) {
   return descriptor;
 }
 
-function callConstructor(cls, context, a) {
-  var c;
+export function callConstructor(cls, context, a) {
+  let c;
 
   switch (a.length) {
     case 0:
       c = new cls();
 
       break;
-
     case 1:
       c = new cls(a[0]);
 
       break;
-
     case 2:
       c = new cls(a[0], a[1]);
 
       break;
-
     case 3:
       c = new cls(a[0], a[1], a[2]);
 
       break;
-
     case 4:
       c = new cls(a[0], a[1], a[2], a[3]);
 
       break;
-
     case 5:
       c = new cls(a[0], a[1], a[2], a[3], a[4]);
 
       break;
-
     case 6:
       c = new cls(a[0], a[1], a[2], a[3], a[4], a[5]);
 
       break;
-
     case 7:
       c = new cls(a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
 
       break;
-
     case 8:
       c = new cls(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
 
       break;
-
     case 9:
       c = new cls(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
 
       break;
-
     case 10:
       c = new cls(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9]);
 
       break;
-
     default:
       throw new Error('Constructor has too many arguments');
   }
@@ -249,20 +241,22 @@ function callConstructor(cls, context, a) {
   return c;
 }
 
-function copyConstructor(cls, explicitInstance) {
-  var Constructor = function () {
-    var instance = callConstructor(cls, this, arguments);
+export function copyConstructor(cls, explicitInstance?) {
+  const Constructor = function () {
+    let instance = callConstructor(cls, this, arguments);
 
     return explicitInstance || instance instanceof cls ? this : instance;
   };
 
   Constructor.prototype = cls.prototype;
 
+  Object.defineProperty(Constructor, 'name', { value: cls.name });
+
   return Constructor;
 }
 
-function copyPrototype(cls, options) {
-  var Prototype = function () {};
+export function copyPrototype(cls, options?) {
+  const Prototype = function () {};
 
   Prototype.prototype = Object.getPrototypeOf(cls.prototype);
 
@@ -273,9 +267,9 @@ function copyPrototype(cls, options) {
   }, new Prototype());
 }
 
-function copyScope(cls, options, maxDepth) {
-  var level = 0;
-  var scope = {};
+export function copyScope(cls, options?, maxDepth?) {
+  let level = 0;
+  let scope = {};
 
   while (true) {
     if (maxDepth !== void 0) {
@@ -289,7 +283,7 @@ function copyScope(cls, options, maxDepth) {
     if (cls) {
       Object.getOwnPropertyNames(cls).forEach(function (key) {
         if (! Object.prototype.hasOwnProperty.call(scope, key)) {
-          var descriptor = getDescriptorAndType(cls, key);
+          let descriptor = getDescriptorAndType(cls, key);
 
           descriptor.level = level;
 
@@ -311,9 +305,9 @@ function copyScope(cls, options, maxDepth) {
   return scope;
 }
 
-function copyScopeDescriptors(cls, options, maxDepth) {
-  var level = 0;
-  var scope = {};
+export function copyScopeDescriptors(cls, options?, maxDepth?) {
+  let level = 0;
+  let scope = {};
 
   while (true) {
     if (maxDepth !== void 0) {
@@ -327,7 +321,7 @@ function copyScopeDescriptors(cls, options, maxDepth) {
     if (cls) {
       Object.getOwnPropertyNames(cls).forEach(function (key) {
         if (! Object.prototype.hasOwnProperty.call(scope, key)) {
-          var descriptor = getDescriptorAndType(cls, key);
+          let descriptor = getDescriptorAndType(cls, key);
 
           descriptor.level = level;
 
@@ -348,15 +342,3 @@ function copyScopeDescriptors(cls, options, maxDepth) {
 
   return scope;
 }
-
-module.exports = {
-  parseFunctionAnnotation: parseFunctionAnnotation,
-  parseFunctionAnnotationCreateArgDescriptor: parseFunctionAnnotationCreateArgDescriptor,
-  getAncestors: getAncestors,
-  getPropertyType: getDescriptorAndType,
-  callConstructor: callConstructor,
-  copyConstructor: copyConstructor,
-  copyPrototype: copyPrototype,
-  copyScope: copyScope,
-  copyScopeDescriptors: copyScopeDescriptors,
-};

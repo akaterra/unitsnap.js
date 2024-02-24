@@ -1,4 +1,4 @@
-const unitsnap = require('..');
+import unitsnap from '..';
 const instance = require('../src/instance');
 
 describe('instance', () => {
