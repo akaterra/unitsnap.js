@@ -1,4 +1,5 @@
 import * as filter from './filter';
+import { Observer } from './observer';
 import * as typeHelpers from './type_helpers';
 
 export interface State {
@@ -24,14 +25,33 @@ export interface State {
   type?: 'constructor'|'method'|'getter'|'setter'|'single'|'staticMethod'|'staticGetter'|'staticSetter';
 }
 
+export interface ISnapshotEnv {
+  mapper: (snapshot: Snapshot, entry: State) => State;
+  observer: Observer;
+  processors: any[];
+  provider: ISnapshotProvider;
+}
+
 export class Snapshot {
   private _config: any;
   private _entries: any[];
-  private _mapper: any;
+  private _mapper: ISnapshotEnv['mapper'];
   private _name: string;
-  private _observer: any;
-  private _processors: any[];
-  private _provider: any;
+  private _observer: ISnapshotEnv['observer'] = null;
+  private _processors: ISnapshotEnv['processors'];
+  private _provider: ISnapshotEnv['provider'];
+
+  get config() {
+    return this._config;
+  }
+
+  get env(): ISnapshotEnv {
+    return { mapper: this._mapper, observer: this._observer, processors: this._processors, provider: this._provider };
+  }
+
+  get entries() {
+    return this._entries;
+  }
 
   constructor(entries) {
     this._config = {
@@ -69,32 +89,32 @@ export class Snapshot {
     return this;
   }
 
-  setProvider(provider) {
+  setProvider(provider: ISnapshotProvider) {
     this._provider = provider;
 
     return this;
   }
 
-  setFsProvider(dir) {
+  setFsProvider(dir: string) {
     this._provider = new SnapshotFsProvider(dir);
 
     return this;
   }
 
-  setMemoryProvider(dictionary) {
+  setMemoryProvider(dictionary: Record<string, any>) {
     this._provider = new SnapshotMemoryProvider(dictionary);
 
     return this;
   }
 
-  link(observer) {
+  link(observer: Observer) {
     this._observer = observer;
 
     return this;
   }
 
   unlink() {
-    this._observer = void 0;
+    this._observer = null;
 
     return this;
   }
@@ -143,7 +163,7 @@ export class Snapshot {
       .replace(/_/g, '.') + '$'
     );
 
-    return this.addProcessor(function (value, path) {
+    return this.addProcessor((value, path) => {
       return usefulRegex.test(path);
     }, serializer);
   }
@@ -151,7 +171,7 @@ export class Snapshot {
   addRegexPathProcessor(regex, serializer) {
     var usefulRegex = regex instanceof RegExp ? regex : RegExp(regex);
 
-    return this.addProcessor(function (value, path) {
+    return this.addProcessor((value, path) => {
       return usefulRegex.test(path);
     }, serializer);
   }
@@ -184,65 +204,65 @@ export class Snapshot {
     return new filter.Filter(this._entries).link(this._observer);
   }
 
-  includeArgs(flag) {
+  includeArgs(flag?: boolean) {
     this._config.args = flag !== false;
 
     return this;
   }
 
-  includeCallsCount(flag) {
+  includeCallsCount(flag?: boolean) {
     this._config.callsCount = flag !== false;
 
     return this;
   }
 
-  includeEpoch(flag) {
+  includeEpoch(flag?: boolean) {
     this._config.epoch = flag !== false;
 
     return this;
   }
 
-  includeException(flag) {
+  includeException(flag?: boolean) {
     this._config.exception = flag !== false;
 
     return this;
   }
 
-  includeExceptionsCount(flag) {
+  includeExceptionsCount(flag?: boolean) {
     this._config.exceptionsCount = flag !== false;
 
     return this;
   }
 
-  includeIsAsync(flag) {
+  includeIsAsync(flag?: boolean) {
     this._config.isAsync = flag !== false;
 
     return this;
   }
 
-  includeName(flag) {
+  includeName(flag?: boolean) {
     this._config.name = flag !== false;
 
     return this;
   }
 
-  includeType(flag) {
+  includeType(flag?: boolean) {
     this._config.type = flag !== false;
 
     return this;
   }
 
-  isEnabled(flag) {
+  isEnabled(flag?: keyof typeof Snapshot.prototype._config): boolean {
     return this._config[flag] === true;
   }
 
-  load(name) {
+  load(name: string) {
     this._entries = this._provider.load(name || this._name);
 
     return this;
   }
 
-  loadCopy (name) {
+  loadCopy(name: string) {
     return new Snapshot(this._provider.load(name || this._name))
       .setConfig(Object.assign({}, this._config))
       .setName(this._name)
@@ -319,7 +339,7 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly?, circular?
 
   var serialized;
 
-  if (! primitiveOnly && Array.isArray(value)) {
+  if (!primitiveOnly && Array.isArray(value)) {
     if (circular.indexOf(value) !== - 1) {
       return '[[ Circular ! ]]'
     }
@@ -337,7 +357,7 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly?, circular?
     return serialized;
   }
 
-  if (! primitiveOnly && value && typeof value === 'object') {
+  if (!primitiveOnly && value && typeof value === 'object') {
     if (circular.indexOf(value) !== - 1) {
       return '[[ Circular ! ]]'
     }
@@ -416,7 +436,14 @@ function every(arr, fn) {
   return true;
 }
 
-export class SnapshotFsProvider {
+export interface ISnapshotProvider {
+  exists(name: string): boolean;
+  load(name: string): any;
+  remove(name: string): this;
+  save(name: string, snapshot: any): this;
+}
+
+export class SnapshotFsProvider implements ISnapshotProvider {
   private _dir: string;
 
   constructor(dir) {
@@ -455,7 +482,7 @@ export class SnapshotFsProvider {
   }
 }
 
-export class SnapshotMemoryProvider {
+export class SnapshotMemoryProvider implements ISnapshotProvider {
   private _dictionary: any;
 
   constructor(dictionary) {

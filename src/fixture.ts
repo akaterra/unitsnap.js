@@ -1,7 +1,19 @@
+export interface IFixtureEnv {
+  strategy: IFixtureStrategy;
+}
+
 export class Fixture {
   private _name: string;
-  private _strategy: any;
+  private _strategy: IFixtureEnv['strategy'];
   private _throwOn: any;
+
+  get env(): IFixtureEnv {
+    return { strategy: this._strategy };
+  }
+
+  get name() {
+    return this._name;
+  }
 
   constructor() {
     this._name = this._strategy = null;
@@ -15,7 +27,7 @@ export class Fixture {
     return this;
   }
 
-  setStrategy(strategy) {
+  setStrategy(strategy: IFixtureEnv['strategy']) {
     this._strategy = strategy;
 
     return this;

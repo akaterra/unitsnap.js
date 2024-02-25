@@ -100,14 +100,19 @@ export class Mock {
   }
 }
 
-export class Property {
+export declare const Property: {
+  new (descriptor): _Property;
+  (descriptor): _Property;
+}
+
+export class _Property {
   private descriptor: any;
 
   constructor(descriptor) {
-    if (this instanceof Property) {
+    if (this instanceof _Property) {
       this.descriptor = descriptor;
     } else {
-      return new Property(descriptor || {});
+      return new _Property(descriptor || {});
     }
   }
 
@@ -124,26 +129,36 @@ export class Property {
   }
 }
 
-export class StaticMethod {
+export declare const StaticMethod: {
+  new (value): _StaticMethod;
+  (value): _StaticMethod;
+}
+
+export class _StaticMethod {
   private value: any;
 
   constructor(value) {
-    if (this instanceof StaticMethod) {
+    if (this instanceof _StaticMethod) {
       this.value = value;
     } else {
-      return new StaticMethod(value || Function);
+      return new _StaticMethod(value || Function);
     }
   }
 }
 
-export class StaticProperty {
+export declare const StaticProperty: {
+  new (descriptor): _StaticProperty;
+  (descriptor): _StaticProperty;
+}
+
+export class _StaticProperty {
   private descriptor: any;
 
   constructor(descriptor) {
-    if (this instanceof StaticProperty) {
+    if (this instanceof _StaticProperty) {
       this.descriptor = descriptor;
     } else {
-      return new StaticProperty(descriptor || {});
+      return new _StaticProperty(descriptor || {});
     }
   }
 

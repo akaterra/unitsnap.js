@@ -1,8 +1,19 @@
-module.exports = require('./src/observer');
-module.exports.extendJasmine = function () {
+
+
+export * from './src/filter';
+export * from './src/fixture';
+export * from './src/history';
+export * from './src/instance';
+export * from './src/mock';
+export * from './src/observer';
+export * from './src/snapshot';
+export * from './src/spy';
+export * from './src/type_helpers';
+
+export function extendJasmine() {
   jasmine.addMatchers({
     toMatchSnapshot: function toMatchSnapshot(util) {
-      var toEqual = jasmine.matchers.toEqual(util).compare;
+      const toEqual = (jasmine as any).matchers.toEqual(util).compare;
 
       return {
         compare: function (actual, expected) {
@@ -13,20 +24,20 @@ module.exports.extendJasmine = function () {
           }
 
           if (actual instanceof module.exports.Snapshot) {
-            var saveSnapshot = false;
+            let saveSnapshot = false;
 
             if (typeof process !== 'undefined') {
               saveSnapshot = 'SAVE_SNAPSHOT' in process.env && process.env.SAVE_SNAPSHOT !== '0';
 
               if (! saveSnapshot) {
-                saveSnapshot = process.argv.find(function (argv) {
+                saveSnapshot = !!process.argv.find(function (argv) {
                   return argv === '--saveSnapshot';
                 });
               }
             }
 
             if (typeof window !== 'undefined' && ! saveSnapshot) {
-              saveSnapshot = window.SAVE_SNAPSHOT === true;
+              saveSnapshot = typeof window !== 'undefined' && (window as any).SAVE_SNAPSHOT === true;
             }
 
             if (! saveSnapshot) {

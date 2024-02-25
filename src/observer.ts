@@ -3,16 +3,26 @@ import * as history from './history';
 import * as mock from './mock';
 import * as snapshot from './snapshot';
 
-var observerId = 1000;
+let observerId = 1000;
+
+export interface IObserverEnv {
+  fixture: fixture.Fixture;
+  history: history.History;
+  mock: mock.Mock;
+  snapshot: snapshot.Snapshot;
+}
 
 export class Observer {
-  private _fixture: any;
-  private _history: any;
+  private _fixture: IObserverEnv['fixture'];
+  private _history: IObserverEnv['history'];
   private _id: number;
-  private _mock: any;
-  private _snapshot: any;
-  private _config: any;
+  private _mock: IObserverEnv['mock'];
+  private _snapshot: IObserverEnv['snapshot'];
   private _name: string;
+
+  get env(): IObserverEnv {
+    return { fixture: this._fixture, history: this._history, mock: this._mock, snapshot: this._snapshot };
+  }
 
   get id() {
     return this._id;
@@ -24,7 +34,8 @@ export class Observer {
     this._id = observerId;
     this._mock = new mock.Mock(this._history);
     this._snapshot = new snapshot.Snapshot([]).link(this);
-    this._config = {fixture: this._fixture, history: this._history, mock: this._mock, snapshot: this._snapshot};
+
+    observerId += 1;
   }
 
   setName(name) {
@@ -35,11 +46,7 @@ export class Observer {
     return this;
   }
 
-  config() {
-    return this._config;
-  }
-
-  begin(epoch, comment) {
+  begin(epoch: history.IHistoryEpoch['epoch'], comment?: history.IHistoryEpoch['comment']) {
     this._history.begin(epoch, comment);
 
     return this;
@@ -83,8 +90,8 @@ export class Observer {
     return this._mock.spy(fn);
   }
 
-  push() {
-    this._fixture.push.apply(this._fixture, arguments);
+  push(...args) {
+    this._fixture.push.apply(this._fixture, args);
 
     return this;
   }

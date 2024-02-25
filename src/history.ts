@@ -1,33 +1,40 @@
 import * as filter from './filter';
+import { Observer } from './observer';
+
+export interface IHistoryEpoch {
+  callbacks: Function[];
+  comment: string;
+  epoch: string;
+}
 
 export class History {
   private _entries: any[];
-  private _epochs: any[];
-  private _observer: any;
+  private _epochs: IHistoryEpoch[];
+  private _observer: Observer = null;
 
   constructor() {
     this.flush();
   }
 
-  getCurrentEpoch() {
+  getCurrentEpoch(): IHistoryEpoch {
     return this._epochs.length
       ? this._epochs[this._epochs.length - 1]
       : null;
   }
 
-  link(observer) {
+  link(observer: Observer) {
     this._observer = observer;
 
     return this;
   }
 
   unlink() {
-    this._observer = void 0;
+    this._observer = null;
 
     return this;
   }
 
-  begin(epoch, comment, callbacks) {
+  begin(epoch: IHistoryEpoch['epoch'], comment?: IHistoryEpoch['comment'], callbacks?: IHistoryEpoch['callbacks']) {
     if (this._epochs.length === 0) {
       this._entries = [];
     }
@@ -42,7 +49,7 @@ export class History {
       return this;
     }
 
-    this._epochs.pop().callbacks.forEach(function (cb) {cb()});
+    this._epochs.pop().callbacks.forEach((cb) => cb());
 
     return this;
   }
