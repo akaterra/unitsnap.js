@@ -1,13 +1,17 @@
 import * as unitsnap from '..';
 
 describe('Fixture', () => {
-  const f = _ => _;
+  const f = () => {};
 
   class A {}
 
   class B extends A {}
 
   class Strategy implements unitsnap.IFixtureStrategy {
+    loadFromProvider(provider: unitsnap.IFixtureProvider, sourceName?: string): this {
+      return this;
+    }
+
     pop() {
       return null;
     }
@@ -36,39 +40,39 @@ describe('Fixture', () => {
   });
 
   it('should initiate fs provider for current strategy', () => {
-    const e = new unitsnap.Fixture().setName('test').setFsProvider(__dirname + '/fixtures');
+    const e = new unitsnap.Fixture().setName('test').loadFromFsProvider(__dirname + '/fixtures');
 
-    expect(e.env.strategy._values).toEqual([1, 2, 3]);
+    expect(e.env.strategy.pop(3)).toEqual([1, 2, 3]);
   });
 
   it('should set callback strategy', () => {
-    const e = new unitsnap.Fixture().setCallbackStrategy(f);
+    const e = new unitsnap.Fixture().setCallbackStrategy(() => 1);
 
-    expect(e._strategy._cb).toBe(f);
+    expect(e.env.strategy.pop(3)).toEqual([1, 1, 1]);
   });
 
   it('should set queue strategy', () => {
     const e = new unitsnap.Fixture().setQueueStrategy([1, 2, 3]);
 
-    expect(e._strategy._values).toEqual([1, 2, 3]);
+    expect(e.env.strategy.pop(3)).toEqual([1, 2, 3]);
   });
 
   it('should set fs provider for current strategy', () => {
-    const e = new unitsnap.Fixture().setName('test').setFsProvider(new fixture.FixtureFsProvider(__dirname + '/fixtures'));
+    const e = new unitsnap.Fixture().setName('test').loadFromFsProvider(new unitsnap.FixtureFsProvider(__dirname + '/fixtures'));
 
-    expect(e._strategy._values).toEqual([1, 2, 3]);
+    expect(e.env.strategy.pop(3)).toEqual([1, 2, 3]);
   });
 
   it('should initiate memory provider for current strategy', () => {
-    const e = new unitsnap.Fixture().setName('b').setMemoryProvider({a: [1], b: [2], c: [3]});
+    const e = new unitsnap.Fixture().setName('b').loadFromMemoryProvider({a: [1], b: [2], c: [3]});
 
-    expect(e._strategy._values).toEqual([2]);
+    expect(e.env.strategy.pop(1)).toEqual([2]);
   });
 
   it('should set memory provider for current strategy', () => {
-    const e = new unitsnap.Fixture().setName('b').setMemoryProvider(new fixture.FixtureMemoryProvider({a: [1], b: [2], c: [3]}));
+    const e = new unitsnap.Fixture().setName('b').loadFromMemoryProvider(new unitsnap.FixtureMemoryProvider({a: [1], b: [2], c: [3]}));
 
-    expect(e._strategy._values).toEqual([2]);
+    expect(e.env.strategy.pop(1)).toEqual([2]);
   });
 
   it('should throw exception on Error as default exception value', () => {
@@ -103,18 +107,12 @@ describe('Fixture', () => {
 });
 
 describe('FixtureCallbackStrategy', () => {
-  const f = _ => _;
+  const f = () => {};
 
   it('should throw exception on construct with bad argument', () => {
     expect(() => {
-      new unitsnap.FixtureCallbackStrategy(null);
+      new unitsnap.FixtureCallbackStrategy(1 as any);
     }).toThrow();
-  });
-
-  it('should set callback', () => {
-    const e = new unitsnap.FixtureCallbackStrategy(() => 1);
-
-    expect(e.set(f)._cb).toBe(f);
   });
 
   it('should throw exception on set with bad argument', () => {
@@ -139,18 +137,12 @@ describe('FixtureCallbackStrategy', () => {
 });
 
 describe('FixtureQueueStrategy', () => {
-  const f = _ => _;
+  const f = () => {};
 
   it('should throw exception on construct with bad argument', () => {
     expect(() => {
-      new unitsnap.FixtureQueueStrategy(null);
+      new unitsnap.FixtureQueueStrategy(1 as any);
     }).toThrow();
-  });
-
-  it('should set values', () => {
-    const e = new unitsnap.FixtureQueueStrategy([1, 2, 3]);
-
-    expect(e.set([3, 2, 1])._values).toEqual([3, 2, 1]);
   });
 
   it('should throw exception on set with bad argument', () => {
@@ -170,7 +162,7 @@ describe('FixtureQueueStrategy', () => {
 
     e.push(1);
 
-    expect(e._values).toEqual([1, 2, 3, 1]);
+    expect(e.pop(4)).toEqual([1, 2, 3, 1]);
   });
 });
 
@@ -178,13 +170,13 @@ describe('FixtureMemoryProvider', () => {
   it('should be constructed with dictionary', () => {
     const e = new unitsnap.FixtureMemoryProvider({a: 1});
 
-    expect(e._dictionary).toEqual({a: 1});
+    expect(e.dictionary).toEqual({a: 1});
   });
 
   it('should set name', () => {
     const e = new unitsnap.FixtureMemoryProvider({a: 1});
 
-    expect(e.setName('name')._name).toBe('name');
+    expect(e.setName('name').name).toBe('name');
   });
 
   it('should load by name', () => {
@@ -204,13 +196,13 @@ describe('FixtureFsProvider', () => {
   it('should be constructed with dir', () => {
     const e = new unitsnap.FixtureFsProvider(__dirname);
 
-    expect(e._dir).toBe(__dirname);
+    expect(e.dir).toBe(__dirname);
   });
 
   it('should set name', () => {
     const e = new unitsnap.FixtureFsProvider(__dirname);
 
-    expect(e.setName('name')._name).toBe('name');
+    expect(e.setName('name').name).toBe('name');
   });
 
   it('should load by name', () => {

@@ -18,6 +18,10 @@ export class Mock {
     return this._fixturePop;
   }
 
+  get history() {
+    return this._history;
+  }
+
   constructor(history) {
     this._history = history;
 
@@ -32,19 +36,19 @@ export class Mock {
     return this;
   }
 
-  by(cls, props, bypassOnBehalfOfInstanceReplacement) {
+  by(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
 
     return maker.makePrototypeFor(maker.makeConstructor(cls, true, this.explicitInstance));
   }
 
-  from(props, bypassOnBehalfOfInstanceReplacement) {
+  from(props, bypassOnBehalfOfInstanceReplacement?) {
     const maker = new ClassMaker(this, function () {}, props, bypassOnBehalfOfInstanceReplacement);
 
     return maker.makePrototypeFor(maker.makeConstructor(maker.cls, true, this.explicitInstance), true);
   }
 
-  override(cls, props, bypassOnBehalfOfInstanceReplacement) {
+  override(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(cls, true);
 
@@ -101,18 +105,18 @@ export class Mock {
 }
 
 export declare const Property: {
-  new (descriptor): _Property;
-  (descriptor): _Property;
+  new (descriptor?): _Property;
+  (descriptor?): _Property;
 }
 
 export class _Property {
-  private descriptor: any;
+  descriptor: any;
 
   constructor(descriptor) {
     if (this instanceof _Property) {
-      this.descriptor = descriptor;
+      this.descriptor = descriptor ?? {};
     } else {
-      return new _Property(descriptor || {});
+      return new _Property(descriptor);
     }
   }
 
@@ -130,35 +134,35 @@ export class _Property {
 }
 
 export declare const StaticMethod: {
-  new (value): _StaticMethod;
-  (value): _StaticMethod;
+  new (value?): _StaticMethod;
+  (value?): _StaticMethod;
 }
 
 export class _StaticMethod {
-  private value: any;
+  value: any;
 
-  constructor(value) {
+  constructor(value?) {
     if (this instanceof _StaticMethod) {
-      this.value = value;
+      this.value = value ?? Function;
     } else {
-      return new _StaticMethod(value || Function);
+      return new _StaticMethod(value);
     }
   }
 }
 
 export declare const StaticProperty: {
-  new (descriptor): _StaticProperty;
-  (descriptor): _StaticProperty;
+  new (descriptor?): _StaticProperty;
+  (descriptor?): _StaticProperty;
 }
 
 export class _StaticProperty {
-  private descriptor: any;
+  descriptor: any;
 
-  constructor(descriptor) {
+  constructor(descriptor?) {
     if (this instanceof _StaticProperty) {
-      this.descriptor = descriptor;
+      this.descriptor = descriptor ?? {};
     } else {
-      return new _StaticProperty(descriptor || {});
+      return new _StaticProperty(descriptor);
     }
   }
 
@@ -176,18 +180,18 @@ export class _StaticProperty {
 }
 
 export declare const Custom: {
-  new (value): _Custom;
-  (value): _Custom;
+  new (value?): _Custom;
+  (value?): _Custom;
 }
 
 export class _Custom {
-  private value: any;
+  value: any;
 
-  constructor(value) {
+  constructor(value?) {
     if (this instanceof _Custom) {
-      this.value = value;
+      this.value = value ?? Function;
     } else {
-      return new _Custom(value || Function);
+      return new _Custom(value);
     }
   }
 

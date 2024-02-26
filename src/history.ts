@@ -1,16 +1,29 @@
 import * as filter from './filter';
 import { Observer } from './observer';
+import { State } from './snapshot';
 
 export interface IHistoryEpoch {
-  callbacks: Function[];
+  callbacks: (() => void)[];
   comment: string;
   epoch: string;
 }
 
 export class History {
-  private _entries: any[];
+  private _entries: State[];
   private _epochs: IHistoryEpoch[];
   private _observer: Observer = null;
+
+  get entries() {
+    return this._entries;
+  }
+
+  get epochs() {
+    return this._epochs;
+  }
+
+  get observer() {
+    return this._observer;
+  }
 
   constructor() {
     this.flush();
@@ -34,7 +47,7 @@ export class History {
     return this;
   }
 
-  begin(epoch: IHistoryEpoch['epoch'], comment?: IHistoryEpoch['comment'], callbacks?: IHistoryEpoch['callbacks']) {
+  begin(epoch?: IHistoryEpoch['epoch'], comment?: IHistoryEpoch['comment'], callbacks?: IHistoryEpoch['callbacks']) {
     if (this._epochs.length === 0) {
       this._entries = [];
     }
@@ -54,7 +67,7 @@ export class History {
     return this;
   }
 
-  addOnEndCallback(cb) {
+  addOnEndCallback(cb: () => void) {
     var epoch = this.getCurrentEpoch();
 
     if (epoch) {
@@ -71,23 +84,24 @@ export class History {
     return this;
   }
 
-  filter() {
-    return new filter.Filter([].concat(this._entries)).link(this._observer);
+  filter(): filter.Filter {
+    return new filter.Filter(this._entries.slice()).link(this._observer);
   }
 
-  push(state, tags?) {
+  push(state: State, tags?: State['tags']) {
     if (this._epochs.length === 0) {
       throw new Error('History is not yet begun');
     }
 
-    var epoch = this._epochs[this._epochs.length - 1];
+    const epoch = this._epochs[this._epochs.length - 1];
 
-    this._entries.push(Object.assign({
+    this._entries.push({
       comment: epoch.comment,
       epoch: epoch.epoch,
       tags: tags,
       time: new Date(),
-    }, state));
+      ...state,
+    });
 
     return this;
   }

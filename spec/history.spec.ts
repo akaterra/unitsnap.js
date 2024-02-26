@@ -1,79 +1,79 @@
-import unitsnap from '..';
+import * as unitsnap from '..';
 
 describe('History', () => {
   const callback = jasmine.createSpy();
-  const f = _ => _;
+  const f = () => {};
   const observer = new unitsnap.Observer();
 
   it('should link observer', () => {
     const e = new unitsnap.History();
 
-    expect(e.link(observer)._observer).toBe(observer);
+    expect(e.link(observer).observer).toBe(observer);
   });
 
   it('should unlink observer', () => {
     const e = new unitsnap.History();
 
-    expect(e.link(observer).unlink()._observer).toBeUndefined();
+    expect(e.link(observer).unlink().observer).toBeNull();
   });
 
   it('should begin epoch', () => {
     const e = new unitsnap.History().begin('epoch', 'comment');
 
-    expect(e._epochs).toEqual([{callbacks: [], comment: 'comment', epoch: 'epoch'}]);
+    expect(e.epochs).toEqual([{callbacks: [], comment: 'comment', epoch: 'epoch'}]);
   });
 
   it('should end epoch', () => {
     const e = new unitsnap.History().begin('epoch', 'comment').end().end();
 
-    expect(e._epochs).toEqual([]);
+    expect(e.epochs).toEqual([]);
   });
 
   it('should throw exception on non begun history', () => {
     const e = new unitsnap.History();
 
-    expect(() => e.push()).toThrow();
+    expect(() => e.push(null)).toThrow();
   });
 
   it('should push entry on begun history', () => {
     const e = new unitsnap.History().begin('epoch', 'comment');
 
-    e.push({a: 1}, 4);
+    e.push({context: 1}, ['4']);
 
-    expect(e._entries).toEqual([{
-      a: 1,
+    expect(e.entries).toEqual([{
+      context: 1,
       comment: 'comment',
       epoch: 'epoch',
-      tags: 4,
-      time: e._entries[0].time,
+      tags: [ '4' ],
+      time: e.entries[0].time,
     }]);
   });
 
   it('should push entry on sub epoch of begun history', () => {
     const e = new unitsnap.History().begin('epoch', 'comment').begin('sub epoch', 'sub comment');
 
-    e.push({a: 1}, 4);
+    e.push({context: 1}, ['4']);
 
-    expect(e._entries).toEqual([{
-      a: 1,
+    expect(e.entries).toEqual([{
+      context: 1,
       comment: 'sub comment',
       epoch: 'sub epoch',
-      tags: 4,
-      time: e._entries[0].time,
+      tags: [ '4' ],
+      time: e.entries[0].time,
     }]);
   });
 
   it('should push entry on begun history after end of sub epoch', () => {
     const e = new unitsnap.History().begin('epoch', 'comment').begin('sub epoch', 'sub comment').end();
 
-    e.push({a: 1}, 4);
+    e.push({context: 1}, ['4']);
 
-    expect(e._entries).toEqual([{
-      a: 1,
+    expect(e.entries).toEqual([{
+      context: 1,
       comment: 'comment',
       epoch: 'epoch',
-      tags: 4,
-      time: e._entries[0].time,
+      tags: [ '4' ],
+      time: e.entries[0].time,
     }]);
   });
 
@@ -114,14 +114,14 @@ describe('History', () => {
   });
 
   it('should create filter with same entries', () => {
-    const e = new unitsnap.History().begin('epoch', 'comment').push({a: 1}, 4);
+    const e = new unitsnap.History().begin('epoch', 'comment').push({ context: 1 }, ['4']);
 
-    expect(e.filter()._entries).toEqual(e._entries);
+    expect(e.filter().entries).toEqual(e.entries);
   });
 
   it('should create filter linked to observer', () => {
     const e = new unitsnap.History().link(observer);
 
-    expect(e.filter()._observer).toBe(observer);
+    expect(e.filter().observer).toBe(observer);
   });
 });

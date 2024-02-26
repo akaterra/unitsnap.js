@@ -1,7 +1,7 @@
 import * as unitsnap from '..';
 
 describe('Filter', () => {
-  const f = _ => _;
+  const f = () => {};
   const observer = new unitsnap.Observer();
 
   it('should be constructed with entries', () => {

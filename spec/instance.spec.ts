@@ -1,5 +1,4 @@
-import unitsnap from '..';
-const instance = require('../src/instance');
+import * as unitsnap from '..';
 
 describe('instance', () => {
   function Es5 () {
@@ -39,7 +38,7 @@ describe('instance', () => {
 
   describe('when uses ES5 notation', () => {
     it('should copy constructor', () => {
-      const Copy = instance.copyConstructor(Es5);
+      const Copy = unitsnap.copyConstructor(Es5);
 
       expect(Copy).not.toBe(Es5);
       expect(Copy instanceof Function).toBeTruthy();
@@ -47,7 +46,7 @@ describe('instance', () => {
     });
 
     it('should copy prototype', () => {
-      const Copy = instance.copyPrototype(Es5);
+      const Copy = unitsnap.copyPrototype(Es5);
 
       expect(Copy).not.toBe(Es5.prototype);
       expect(Copy instanceof Object).toBeTruthy();
@@ -70,12 +69,12 @@ describe('instance', () => {
       }
 
       B.prototype = Object.create(A, {
-        b: function () {
+        b: { value: function () {
 
-        },
-        x: function () {
+        } },
+        x: { value: function () {
 
-        },
+        } },
       });
 
       function C() {
@@ -83,15 +82,15 @@ describe('instance', () => {
       }
 
       C.prototype = Object.create(B, {
-        c: function () {
+        c: { value: function () {
 
-        },
-        y: function () {
+        } },
+        y: { value: function () {
 
-        },
+        } },
       });
 
-      const ScopyCopy = instance.copyScope(C);
+      const ScopyCopy = unitsnap.copyScope(C);
 
       expect(ScopyCopy.a).toBe(A.prototype.a);
       expect(ScopyCopy.b).toBe(B.prototype.b);
@@ -103,7 +102,7 @@ describe('instance', () => {
 
   describe('when uses ES6 notation', () => {
     it('should copy constructor', () => {
-      const Copy = instance.copyConstructor(Es6);
+      const Copy = unitsnap.copyConstructor(Es6);
 
       expect(Copy).not.toBe(Es6);
       expect(Copy instanceof Function).toBeTruthy();
@@ -111,7 +110,7 @@ describe('instance', () => {
     });
 
     it('should copy prototype', () => {
-      const Copy = instance.copyPrototype(Es6);
+      const Copy = unitsnap.copyPrototype(Es6);
 
       expect(Copy).not.toBe(Es6.prototype);
       expect(Copy instanceof Object).toBeTruthy();
@@ -149,7 +148,7 @@ describe('instance', () => {
         }
       }
 
-      const ScopyCopy = instance.copyScope(C);
+      const ScopyCopy = unitsnap.copyScope(C);
 
       expect(ScopyCopy.a).toBe(A.prototype.a);
       expect(ScopyCopy.b).toBe(B.prototype.b);
@@ -174,7 +173,7 @@ describe('instance', () => {
         }
 
         const ctx = {};
-        const obj = instance.callConstructor(Clazz, ctx, args);
+        const obj = unitsnap.callConstructor(Clazz, ctx, args);
 
         expect(obj.args).toEqual(args);
       }
@@ -182,7 +181,7 @@ describe('instance', () => {
 
     it('should throw exception with excessive number of arguments', () => {
       expect(() => {
-        instance.callConstructor(function () {
+        unitsnap.callConstructor(function () {
 
         }, {}, [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1]);
       }).toThrow();
@@ -198,7 +197,7 @@ describe('instance', () => {
         return this;
       }
 
-      const copy = new (instance.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+      const copy = new (unitsnap.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
       expect(copy instanceof Cls).toBeTruthy();
     });
@@ -211,7 +210,7 @@ describe('instance', () => {
         return this;
       }
 
-      const copy = new (instance.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+      const copy = new (unitsnap.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
       expect(copy.args).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     });
@@ -224,7 +223,7 @@ describe('instance', () => {
         return Cls;
       }
 
-      const copy = new (instance.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+      const copy = new (unitsnap.copyConstructor(Cls))(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
       expect(copy).toBe(Cls);
     });
@@ -247,7 +246,7 @@ describe('instance', () => {
       }
     }
 
-    expect(instance.getAncestors(C)).toEqual([
+    expect(unitsnap.getAncestors(C)).toEqual([
       C,
       B,
       A,
@@ -256,7 +255,7 @@ describe('instance', () => {
 
   describe('when parses function annotation', () => {
     it('should parse anonymous es5 function declaration', () => {
-      const e = instance.parseFunctionAnnotation(function (a, b, c) { return (x) => {
+      const e = unitsnap.parseFunctionAnnotation(function (a, b, c) { return (x) => {
         return 1;
       }});
 
@@ -272,7 +271,7 @@ describe('instance', () => {
     });
 
     it('should parse named es5 function declaration', () => {
-      const e = instance.parseFunctionAnnotation(function name(a, b, c) { return (x) => {
+      const e = unitsnap.parseFunctionAnnotation(function name(a, b, c) { return (x) => {
         return 1;
       }});
 
@@ -288,7 +287,7 @@ describe('instance', () => {
     });
 
     it('should parse async anonymous es5 function declaration', () => {
-      const e = instance.parseFunctionAnnotation(async function (a, b, c) { return (x) => {
+      const e = unitsnap.parseFunctionAnnotation(async function (a, b, c) { return (x) => {
         return 1;
       }});
 
@@ -304,7 +303,7 @@ describe('instance', () => {
     });
 
     it('should parse async named es5 function declaration', () => {
-      const e = instance.parseFunctionAnnotation(async function name(a, b, c) { return (x) => {
+      const e = unitsnap.parseFunctionAnnotation(async function name(a, b, c) { return (x) => {
         return 1;
       }});
 
@@ -320,7 +319,7 @@ describe('instance', () => {
     });
 
     it('should parse anonymous es6 function declaration', () => {
-      const e = instance.parseFunctionAnnotation((a, b, c) => (x) => {
+      const e = unitsnap.parseFunctionAnnotation((a, b, c) => (x) => {
         return 1;
       });
 
@@ -336,7 +335,7 @@ describe('instance', () => {
     });
 
     it('should parse async anonymous es6 function declaration', () => {
-      const e = instance.parseFunctionAnnotation(async (a, b, c) => (x) => {
+      const e = unitsnap.parseFunctionAnnotation(async (a, b, c) => (x) => {
         return 1;
       });
 
@@ -360,7 +359,7 @@ describe('instance', () => {
         }
       }
 
-      const e = instance.parseFunctionAnnotation(A.prototype.a);
+      const e = unitsnap.parseFunctionAnnotation(A.prototype.a);
 
       expect(e).toEqual({
         args: [
@@ -382,7 +381,7 @@ describe('instance', () => {
         }
       }
 
-      const e = instance.parseFunctionAnnotation(A.prototype.a);
+      const e = unitsnap.parseFunctionAnnotation(A.prototype.a);
 
       expect(e).toEqual({
         args: [

@@ -241,11 +241,11 @@ export function callConstructor(cls, context, a) {
   return c;
 }
 
-export function copyConstructor(cls, explicitInstance?) {
+export function copyConstructor(cls, explicitInstance?): any {
   const Constructor = function () {
     let instance = callConstructor(cls, this, arguments);
 
-    return explicitInstance || instance instanceof cls ? this : instance;
+    return explicitInstance || instance instanceof cls ? undefined : instance;
   };
 
   Constructor.prototype = cls.prototype;
@@ -267,7 +267,7 @@ export function copyPrototype(cls, options?) {
   }, new Prototype());
 }
 
-export function copyScope(cls, options?, maxDepth?) {
+export function copyScope(cls, options?, maxDepth?): Record<string, unknown> {
   let level = 0;
   let scope = {};
 

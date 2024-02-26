@@ -1,4 +1,8 @@
-
+export declare module jasmine {
+  interface Matchers<T> {
+    toMatchSnapshot(expected: any, expectationFailOutput?: any): boolean;
+  }
+}
 
 export * from './src/filter';
 export * from './src/fixture';
@@ -9,6 +13,8 @@ export * from './src/observer';
 export * from './src/snapshot';
 export * from './src/spy';
 export * from './src/type_helpers';
+
+import observer from './src/observer';
 
 export function extendJasmine() {
   jasmine.addMatchers({
@@ -70,3 +76,5 @@ export function extendJasmine() {
     },
   });
 };
+
+export default observer;

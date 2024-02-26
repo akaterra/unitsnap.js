@@ -11,7 +11,7 @@ export interface State {
   comment?: string;
   context?: any;
   epoch?: string;
-  exception?: Error;
+  exception?: any | Error;
   exceptionsCount?: number;
   isAsync?: boolean;
   isAsyncPending?: boolean;

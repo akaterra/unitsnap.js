@@ -46,7 +46,7 @@ export class Observer {
     return this;
   }
 
-  begin(epoch: history.IHistoryEpoch['epoch'], comment?: history.IHistoryEpoch['comment']) {
+  begin(epoch?: history.IHistoryEpoch['epoch'], comment?: history.IHistoryEpoch['comment']) {
     this._history.begin(epoch, comment);
 
     return this;
@@ -58,7 +58,7 @@ export class Observer {
     return this;
   }
 
-  by(cls, props, bypassOnBehalfOfInstanceReplacement) {
+  by(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
     var mockedCls = this._mock.by(cls, props,bypassOnBehalfOfInstanceReplacement);
 
     mockedCls.OBSERVER = this;
@@ -66,7 +66,7 @@ export class Observer {
     return mockedCls;
   }
 
-  from(props, bypassOnBehalfOfInstanceReplacement) {
+  from(props, bypassOnBehalfOfInstanceReplacement?) {
     var mockedCls = this._mock.from(props, bypassOnBehalfOfInstanceReplacement);
 
     mockedCls.OBSERVER = this;
@@ -74,7 +74,7 @@ export class Observer {
     return mockedCls;
   }
 
-  override(cls, props, bypassOnBehalfOfInstanceReplacement) {
+  override(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
     var mockedCls = this._mock.override(cls, props, bypassOnBehalfOfInstanceReplacement);
 
     mockedCls.OBSERVER = this;

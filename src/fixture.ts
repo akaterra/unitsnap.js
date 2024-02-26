@@ -1,3 +1,5 @@
+import { PositiveInteger } from "./utils";
+
 export interface IFixtureEnv {
   strategy: IFixtureStrategy;
 }
@@ -33,30 +35,30 @@ export class Fixture {
     return this;
   }
 
-  setCallbackStrategy(cb) {
+  setCallbackStrategy(cb: FixtureCallbackStrategy['_cb']) {
     this._strategy = new FixtureCallbackStrategy(cb);
 
     return this;
   }
 
-  setQueueStrategy(values) {
+  setQueueStrategy(values: FixtureQueueStrategy['_values']) {
     this._strategy = new FixtureQueueStrategy(values);
 
     return this;
   }
 
-  setFsProvider(dirOrProvider) {
-    this._strategy.set(dirOrProvider instanceof FixtureFsProvider
-      ? dirOrProvider.load(this._name)
-      : new FixtureFsProvider(dirOrProvider).load(this._name));
+  loadFromFsProvider(dirOrProvider: string | FixtureFsProvider) {
+    this._strategy.loadFromProvider(dirOrProvider instanceof FixtureFsProvider
+      ? dirOrProvider.setName(this._name)
+      : new FixtureFsProvider(dirOrProvider).setName(this._name));
 
     return this;
   }
 
-  setMemoryProvider(dictionaryOrProvider) {
-    this._strategy.set(dictionaryOrProvider instanceof FixtureMemoryProvider
-      ? dictionaryOrProvider.load(this._name)
-      : new FixtureMemoryProvider(dictionaryOrProvider).load(this._name));
+  loadFromMemoryProvider(dictionaryOrProvider: Record<string, any[]> | FixtureMemoryProvider) {
+    this._strategy.loadFromProvider(dictionaryOrProvider instanceof FixtureMemoryProvider
+      ? dictionaryOrProvider.setName(this._name)
+      : new FixtureMemoryProvider(dictionaryOrProvider).setName(this._name));
 
     return this;
   }
@@ -71,13 +73,13 @@ export class Fixture {
     return value;
   }
 
-  push() {
-    this._strategy.push.apply(this._strategy, arguments);
+  push(...args: any[]) {
+    this._strategy.push.apply(this._strategy, args);
 
     return this;
   }
 
-  throwOnCallback(cb) {
+  throwOnCallback(cb: (value) => boolean){
     this._throwOn = cb;
 
     return this;
@@ -97,13 +99,22 @@ export class Fixture {
 }
 
 export interface IFixtureProvider {
+  get name(): string;
   setName(name: string): this;
-  load(name: string): any[];
+  load(sourceName?: string): any[];
 }
 
 export class FixtureMemoryProvider implements IFixtureProvider {
-  private _dictionary: Record<string, any[]>;
+  private _dictionary: Record<string, any>;
   private _name: string;
+
+  get dictionary() {
+    return this._dictionary;
+  }
+
+  get name() {
+    return this._name;
+  }
 
   constructor(dictionary: FixtureMemoryProvider['_dictionary']) {
     this._dictionary = dictionary;
@@ -115,14 +126,22 @@ export class FixtureMemoryProvider implements IFixtureProvider {
     return this;
   }
 
-  load(name) {
-    return this._dictionary[name || this._name];
+  load(sourceName?) {
+    return this._dictionary[sourceName || this._name];
   }
 }
 
 export class FixtureFsProvider implements IFixtureProvider {
   private _dir: string;
   private _name: string;
+
+  get dir() {
+    return this._dir;
+  }
+
+  get name() {
+    return this._name;
+  }
 
   constructor(dir) {
     this._dir = dir;
@@ -134,13 +153,23 @@ export class FixtureFsProvider implements IFixtureProvider {
     return this;
   }
 
-  load(name) {
-    return JSON.parse(require('fs').readFileSync(this._dir + '/' + (name || this._name).replace(/\s/g, '_') + '.fixture.json'));
+  load(sourceName?: string) {
+    if (!sourceName) {
+      sourceName = this._name;
+    }
+
+    if (!sourceName) {
+      throw new Error('Fixture source name is required');
+    }
+
+    return JSON.parse(require('fs').readFileSync(this._dir + '/' + (sourceName || this._name).replace(/\s/g, '_') + '.fixture.json'));
   }
 }
 
 export interface IFixtureStrategy {
+  loadFromProvider(provider: IFixtureProvider, sourceName?: string): this;
   pop(): any;
+  pop<T extends number>(count: PositiveInteger<T>): any[];
   push(...args: any[]): this;
 }
 
@@ -152,7 +181,7 @@ export class FixtureCallbackStrategy implements IFixtureStrategy {
   }
 
   set(cb: FixtureCallbackStrategy['_cb']) {
-    if (! (cb instanceof Function)) {
+    if (typeof cb !== 'function') {
       throw new Error('Fixture callback must be function');
     }
 
@@ -161,7 +190,15 @@ export class FixtureCallbackStrategy implements IFixtureStrategy {
     return this;
   }
 
-  pop() {
+  loadFromProvider(): this {
+    throw new Error('Loading from provider is not supported for callback strategy');
+  }
+
+  pop(count?: number) {
+    if (count) {
+      return Array(count).fill(null).map(() => this._cb());
+    }
+
     return this._cb();
   }
 
@@ -176,11 +213,11 @@ export class FixtureQueueStrategy implements IFixtureStrategy {
   private _values: any[];
 
   constructor(values?: FixtureQueueStrategy['_values']) {
-    this.set(values !== void 0 ? values : []);
+    this.set(values ?? []);
   }
 
   set(values: FixtureQueueStrategy['_values']) {
-    if (! Array.isArray(values)) {
+    if (!Array.isArray(values)) {
       throw new Error('Fixture values must be array');
     }
 
@@ -189,7 +226,17 @@ export class FixtureQueueStrategy implements IFixtureStrategy {
     return this;
   }
 
-  pop() {
+  loadFromProvider(provider: IFixtureProvider, sourceName?: string): this {
+    this.set(provider.load(sourceName));
+
+    return this;
+  }
+
+  pop(count?: number) {
+    if (count) {
+      return this._values.splice(0, count);
+    }
+
     return this._values.shift();
   }
 

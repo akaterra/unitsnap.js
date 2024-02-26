@@ -9,12 +9,6 @@ export class Filter {
   private _filters: [Check, IsNot][] = [];
   private _not: boolean = false;
   private _observer: Observer = null;
-  // private _context: any[];
-  // private _custom: any[];
-  // private _epoch: any[];
-  // private _fn: any[];
-  // private _notPromiseResult: boolean;
-  // private _tags: any[];
 
   get entries() {
     return this._entries;
