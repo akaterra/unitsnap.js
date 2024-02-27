@@ -53,6 +53,14 @@ export class Snapshot {
     return this._entries;
   }
 
+  get observer() {
+    return this._observer;
+  }
+
+  get name() {
+    return this._name;
+  }
+
   constructor(entries) {
     this._config = {
       args: true,

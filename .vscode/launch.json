@@ -8,7 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "test",
-      "args": ["node_modules/jasmine/bin/jasmine", "JASMINE_CONFIG_PATH=jasmine.json", "${workspaceFolder}/spec/mock.spec.ts"],
+      "args": ["node_modules/jasmine/bin/jasmine", "JASMINE_CONFIG_PATH=jasmine.json", "${workspaceFolder}/spec/observer.spec.ts"],
       "program": "./node_modules/.bin/ts-node"
     }
   ]

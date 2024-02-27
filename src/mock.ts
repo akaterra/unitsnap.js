@@ -327,33 +327,32 @@ export class ClassMaker {
     }
 
     let custom;
-    let self = this;
     let rep;
 
     if (this._props.hasOwnProperty('constructor')) {
-      if (self._props.constructor instanceof Custom) {
-        custom = self._props.constructor;
+      if (this._props.constructor instanceof Custom) {
+        custom = this._props.constructor;
       }
 
       rep = classMakerGetReplacement(
-        custom ? custom.value : self._props.constructor,
+        custom ? custom.value : this._props.constructor,
         'constructor',
-        self._cls,
-        self._clsProtoScope,
-        self._propsMetadata
+        this._cls,
+        this._clsProtoScope,
+        this._propsMetadata
       );
 
       cls = spyOnFunction(copyConstructor(rep), Object.assign({
-        argsAnnotation: self._cls,
+        argsAnnotation: this._cls,
         extra: {
           name: this._clsConstructorName,
           type: 'constructor',
         },
         origin: cls,
         replacement: rep,
-        onCall: function (context, state) {
-          if (self._mock._history) {
-            self._mock._history.push(state);
+        onCall: (context, state) => {
+          if (this._mock._history) {
+            this._mock._history.push(state);
           }
         },
       }, custom || {}), true);
@@ -361,8 +360,8 @@ export class ClassMaker {
       cls = copyConstructor(cls, explicitInstance);
     }
 
-    Object.keys(self._clsProps).forEach((key) => {
-      Object.defineProperty(cls, key, self._clsPropsDescriptors[key].descriptor);
+    Object.keys(this._clsProps).forEach((key) => {
+      Object.defineProperty(cls, key, this._clsPropsDescriptors[key].descriptor);
     });
 
     Object.defineProperty(cls, 'name', {value: this._cls.name, writable: false});

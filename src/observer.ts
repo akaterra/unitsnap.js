@@ -28,6 +28,10 @@ export class Observer {
     return this._id;
   }
 
+  get name() {
+    return this._name;
+  }
+
   constructor() {
     this._fixture = new fixture.Fixture();
     this._history = new history.History().link(this);
@@ -59,7 +63,7 @@ export class Observer {
   }
 
   by(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
-    let mockedCls = this._mock.by(cls, props,bypassOnBehalfOfInstanceReplacement);
+    const mockedCls = this._mock.by(cls, props, bypassOnBehalfOfInstanceReplacement);
 
     mockedCls.OBSERVER = this;
 
@@ -67,7 +71,7 @@ export class Observer {
   }
 
   from(props, bypassOnBehalfOfInstanceReplacement?) {
-    let mockedCls = this._mock.from(props, bypassOnBehalfOfInstanceReplacement);
+    const mockedCls = this._mock.from(props, bypassOnBehalfOfInstanceReplacement);
 
     mockedCls.OBSERVER = this;
 
@@ -75,7 +79,7 @@ export class Observer {
   }
 
   override(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
-    let mockedCls = this._mock.override(cls, props, bypassOnBehalfOfInstanceReplacement);
+    const mockedCls = this._mock.override(cls, props, bypassOnBehalfOfInstanceReplacement);
 
     mockedCls.OBSERVER = this;
 

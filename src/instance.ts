@@ -182,68 +182,68 @@ export function getDescriptorAndType(obj, key) {
   return descriptor;
 }
 
-export function callConstructor(cls, context, a) {
-  let c;
+export function callConstructor(cls, context, args) {
+  let instance;
 
-  switch (a.length) {
+  switch (args.length) {
     case 0:
-      c = new cls();
+      instance = new cls();
 
       break;
     case 1:
-      c = new cls(a[0]);
+      instance = new cls(args[0]);
 
       break;
     case 2:
-      c = new cls(a[0], a[1]);
+      instance = new cls(args[0], args[1]);
 
       break;
     case 3:
-      c = new cls(a[0], a[1], a[2]);
+      instance = new cls(args[0], args[1], args[2]);
 
       break;
     case 4:
-      c = new cls(a[0], a[1], a[2], a[3]);
+      instance = new cls(args[0], args[1], args[2], args[3]);
 
       break;
     case 5:
-      c = new cls(a[0], a[1], a[2], a[3], a[4]);
+      instance = new cls(args[0], args[1], args[2], args[3], args[4]);
 
       break;
     case 6:
-      c = new cls(a[0], a[1], a[2], a[3], a[4], a[5]);
+      instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5]);
 
       break;
     case 7:
-      c = new cls(a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
+      instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
 
       break;
     case 8:
-      c = new cls(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
+      instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
 
       break;
     case 9:
-      c = new cls(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
+      instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]);
 
       break;
     case 10:
-      c = new cls(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9]);
+      instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]);
 
       break;
     default:
       throw new Error('Constructor has too many arguments');
   }
 
-  Object.getOwnPropertyNames(c).forEach(function (key) {
-    context[key] = c[key];
+  Object.getOwnPropertyNames(instance).forEach(function (key) {
+    context[key] = instance[key];
   });
 
-  return c;
+  return instance;
 }
 
 export function copyConstructor(cls, explicitInstance?): any {
-  const Constructor = function () {
-    let instance = callConstructor(cls, this, arguments);
+  const Constructor = function (...args) {
+    const instance = callConstructor(cls, this, args);
 
     return explicitInstance || instance instanceof cls ? undefined : instance;
   };
