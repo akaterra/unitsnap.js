@@ -1,10 +1,8 @@
-import unitsnap from '..';
-const snapshot = require('../src/snapshot');
-const typeHelpers = require('../src/type_helpers');
+import * as unitsnap from '..';
 
 describe('Snapshot', () => {
-  const f = _ => _;
-  const g = _ => _;
+  const f = () => {};
+  const g = () => {};
   const observer = new unitsnap.Observer();
 
   class A {
@@ -62,331 +60,331 @@ describe('Snapshot', () => {
   it('should be constructed with entries', () => {
     const e = new unitsnap.Snapshot([{}, {}, {}]);
 
-    expect(e._entries).toEqual([{}, {}, {}]);
+    expect(e.entries).toEqual([{}, {}, {}]);
   });
 
   it('should be constructed with memory provider', () => {
     const e = new unitsnap.Snapshot();
 
-    expect(e._provider instanceof snapshot.SnapshotMemoryProvider).toBeTruthy();
+    expect(e.env.provider instanceof unitsnap.SnapshotMemoryProvider).toBeTruthy();
   });
 
   it('should link observer', () => {
     const e = new unitsnap.Snapshot();
 
-    expect(e.link(observer)._observer).toBe(observer);
+    expect(e.link(observer).observer).toBe(observer);
   });
 
   it('should unlink observer', () => {
     const e = new unitsnap.Snapshot();
 
-    expect(e.link(observer).unlink()._observer).toBeUndefined();
+    expect(e.link(observer).unlink().observer).toBeNull();
   });
 
   it('should set config', () => {
     const e = new unitsnap.Snapshot().setConfig({a: 1});
 
-    expect(e._config).toEqual({a: 1});
+    expect(e.config).toEqual({a: 1});
   });
 
   it('should set mapper', () => {
     const e = new unitsnap.Snapshot().setMapper(f);
 
-    expect(e._mapper).toEqual(f);
+    expect(e.env.mapper).toEqual(f);
   });
 
   it('should raise exception on set mapper bad argument', () => {
     const e = new unitsnap.Snapshot();
 
-    expect(() => e.setMapper(null)).toThrow();
+    expect(() => e.setMapper(1)).toThrow();
   });
 
   it('should set name', () => {
     const e = new unitsnap.Snapshot().setName('name');
 
-    expect(e._name).toEqual('name');
+    expect(e.name).toEqual('name');
   });
 
   it('should set fs provider', () => {
     const e = new unitsnap.Snapshot().setFsProvider('./spec/snapshots');
 
-    expect(e._provider instanceof snapshot.SnapshotFsProvider).toBeTruthy();
+    expect(e.env.provider instanceof unitsnap.SnapshotFsProvider).toBeTruthy();
   });
 
   it('should set memory provider', () => {
     const e = new unitsnap.Snapshot().setMemoryProvider({});
 
-    expect(e._provider instanceof snapshot.SnapshotMemoryProvider).toBeTruthy();
+    expect(e.env.provider instanceof unitsnap.SnapshotMemoryProvider).toBeTruthy();
   });
 
   it('should add processor with custom checker and serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(f, f);
 
-    expect(e._processors).toEqual([{checker: f, serializer: f}]);
+    expect(e.env.processors).toEqual([{checker: f, serializer: f}]);
   });
 
   it('should add processor before previously added', () => {
     const e = new unitsnap.Snapshot().addProcessor(f, f).addProcessor(g, g);
 
-    expect(e._processors).toEqual([{checker: g, serializer: g}, {checker: f, serializer: f}]);
+    expect(e.env.processors).toEqual([{checker: g, serializer: g}, {checker: f, serializer: f}]);
   });
 
   it('should add processor of basic type Any as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.AnyType);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.AnyType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.AnyType.prototype.check);
   });
 
   it('should add processor of basic type Any as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.AnyType);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.AnyType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.AnyType.prototype.serialize);
   });
 
   it('should add processor of basic type Boolean as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.BooleanType);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.BooleanType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.BooleanType.prototype.check);
   });
 
   it('should add processor of basic type Boolean as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.BooleanType);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.BooleanType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.BooleanType.prototype.serialize);
   });
 
   it('should add processor of basic type Boolean as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(Boolean);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.BooleanType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.BooleanType.prototype.check);
   });
 
   it('should add processor of basic type Boolean as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(Boolean);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.BooleanType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.BooleanType.prototype.serialize);
   });
 
   it('should add processor of basic type Boolean as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.BooleanType);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.BooleanType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.BooleanType.prototype.check);
   });
 
   it('should add processor of basic type Boolean as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.BooleanType);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.BooleanType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.BooleanType.prototype.serialize);
   });
 
   it('should add processor of basic type Date as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(Date);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.DateType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.DateType.prototype.check);
   });
 
   it('should add processor of basic type Date as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(Date);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.DateType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.DateType.prototype.serialize);
   });
 
   it('should add processor of basic type Date as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.DateType);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.DateType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.DateType.prototype.check);
   });
 
   it('should add processor of basic type Date as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.DateType);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.DateType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.DateType.prototype.serialize);
   });
 
   it('should add processor of basic type Number as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(Number);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.NumberType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.NumberType.prototype.check);
   });
 
   it('should add processor of basic type Number as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(Number);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.NumberType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.NumberType.prototype.serialize);
   });
 
   it('should add processor of basic type Number as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.NumberType);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.NumberType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.NumberType.prototype.check);
   });
 
   it('should add processor of basic type Number as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.NumberType);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.NumberType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.NumberType.prototype.serialize);
   });
 
   it('should add processor of basic type String as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(String);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.StringType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.StringType.prototype.check);
   });
 
   it('should add processor of basic type String as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(String);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.StringType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.StringType.prototype.serialize);
   });
 
   it('should add processor of basic type String as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.StringType);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.StringType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.StringType.prototype.check);
   });
 
   it('should add processor of basic type String as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.StringType);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.StringType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.StringType.prototype.serialize);
   });
 
   it('should add processor of basic type Undefined as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor();
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.UndefinedType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.UndefinedType.prototype.check);
   });
 
   it('should add processor of basic type Undefined as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor();
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.UndefinedType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.UndefinedType.prototype.serialize);
   });
 
   it('should add processor of basic type Undefined as checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.UndefinedType);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.UndefinedType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.UndefinedType.prototype.check);
   });
 
   it('should add processor of basic type Undefined as serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.UndefinedType);
 
-    expect(e._processors[0].serializer.original).toBe(typeHelpers.UndefinedType.prototype.serialize);
+    expect(e.env.processors[0].serializer.original).toBe(typeHelpers.UndefinedType.prototype.serialize);
   });
 
   it('should add processor of basic type as checker with custom serializer', () => {
     const e = new unitsnap.Snapshot().addProcessor(typeHelpers.AnyType, f);
 
-    expect(e._processors[0].serializer).toBe(f);
+    expect(e.env.processors[0].serializer).toBe(f);
   });
 
   it('should add processor of basic type as serializer with custom checker', () => {
     const e = new unitsnap.Snapshot().addProcessor(f, typeHelpers.AnyType);
 
-    expect(e._processors[0].checker).toBe(f);
+    expect(e.env.processors[0].checker).toBe(f);
   });
 
   it('should add processor of class of', () => {
     const e = new unitsnap.Snapshot().addClassOfProcessor(Date);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.ClassOfType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.ClassOfType.prototype.check);
   });
 
   it('should add processor of class of with custom serializer', () => {
     const e = new unitsnap.Snapshot().addClassOfProcessor(Date, f);
 
-    expect(e._processors[0].serializer).toBe(f);
+    expect(e.env.processors[0].serializer).toBe(f);
   });
 
   it('should add processor of instance of', () => {
     const e = new unitsnap.Snapshot().addInstanceOfProcessor(Date);
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.InstanceOfType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.InstanceOfType.prototype.check);
   });
 
   it('should add processor of instance of with custom serializer', () => {
     const e = new unitsnap.Snapshot().addInstanceOfProcessor(Date, f);
 
-    expect(e._processors[0].serializer).toBe(f);
+    expect(e.env.processors[0].serializer).toBe(f);
   });
 
   it('should add processor of path with custom serializer', () => {
     const e = new unitsnap.Snapshot().addPathProcessor('a', f);
 
-    expect(e._processors[0].serializer).toBe(f);
+    expect(e.env.processors[0].serializer).toBe(f);
   });
 
   it('should add processor of path regex with custom serializer', () => {
     const e = new unitsnap.Snapshot().addRegexPathProcessor('a', f);
 
-    expect(e._processors[0].serializer).toBe(f);
+    expect(e.env.processors[0].serializer).toBe(f);
   });
 
   it('should add processor of path regex as prepared regex with custom serializer', () => {
     const e = new unitsnap.Snapshot().addRegexPathProcessor(/a/, f);
 
-    expect(e._processors[0].serializer).toBe(f);
+    expect(e.env.processors[0].serializer).toBe(f);
   });
 
   it('should add processor of undefined', () => {
     const e = new unitsnap.Snapshot().addUndefinedProcessor();
 
-    expect(e._processors[0].checker.original).toBe(typeHelpers.UndefinedType.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(typeHelpers.UndefinedType.prototype.check);
   });
 
   it('should add processor of undefined with custom serializer', () => {
     const e = new unitsnap.Snapshot().addUndefinedProcessor(f);
 
-    expect(e._processors[0].serializer).toBe(f);
+    expect(e.env.processors[0].serializer).toBe(f);
   });
 
   it('should enable include args', () => {
     const e = new unitsnap.Snapshot().includeArgs();
 
-    expect(e._config.args).toBe(true);
+    expect(e.config.args).toBe(true);
   });
 
   it('should enable include calls count', () => {
     const e = new unitsnap.Snapshot().includeCallsCount();
 
-    expect(e._config.callsCount).toBe(true);
+    expect(e.config.callsCount).toBe(true);
   });
 
   it('should enable include epoch', () => {
     const e = new unitsnap.Snapshot().includeEpoch();
 
-    expect(e._config.epoch).toBe(true);
+    expect(e.config.epoch).toBe(true);
   });
 
   it('should enable include exception', () => {
     const e = new unitsnap.Snapshot().includeException();
 
-    expect(e._config.exception).toBe(true);
+    expect(e.config.exception).toBe(true);
   });
 
   it('should enable include exceptions count', () => {
     const e = new unitsnap.Snapshot().includeExceptionsCount();
 
-    expect(e._config.exceptionsCount).toBe(true);
+    expect(e.config.exceptionsCount).toBe(true);
   });
 
   it('should enable include is async', () => {
     const e = new unitsnap.Snapshot().includeIsAsync();
 
-    expect(e._config.isAsync).toBe(true);
+    expect(e.config.isAsync).toBe(true);
   });
 
   it('should enable include name', () => {
     const e = new unitsnap.Snapshot();
 
-    expect(e.includeName()._config.name).toBe(true);
+    expect(e.includeName().config.name).toBe(true);
   });
 
   it('should enable include type', () => {
     const e = new unitsnap.Snapshot().includeType();
 
-    expect(e._config.type).toBe(true);
+    expect(e.config.type).toBe(true);
   });
 
   describe('when serializes', () => {
@@ -569,13 +567,13 @@ describe('Snapshot', () => {
   it('should load by self name', () => {
     const e = new unitsnap.Snapshot().setName('a').setProvider(new Provider({a: [null]}));
 
-    expect(e.load()._entries).toEqual([null]);
+    expect(e.load().entries).toEqual([null]);
   });
 
   it('should load by name', () => {
     const e = new unitsnap.Snapshot().setProvider(new Provider({a: [null]}));
 
-    expect(e.load('a')._entries).toEqual([null]);
+    expect(e.load('a').entries).toEqual([null]);
   });
 
   it('should load copy configured by parent', () => {

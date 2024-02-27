@@ -61,7 +61,7 @@ export class Snapshot {
     return this._name;
   }
 
-  constructor(entries) {
+  constructor(entries?) {
     this._config = {
       args: true,
       exception: true,
@@ -127,7 +127,7 @@ export class Snapshot {
     return this;
   }
 
-  addProcessor(checker, serializer) {
+  addProcessor(checker?, serializer?) {
     let [ ,basicTypeChecker ] = basicTypes.find(function (basicType) {
       return basicType[0] === checker;
     }) ?? [];
@@ -152,19 +152,19 @@ export class Snapshot {
     return this;
   }
 
-  addClassOfProcessor(cls, serializer) {
+  addClassOfProcessor(cls, serializer?) {
     let usefulCls = new typeHelpers.ClassOfType(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   }
 
-  addInstanceOfProcessor(cls, serializer) {
+  addInstanceOfProcessor(cls, serializer?) {
     let usefulCls = new typeHelpers.InstanceOfType(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   }
 
-  addPathProcessor(path, serializer) {
+  addPathProcessor(path, serializer?) {
     let usefulRegex = RegExp('^' + path
       .replace(/[-[\]{}()+?.,\\^$|#\s]/g, '\\$&')
       .replace(/\*/g, '.*')
@@ -176,7 +176,7 @@ export class Snapshot {
     }, serializer);
   }
 
-  addRegexPathProcessor(regex, serializer) {
+  addRegexPathProcessor(regex, serializer?) {
     let usefulRegex = regex instanceof RegExp ? regex : RegExp(regex);
 
     return this.addProcessor((value, path) => {
@@ -184,7 +184,7 @@ export class Snapshot {
     }, serializer);
   }
 
-  addUndefinedProcessor(serializer) {
+  addUndefinedProcessor(serializer?) {
     let usefulCls = new typeHelpers.UndefinedType();
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
@@ -264,13 +264,13 @@ export class Snapshot {
     return this._config[flag] === true;
   }
 
-  load(name: string) {
+  load(name?: string) {
     this._entries = this._provider.load(name || this._name);
 
     return this;
   }
 
-  loadCopy(name: string) {
+  loadCopy(name?: string) {
     return new Snapshot(this._provider.load(name || this._name))
       .setConfig(Object.assign({}, this._config))
       .setName(this._name)
@@ -279,13 +279,13 @@ export class Snapshot {
       .link(this._observer);
   }
 
-  remove(name) {
+  remove(name?) {
     this._provider.remove(name || this._name);
 
     return this;
   }
 
-  save(name) {
+  save(name?) {
     this._provider.save(name || this._name, this);
 
     return this;
