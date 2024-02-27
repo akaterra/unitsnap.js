@@ -109,7 +109,20 @@ export function create() {
   return new Observer();
 }
 
-export function getSpyStats(fn) {
+export type SpiedFn<T> = (((...args: any[]) => T) | { new (...args: any[]): T }) & Partial<{
+  ARGS: any[];
+  CALLS_COUNT: number;
+  EXCEPTIONS_COUNT: number;
+  EXCEPTION: any;
+  IS_ASYNC: boolean;
+  IS_ASYNC_PENDING: boolean;
+  IS_EXCEPTION: boolean;
+  ORIGIN: any;
+  REPLACEMENT: any;
+  RESTORE: () => void;
+}>;
+
+export function getSpyStats<T>(fn: SpiedFn<T>) {
   return {
     args: fn.ARGS,
     callsCount: fn.CALLS_COUNT,
@@ -120,7 +133,10 @@ export function getSpyStats(fn) {
     isException: fn.IS_EXCEPTION,
     origin: fn.ORIGIN,
     replacement: fn.REPLACEMENT,
+    restore: fn.RESTORE,
   };
 }
+
+export const stat = getSpyStats;
 
 export default new Observer();

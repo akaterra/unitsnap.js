@@ -3,6 +3,7 @@ import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spy
 import * as typeHelpers from './type_helpers';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { History } from './history';
+import { Intermediate } from './utils';
 
 export class Mock {
   explicitInstance: boolean;
@@ -52,28 +53,24 @@ export class Mock {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(cls, true);
 
-    clazz.RESTORE = cls.prototype.constructor.RESTORE = function () {
-      Object.keys(maker.clsPropsDescriptors).forEach(function (key) {
-        var descriptor = maker.clsPropsDescriptors[key];
-
+    clazz.RESTORE = cls.prototype.constructor.RESTORE = () => {
+      Object.entries<any>(maker.clsPropsDescriptors).forEach(([ key, descriptor ]) => {
         if (descriptor.level === 0) {
           Object.defineProperty(cls, key, descriptor.descriptor);
         } else {
           delete cls[key];
         }
       });
-      maker.propsMetadata.extraStaticProps.forEach(function (key) { delete cls[key]; });
+      maker.propsMetadata.extraStaticProps.forEach((key) => { delete cls[key]; });
 
-      Object.keys(maker.clsPropsDescriptors).forEach(function (key) {
-        var descriptor = maker.clsPropsDescriptors[key];
-
+      Object.entries<any>(maker.clsProtoPropsDescriptors).forEach(([ key, descriptor ]) => {
         if (descriptor.level === 0) {
           Object.defineProperty(cls.prototype, key, descriptor.descriptor);
         } else {
           delete cls.prototype[key];
         }
       });
-      maker.propsMetadata.extraProps.forEach(function (key) { delete cls.prototype[key]; });
+      maker.propsMetadata.extraProps.forEach((key) => { delete cls.prototype[key]; });
 
       delete cls.OBSERVER;
       delete cls.RESTORE;
@@ -86,8 +83,6 @@ export class Mock {
   }
 
   spy(fn) {
-    var self = this;
-
     return spyOnFunction(fn, {
       argsAnnotation: fn,
       extra: {
@@ -95,173 +90,145 @@ export class Mock {
         type: 'single',
       },
       origin: fn,
-      onCall: function (context, state) {
-        if (self._history) {
-          self._history.push(state);
+      onCall: (context, state) => {
+        if (this._history) {
+          this._history.push(state);
         }
       }
     });
   }
 }
 
-export declare const Property: {
-  new (descriptor?): _Property;
-  (descriptor?): _Property;
+export interface _Property {
+  descriptor: { get?: PropertyDescriptor['get'], set?: PropertyDescriptor['set'] };
+  new(descriptor?: _Property['descriptor']): _Property;
+  get(get): this;
+  set(set): this;
 }
 
-export class _Property {
-  descriptor: any;
-
-  constructor(descriptor) {
-    if (this instanceof _Property) {
-      this.descriptor = descriptor ?? {};
-    } else {
-      return new _Property(descriptor);
-    }
-  }
-
+export const Property = Intermediate<_Property>({
   get(get) {
     this.descriptor.get = get;
 
     return this;
-  }
-
+  },
   set(set) {
     this.descriptor.set = set;
 
     return this;
   }
-}
-
-export declare const StaticMethod: {
-  new (value?): _StaticMethod;
-  (value?): _StaticMethod;
-}
+}, (instance, descriptor?) => {
+  instance.descriptor = descriptor ?? {};
+});
 
 export class _StaticMethod {
   value: any;
 
   constructor(value?) {
-    if (this instanceof _StaticMethod) {
-      this.value = value ?? Function;
-    } else {
-      return new _StaticMethod(value);
-    }
+    this.value = value ?? Function;
   }
 }
 
-export declare const StaticProperty: {
-  new (descriptor?): _StaticProperty;
-  (descriptor?): _StaticProperty;
+export interface _StaticMethod {
+  value: PropertyDescriptor['value'];
+  new(value?): _StaticMethod;
 }
 
-export class _StaticProperty {
-  descriptor: any;
+export const StaticMethod = Intermediate<_StaticMethod>(null, (instance, value?) => {
+  instance.value = value ?? Function;
+});
 
-  constructor(descriptor?) {
-    if (this instanceof _StaticProperty) {
-      this.descriptor = descriptor ?? {};
-    } else {
-      return new _StaticProperty(descriptor);
-    }
-  }
+export interface _StaticProperty {
+  descriptor: { get?: PropertyDescriptor['get'], set?: PropertyDescriptor['set'] };
+  new(descriptor?: _StaticProperty['descriptor']): _StaticProperty;
+  get(get): this;
+  set(set): this;
+}
 
+export const StaticProperty = Intermediate<_StaticProperty>({
   get(get) {
     this.descriptor.get = get;
 
     return this;
-  }
-
+  },
   set(set) {
     this.descriptor.set = set;
 
     return this;
   }
-}
+}, (instance, descriptor?) => {
+  instance.descriptor = descriptor ?? {};
+});
 
-export declare const Custom: {
-  new (value?): _Custom;
-  (value?): _Custom;
-}
-
-export class _Custom {
+export interface _Custom {
   value: any;
+  _argsAnnotation: any;
+  _epoch: any;
+  _exclude: boolean;
+  new(value?): _Custom;
+  argsAnnotation(argsAnnotation): this;
+  epoch(epoch): this;
+  exclude(): this;
+}
 
-  constructor(value?) {
-    if (this instanceof _Custom) {
-      this.value = value ?? Function;
-    } else {
-      return new _Custom(value);
-    }
-  }
-
+export const Custom = Intermediate<_Custom>({
   argsAnnotation(argsAnnotation) {
-    return new ArgsAnnotation(this.value, argsAnnotation);
-  }
+    this._argsAnnotation = argsAnnotation;
 
+    return this;
+  },
   epoch(epoch) {
-    return new Epoch(this.value, epoch);
-  }
+    this._epoch = epoch;
 
+    return this;
+  },
   exclude() {
-    return new Exclude(this.value);
+    this._exclude = true;
+
+    return this;
   }
+}, (instance, value?) => {
+  instance.value = value ?? Function;
+}, null, 'Custom');
+
+export interface _ArgsAnnotation {
+  new(value, argsAnnotation): _Custom;
 }
 
-export declare const ArgsAnnotation: {
-  new (value, argsAnnotation): _ArgsAnnotation;
-  (value, argsAnnotation): _ArgsAnnotation;
-}
-
-export class _ArgsAnnotation {
-  value: any;
-  argsAnnotation: any;
-
-  constructor(value, argsAnnotation) {
-    if (this instanceof _ArgsAnnotation) {
-      this.value = value;
-      this.argsAnnotation = argsAnnotation;
-    } else {
-      return new _ArgsAnnotation(value, argsAnnotation);
-    }
+export const ArgsAnnotation = Intermediate<_Custom, _ArgsAnnotation>(null, (instance, value, argsAnnotation) => {
+  if (value instanceof Custom) {
+    value = Custom(value.value);
   }
+
+  instance.value = value ?? Function;
+  instance.argsAnnotation(argsAnnotation);
+}, Custom);
+
+export interface _Epoch {
+  new(value, epoch): _Custom;
 }
 
-export declare const Epoch: {
-  new (value, epoch): _Epoch;
-  (value, epoch): _Epoch;
-}
-
-export class _Epoch {
-  value: any;
-  epoch: any;
-
-  constructor(value, epoch) {
-    if (this instanceof _Epoch) {
-      this.value = value;
-      this.epoch = epoch;
-    } else {
-      return new _Epoch(value, epoch);
-    }
+export const Epoch = Intermediate<_Custom, _Epoch>(null, (instance, value, epoch) => {
+  if (value instanceof Custom) {
+    value = Custom(value.value);
   }
+ 
+  instance.value = value ?? Function;
+  instance.epoch(epoch);
+}, Custom);
+
+export interface _Exclude {
+  new(value): _Custom;
 }
 
-export declare const Exclude: {
-  new (value): _Exclude;
-  (value): _Exclude;
-}
-
-export class _Exclude {
-  value: any;
-
-  constructor(value) {
-    if (this instanceof _Exclude) {
-      this.value = value;
-    } else {
-      return new _Exclude(value);
-    }
+export const Exclude = Intermediate<_Custom, _Exclude>(null, (instance, value) => {
+  if (value instanceof Custom) {
+    value = Custom(value.value);
   }
-}
+ 
+  instance.value = value ?? Function;
+  instance.exclude();
+}, Custom);
 
 export const Initial = Symbol('Initial');
 export const Observe = Initial;
@@ -294,6 +261,10 @@ export class ClassMaker {
     return this._clsPropsDescriptors;
   }
 
+  get clsProtoPropsDescriptors() {
+    return this._clsProtoPropsDescriptors;
+  }
+
   get propsMetadata() {
     return this._propsMetadata;
   }
@@ -307,13 +278,13 @@ export class ClassMaker {
     this._cls = cls;
     this._clsConstructorName = cls.prototype.hasOwnProperty('constructor') ? cls.prototype.constructor.name : cls.name;
     this._clsProps = copyScope(cls, {enumerable: true}, 1);
-    this._clsProps = Object.keys(this._clsProps).filter(function (key) {
+    this._clsProps = Object.keys(this._clsProps).filter((key) => {
       return CLASS_NATIVE_PROPS.indexOf(key) === - 1;
-    }).reduce(function (acc, key) {
+    }).reduce((acc, key) => {
       Object.defineProperty(acc, key, Object.getOwnPropertyDescriptor(this._clsProps, key));
 
       return acc;
-    }.bind(this), {});
+    }, {});
     this._clsPropsDescriptors = copyScopeDescriptors(cls);
     this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype);
     this._clsProtoScope = copyScope(cls.prototype);
@@ -326,7 +297,7 @@ export class ClassMaker {
     }
 
     this._props = Array.isArray(props)
-      ? props.reduce(function (acc, key) {
+      ? props.reduce((acc, key) => {
         if (key in this._clsProtoPropsDescriptors) {
           var descriptor = this._clsProtoPropsDescriptors[key];
 
@@ -344,7 +315,7 @@ export class ClassMaker {
         }
 
         return acc;
-      }.bind(this), {})
+      }, {})
       : props;
 
     this._propsMetadata = { extraStaticProps: [], extraProps: [] };
@@ -412,17 +383,15 @@ export class ClassMaker {
       throw new Error('Class constructor must be function');
     }
 
-    var self = this;
-
     Object.defineProperty(cls, 'name', {value: this._cls.name, writable: false});
 
-    if (! useOriginPrototype) {
-      cls.prototype = copyPrototype(this._cls);
+    if (!useOriginPrototype) {
+      Object.setPrototypeOf(cls, copyPrototype(this._cls));
     } else {
-      cls.prototype = this._cls.prototype;
+      Object.setPrototypeOf(cls, Object.getPrototypeOf(this._cls));
     }
 
-    Object.keys(this._props).forEach(function (key) {
+    Object.keys(this._props).forEach((key) => {
       if (key === 'constructor') {
         return;
       }
@@ -433,219 +402,219 @@ export class ClassMaker {
       var rep = null;
       var repDescriptor = null;
 
-      if (self._props[key] instanceof StaticProperty) {
+      if (this._props[key] instanceof StaticProperty) {
         repDescriptor = {};
 
-        if (self._props[key].descriptor.get) {
-          if (self._props[key].descriptor.get instanceof Custom) {
-            customGet = self._props[key].descriptor.get;
+        if (this._props[key].descriptor.get) {
+          if (this._props[key].descriptor.get instanceof Custom) {
+            customGet = this._props[key].descriptor.get;
           }
 
           repDescriptor.get = classMakerGetReplacement(
-            customGet ? customGet.value : self._props[key].descriptor.get,
+            customGet ? customGet.value : this._props[key].descriptor.get,
             key,
-            self._cls,
-            self._clsProps,
-            self._propsMetadata.extraStaticProps
+            this._cls,
+            this._clsProps,
+            this._propsMetadata.extraStaticProps
           );
 
-          if (repDescriptor.get === self._cls) {
-            repDescriptor.get = self._clsPropsDescriptors[key].descriptor.get;
+          if (repDescriptor.get === this._cls) {
+            repDescriptor.get = this._clsPropsDescriptors[key].descriptor.get;
           }
 
           if (repDescriptor.get === fixture.Fixture) {
-            repDescriptor.get = self._mock.fixturePop;
+            repDescriptor.get = this._mock.fixturePop;
           }
         }
 
-        if (self._props[key].descriptor.set) {
-          if (self._props[key].descriptor.set instanceof Custom) {
-            customSet = self._props[key].descriptor.set;
+        if (this._props[key].descriptor.set) {
+          if (this._props[key].descriptor.set instanceof Custom) {
+            customSet = this._props[key].descriptor.set;
           }
 
           repDescriptor.set = classMakerGetReplacement(
-            customSet ? customSet.value : self._props[key].descriptor.set,
+            customSet ? customSet.value : this._props[key].descriptor.set,
             key,
-            self._cls,
-            self._clsProps,
-            self._propsMetadata.extraStaticProps
+            this._cls,
+            this._clsProps,
+            this._propsMetadata.extraStaticProps
           );
 
-          if (repDescriptor.set === self._cls) {
-            repDescriptor.set = self._clsPropsDescriptors[key].descriptor.set;
+          if (repDescriptor.set === this._cls) {
+            repDescriptor.set = this._clsPropsDescriptors[key].descriptor.set;
           }
 
           if (repDescriptor.set === fixture.Fixture) {
-            repDescriptor.set = self._mock.fixturePop;
+            repDescriptor.set = this._mock.fixturePop;
           }
         }
 
         spyOnStaticDescriptor(cls, key, repDescriptor, {
-          bypassOnBehalfOfInstanceReplacement: self._bypassOnBehalfOfInstanceReplacement,
+          bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           get: Object.assign({
             extra: {
-              name: self._clsConstructorName + '.' + key,
+              name: this._clsConstructorName + '.' + key,
               type: 'staticGetter',
             },
-            origin: hasOwnProperty(self._clsPropsDescriptors, key) && self._clsPropsDescriptors[key].descriptor.get,
-            replacement: self._props[key].descriptor.get,
+            origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.get,
+            replacement: this._props[key].descriptor.get,
           }, customGet || {}),
           set: Object.assign({
             extra: {
-              name: self._clsConstructorName + '.' + key,
+              name: this._clsConstructorName + '.' + key,
               type: 'staticSetter',
             },
-            origin: hasOwnProperty(self._clsPropsDescriptors, key) && self._clsPropsDescriptors[key].descriptor.set,
-            replacement: self._props[key].descriptor.set,
+            origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.set,
+            replacement: this._props[key].descriptor.set,
           }, customSet || {}),
-          onCall: function (context, state) {
-            if (self._mock._history) {
-              self._mock._history.push(state);
+          onCall: (context, state) => {
+            if (this._mock._history) {
+              this._mock._history.push(state);
             }
           },
         });
-      } else if (self._props[key] instanceof Property) {
+      } else if (this._props[key] instanceof Property) {
         repDescriptor = {};
 
-        if (self._props[key].descriptor.get) {
-          if (self._props[key].descriptor.get instanceof Custom) {
-            customGet = self._props[key].descriptor.get;
+        if (this._props[key].descriptor.get) {
+          if (this._props[key].descriptor.get instanceof Custom) {
+            customGet = this._props[key].descriptor.get;
           }
 
           repDescriptor.get = classMakerGetReplacement(
-            customGet ? customGet.value : self._props[key].descriptor.get,
+            customGet ? customGet.value : this._props[key].descriptor.get,
             key,
-            self._cls,
-            self._clsProtoScope,
-            self._propsMetadata.extraProps
+            this._cls,
+            this._clsProtoScope,
+            this._propsMetadata.extraProps
           );
 
-          if (repDescriptor.get === self._cls) {
-            repDescriptor.get = self._clsProtoPropsDescriptors[key].descriptor.get;
+          if (repDescriptor.get === this._cls) {
+            repDescriptor.get = this._clsProtoPropsDescriptors[key].descriptor.get;
           }
 
           if (repDescriptor.get === fixture.Fixture) {
-            repDescriptor.get = self._mock.fixturePop;
+            repDescriptor.get = this._mock.fixturePop;
           }
         }
 
-        if (self._props[key].descriptor.set) {
-          if (self._props[key].descriptor.set instanceof Custom) {
-            customSet = self._props[key].descriptor.set;
+        if (this._props[key].descriptor.set) {
+          if (this._props[key].descriptor.set instanceof Custom) {
+            customSet = this._props[key].descriptor.set;
           }
 
           repDescriptor.set = classMakerGetReplacement(
-            customSet ? customSet.value : self._props[key].descriptor.set,
+            customSet ? customSet.value : this._props[key].descriptor.set,
             key,
-            self._cls,
-            self._clsProtoScope,
-            self._propsMetadata.extraProps
+            this._cls,
+            this._clsProtoScope,
+            this._propsMetadata.extraProps
           );
 
-          if (repDescriptor.set === self._cls) {
-            repDescriptor.set = self._clsProtoPropsDescriptors[key].descriptor.set;
+          if (repDescriptor.set === this._cls) {
+            repDescriptor.set = this._clsProtoPropsDescriptors[key].descriptor.set;
           }
 
           if (repDescriptor.set === fixture.Fixture) {
-            repDescriptor.set = self._mock.fixturePop;
+            repDescriptor.set = this._mock.fixturePop;
           }
         }
 
         spyOnDescriptor(cls, key, repDescriptor, {
-          bypassOnBehalfOfInstanceReplacement: self._bypassOnBehalfOfInstanceReplacement,
+          bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           get: Object.assign({
             extra: {
-              name: self._clsConstructorName + '.' + key,
+              name: this._clsConstructorName + '.' + key,
               type: 'getter',
             },
-            origin: hasOwnProperty(self._clsProtoPropsDescriptors, key) && self._clsProtoPropsDescriptors[key].descriptor.get,
-            replacement: self._props[key].descriptor.get,
+            origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.get,
+            replacement: this._props[key].descriptor.get,
           }, customGet || {}),
           set: Object.assign({
             extra: {
-              name: self._clsConstructorName + '.' + key,
+              name: this._clsConstructorName + '.' + key,
               type: 'setter',
             },
-            origin: hasOwnProperty(self._clsProtoPropsDescriptors, key) && self._clsProtoPropsDescriptors[key].descriptor.set,
-            replacement: self._props[key].descriptor.set,
+            origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.set,
+            replacement: this._props[key].descriptor.set,
           }, customSet || {}),
-          onCall: function (context, state) {
-            if (self._mock._history) {
-              self._mock._history.push(state);
+          onCall: (context, state) => {
+            if (this._mock._history) {
+              this._mock._history.push(state);
             }
           },
         });
-      } else if (self._props[key] instanceof StaticMethod) {
-        if (self._props[key].value instanceof Custom) {
-          custom = self._props[key].value;
+      } else if (this._props[key] instanceof StaticMethod) {
+        if (this._props[key].value instanceof Custom) {
+          custom = this._props[key].value;
         }
 
         rep = classMakerGetReplacement(
-          custom ? custom.value : self._props[key].value,
+          custom ? custom.value : this._props[key].value,
           key,
-          self._cls,
-          self._clsProps,
-          self._propsMetadata.extraStaticProps
+          this._cls,
+          this._clsProps,
+          this._propsMetadata.extraStaticProps
         );
 
-        if (rep === self._cls) {
-          rep = self._clsPropsDescriptors[key].descriptor.value;
+        if (rep === this._cls) {
+          rep = this._clsPropsDescriptors[key].descriptor.value;
         }
 
         if (rep === fixture.Fixture) {
-          rep = self._mock.fixturePop;
+          rep = this._mock.fixturePop;
         }
 
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
         spyOnStaticMethod(cls, key, rep, Object.assign({
-          bypassOnBehalfOfInstanceReplacement: self._bypassOnBehalfOfInstanceReplacement,
+          bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           extra: {
-            name: self._clsConstructorName + '.' + key,
+            name: this._clsConstructorName + '.' + key,
             type: 'staticMethod',
           },
-          origin: hasOwnProperty(self._clsPropsDescriptors, key) && self._clsPropsDescriptors[key].descriptor.value,
+          origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.value,
           replacement: rep,
-          onCall: function (context, state) {
-            if (self._mock._history) {
-              self._mock._history.push(state);
+          onCall: (context, state) => {
+            if (this._mock._history) {
+              this._mock._history.push(state);
             }
           },
         }, custom || {}));
       } else {
-        if (self._props[key] instanceof Custom) {
-          custom = self._props[key];
+        if (this._props[key] instanceof Custom) {
+          custom = this._props[key];
         }
 
         rep = classMakerGetReplacement(
-          custom ? custom.value : self._props[key],
+          custom ? custom.value : this._props[key],
           key,
-          self._cls,
-          self._clsProtoScope,
-          self._propsMetadata.extraProps
+          this._cls,
+          this._clsProtoScope,
+          this._propsMetadata.extraProps
         );
 
-        if (rep === self._cls) {
-          rep = self._clsProtoPropsDescriptors[key].descriptor.value;
+        if (rep === this._cls) {
+          rep = this._clsProtoPropsDescriptors[key].descriptor.value;
         }
 
         if (rep === fixture.Fixture) {
-          rep = self._mock.fixturePop;
+          rep = this._mock.fixturePop;
         }
 
         Object.defineProperty(rep, 'name', {value: key, writable: false});
 
         spyOnMethod(cls, key, rep, Object.assign({
-          bypassOnBehalfOfInstanceReplacement: self._bypassOnBehalfOfInstanceReplacement,
+          bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           extra: {
-            name: self._clsConstructorName + '.' + key,
+            name: this._clsConstructorName + '.' + key,
             type: 'method',
           },
-          origin: hasOwnProperty(self._clsProtoPropsDescriptors, key) && self._clsProtoPropsDescriptors[key].descriptor.value,
+          origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.value,
           replacement: rep,
-          onCall: function (context, state) {
-            if (self._mock._history) {
-              self._mock._history.push(state);
+          onCall: (context, state) => {
+            if (this._mock._history) {
+              this._mock._history.push(state);
             }
           },
         }, custom || {}));

@@ -1,7 +1,7 @@
 import * as instance from './instance';
 
 export function spyOnFunction(callable, options, asConstructor?) {
-  if (! (callable instanceof Function)) {
+  if (typeof callable !== 'function') {
     throw new Error('Callable fn must be callable');
   }
 
@@ -13,7 +13,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
       originalCallableAnnotation = {args: options.argsAnnotation.map(function (arg) {
         return typeof arg === 'string' ? instance.parseFunctionAnnotationCreateArgDescriptor(arg) : arg;
       })};
-    } else if (options.argsAnnotation instanceof Function) {
+    } else if (typeof options.argsAnnotation === 'function') {
       originalCallableAnnotation = instance.parseFunctionAnnotation(options.argsAnnotation);
     } else {
       throw new Error('Spy argsAnnotation must be callable or list of arguments');
@@ -23,7 +23,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
   }
 
   if (options && options.onCall !== void 0) {
-    if (! (options.onCall instanceof Function)) {
+    if (typeof options.onCall !== 'function') {
       throw new Error('Spy on call must be function');
     }
   }
@@ -202,7 +202,7 @@ export function spyOnFunctionCreateResultReport(callable, context, originalCalla
 
 export function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass?) {
   var initialObj = obj;
-  var objIsClass = obj instanceof Function;
+  var objIsClass = typeof obj === 'function' && obj.prototype instanceof Object;
 
   if (objIsClass && bypassClass !== true) {
     obj = obj.prototype;
@@ -220,7 +220,7 @@ export function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass?) 
     repDescriptor = Object.getOwnPropertyDescriptor(obj, key);
   }
 
-  if (repDescriptor instanceof Function) {
+  if (typeof repDescriptor === 'function') {
     repDescriptor = {value: repDescriptor};
   }
 

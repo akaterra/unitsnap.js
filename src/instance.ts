@@ -133,7 +133,7 @@ export function getAncestors(cls) {
   while (true) {
     cls = Object.getPrototypeOf(cls);
 
-    if (cls && cls instanceof Function) {
+    if (cls && typeof cls === 'function') {
       ancestors.push(cls);
     } else {
       break;
@@ -144,7 +144,7 @@ export function getAncestors(cls) {
 }
 
 export function getDescriptorAndType(obj, key) {
-  let name = obj instanceof Function
+  let name = typeof obj === 'function'
     ? obj.prototype.constructor.name
     : Object.getPrototypeOf(obj) && Object.getPrototypeOf(obj).constructor.name || null;
 
@@ -260,7 +260,7 @@ export function copyPrototype(cls, options?) {
 
   Prototype.prototype = Object.getPrototypeOf(cls.prototype);
 
-  return Object.getOwnPropertyNames(cls.prototype).reduce(function (acc, key) {
+  return Object.getOwnPropertyNames(cls.prototype).reduce((acc, key) => {
     Object.defineProperty(acc, key, Object.assign(getDescriptorAndType(cls.prototype, key).descriptor, options || {}));
 
     return acc;
@@ -299,7 +299,7 @@ export function copyScope(cls, options?, maxDepth?): Record<string, unknown> {
     }
 
     level += 1;
-    cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
+    cls = typeof cls === 'function' ? cls.prototype : Object.getPrototypeOf(cls);
   }
 
   return scope;
@@ -337,7 +337,7 @@ export function copyScopeDescriptors(cls, options?, maxDepth?) {
     }
 
     level += 1;
-    cls = cls instanceof Function ? cls.prototype : Object.getPrototypeOf(cls);
+    cls = typeof cls === 'function' ? cls.prototype : Object.getPrototypeOf(cls);
   }
 
   return scope;

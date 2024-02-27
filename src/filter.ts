@@ -48,7 +48,7 @@ export class Filter {
   }
 
   custom(fn: (entry) => boolean): this {
-    if (fn !== void 0 && ! (fn instanceof Function)) {
+    if (fn !== void 0 && typeof fn !== 'function') {
       throw new Error('Filter "custom" must be callable');
     }
 

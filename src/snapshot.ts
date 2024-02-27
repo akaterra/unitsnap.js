@@ -74,7 +74,7 @@ export class Snapshot {
   }
 
   setMapper(mapper) {
-    if (mapper !== void 0 && ! (mapper instanceof Function)) {
+    if (mapper !== void 0 && typeof mapper !== 'function') {
       throw new Error('Snapshot mapper must be callable');
     }
 
