@@ -145,19 +145,19 @@ export class Snapshot {
   }
 
   addClassOfProcessor(cls, serializer) {
-    var usefulCls = new typeHelpers.ClassOfType(cls);
+    let usefulCls = new typeHelpers.ClassOfType(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   }
 
   addInstanceOfProcessor(cls, serializer) {
-    var usefulCls = new typeHelpers.InstanceOfType(cls);
+    let usefulCls = new typeHelpers.InstanceOfType(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   }
 
   addPathProcessor(path, serializer) {
-    var usefulRegex = RegExp('^' + path
+    let usefulRegex = RegExp('^' + path
       .replace(/[-[\]{}()+?.,\\^$|#\s]/g, '\\$&')
       .replace(/\*/g, '.*')
       .replace(/_/g, '.') + '$'
@@ -169,7 +169,7 @@ export class Snapshot {
   }
 
   addRegexPathProcessor(regex, serializer) {
-    var usefulRegex = regex instanceof RegExp ? regex : RegExp(regex);
+    let usefulRegex = regex instanceof RegExp ? regex : RegExp(regex);
 
     return this.addProcessor((value, path) => {
       return usefulRegex.test(path);
@@ -177,7 +177,7 @@ export class Snapshot {
   }
 
   addUndefinedProcessor(serializer) {
-    var usefulCls = new typeHelpers.UndefinedType();
+    let usefulCls = new typeHelpers.UndefinedType();
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   }
@@ -306,7 +306,7 @@ function snapshotAssert(source, target, path) {
   }
 
   if (source !== null && typeof source === 'object') {
-    var keys = Object.keys(source);
+    let keys = Object.keys(source);
 
     if (! (target !== null && typeof target === 'object') || keys.length !== Object.keys(target).length) {
       return path;
@@ -337,7 +337,7 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly?, circular?
     circular = [];
   }
 
-  var serialized;
+  let serialized;
 
   if (!primitiveOnly && Array.isArray(value)) {
     if (circular.indexOf(value) !== - 1) {
@@ -365,7 +365,7 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly?, circular?
     circular.push(value);
 
     serialized = Object.keys(value).reduce(function (acc, key) {
-      var serialized = snapshotSerializeValue(snapshot, value[key], path + '.' + key, false, circular);
+      let serialized = snapshotSerializeValue(snapshot, value[key], path + '.' + key, false, circular);
 
       if (serialized !== typeHelpers.Ignore) {
         acc[key] = serialized;
@@ -425,8 +425,8 @@ function snapshotMapEntry(snapshot, entry: State): State {
 }
 
 function every(arr, fn) {
-  for (var i = 0, l = arr.length; i < l; i ++) {
-    var check = fn(arr[i], i);
+  for (let i = 0, l = arr.length; i < l; i ++) {
+    let check = fn(arr[i], i);
 
     if (check !== true) {
       return check;
@@ -455,7 +455,7 @@ export class SnapshotFsProvider implements ISnapshotProvider {
   }
 
   load(name) {
-    var snapshot = JSON.parse(require('fs').readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json'));
+    let snapshot = JSON.parse(require('fs').readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json'));
 
     return snapshot;
   }

@@ -68,7 +68,7 @@ export class History {
   }
 
   addOnEndCallback(cb: () => void) {
-    var epoch = this.getCurrentEpoch();
+    let epoch = this.getCurrentEpoch();
 
     if (epoch) {
       epoch.callbacks.push(cb);

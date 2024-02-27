@@ -59,7 +59,7 @@ export class Observer {
   }
 
   by(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
-    var mockedCls = this._mock.by(cls, props,bypassOnBehalfOfInstanceReplacement);
+    let mockedCls = this._mock.by(cls, props,bypassOnBehalfOfInstanceReplacement);
 
     mockedCls.OBSERVER = this;
 
@@ -67,7 +67,7 @@ export class Observer {
   }
 
   from(props, bypassOnBehalfOfInstanceReplacement?) {
-    var mockedCls = this._mock.from(props, bypassOnBehalfOfInstanceReplacement);
+    let mockedCls = this._mock.from(props, bypassOnBehalfOfInstanceReplacement);
 
     mockedCls.OBSERVER = this;
 
@@ -75,7 +75,7 @@ export class Observer {
   }
 
   override(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
-    var mockedCls = this._mock.override(cls, props, bypassOnBehalfOfInstanceReplacement);
+    let mockedCls = this._mock.override(cls, props, bypassOnBehalfOfInstanceReplacement);
 
     mockedCls.OBSERVER = this;
 

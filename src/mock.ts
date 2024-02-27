@@ -3,7 +3,7 @@ import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spy
 import * as typeHelpers from './type_helpers';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { History } from './history';
-import { Intermediate } from './utils';
+import { IntermediateClass } from './utils';
 
 export class Mock {
   explicitInstance: boolean;
@@ -106,7 +106,7 @@ export interface _Property {
   set(set): this;
 }
 
-export const Property = Intermediate<_Property>({
+export const Property = IntermediateClass<_Property>({
   get(get) {
     this.descriptor.get = get;
 
@@ -134,7 +134,7 @@ export interface _StaticMethod {
   new(value?): _StaticMethod;
 }
 
-export const StaticMethod = Intermediate<_StaticMethod>(null, (instance, value?) => {
+export const StaticMethod = IntermediateClass<_StaticMethod>(null, (instance, value?) => {
   instance.value = value ?? Function;
 });
 
@@ -145,7 +145,7 @@ export interface _StaticProperty {
   set(set): this;
 }
 
-export const StaticProperty = Intermediate<_StaticProperty>({
+export const StaticProperty = IntermediateClass<_StaticProperty>({
   get(get) {
     this.descriptor.get = get;
 
@@ -171,7 +171,7 @@ export interface _Custom {
   exclude(): this;
 }
 
-export const Custom = Intermediate<_Custom>({
+export const Custom = IntermediateClass<_Custom>({
   argsAnnotation(argsAnnotation) {
     this._argsAnnotation = argsAnnotation;
 
@@ -195,7 +195,7 @@ export interface _ArgsAnnotation {
   new(value, argsAnnotation): _Custom;
 }
 
-export const ArgsAnnotation = Intermediate<_Custom, _ArgsAnnotation>(null, (instance, value, argsAnnotation) => {
+export const ArgsAnnotation = IntermediateClass<_Custom, _ArgsAnnotation>(null, (instance, value, argsAnnotation) => {
   if (value instanceof Custom) {
     value = Custom(value.value);
   }
@@ -208,7 +208,7 @@ export interface _Epoch {
   new(value, epoch): _Custom;
 }
 
-export const Epoch = Intermediate<_Custom, _Epoch>(null, (instance, value, epoch) => {
+export const Epoch = IntermediateClass<_Custom, _Epoch>(null, (instance, value, epoch) => {
   if (value instanceof Custom) {
     value = Custom(value.value);
   }
@@ -221,7 +221,7 @@ export interface _Exclude {
   new(value): _Custom;
 }
 
-export const Exclude = Intermediate<_Custom, _Exclude>(null, (instance, value) => {
+export const Exclude = IntermediateClass<_Custom, _Exclude>(null, (instance, value) => {
   if (value instanceof Custom) {
     value = Custom(value.value);
   }
@@ -299,7 +299,7 @@ export class ClassMaker {
     this._props = Array.isArray(props)
       ? props.reduce((acc, key) => {
         if (key in this._clsProtoPropsDescriptors) {
-          var descriptor = this._clsProtoPropsDescriptors[key];
+          let descriptor = this._clsProtoPropsDescriptors[key];
 
           switch (descriptor.type) {
             case 'function':
@@ -326,9 +326,9 @@ export class ClassMaker {
       throw new Error('Class constructor must be function');
     }
 
-    var custom;
-    var self = this;
-    var rep;
+    let custom;
+    let self = this;
+    let rep;
 
     if (this._props.hasOwnProperty('constructor')) {
       if (self._props.constructor instanceof Custom) {
@@ -361,13 +361,13 @@ export class ClassMaker {
       cls = copyConstructor(cls, explicitInstance);
     }
 
-    Object.keys(self._clsProps).forEach(function (key) {
+    Object.keys(self._clsProps).forEach((key) => {
       Object.defineProperty(cls, key, self._clsPropsDescriptors[key].descriptor);
     });
 
     Object.defineProperty(cls, 'name', {value: this._cls.name, writable: false});
 
-    if (! useOriginPrototype) {
+    if (!useOriginPrototype) {
       cls.prototype = copyPrototype(this._cls);
     } else {
       cls.prototype = this._cls.prototype;
@@ -386,9 +386,9 @@ export class ClassMaker {
     Object.defineProperty(cls, 'name', {value: this._cls.name, writable: false});
 
     if (!useOriginPrototype) {
-      Object.setPrototypeOf(cls, copyPrototype(this._cls));
-    } else {
-      Object.setPrototypeOf(cls, Object.getPrototypeOf(this._cls));
+      cls.prototype = copyPrototype(this._cls);
+    } else if (cls.prototype !== this._cls.prototype) {
+      cls.prototype = this._cls.prototype;
     }
 
     Object.keys(this._props).forEach((key) => {
@@ -396,11 +396,11 @@ export class ClassMaker {
         return;
       }
 
-      var custom = null;
-      var customGet = null;
-      var customSet = null;
-      var rep = null;
-      var repDescriptor = null;
+      let custom = null;
+      let customGet = null;
+      let customSet = null;
+      let rep = null;
+      let repDescriptor = null;
 
       if (this._props[key] instanceof StaticProperty) {
         repDescriptor = {};
@@ -627,7 +627,7 @@ export class ClassMaker {
 
 function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
   if (prop === Initial || getAncestors(obj).indexOf(prop) !== - 1 || getAncestors(obj.COPY_OF).indexOf(prop) !== - 1) {
-    if (! (key in objProps)) {
+    if (!(key in objProps)) {
       prop = Function;
     } else {
       return obj; // as reference to object self-defined property

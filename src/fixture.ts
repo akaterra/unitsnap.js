@@ -64,7 +64,7 @@ export class Fixture {
   }
 
   pop() {
-    var value = this._strategy.pop();
+    let value = this._strategy.pop();
 
     if (this._throwOn && this._throwOn(value)) {
       throw value;

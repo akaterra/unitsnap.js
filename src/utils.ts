@@ -8,25 +8,25 @@ export type FuncKeys<T> = {
 
 export type OnlyFuncs<T> = Pick<T, FuncKeys<T>>; 
 
-export type Func<T> = T extends abstract new (...args: infer P) => T
+export type Constructor<T> = T extends abstract new (...args: infer P) => T
   ? (...args: P) => T
   : T extends (...args: any[]) => T
     ? T
     : never;
 
-export function Intermediate<
+export function IntermediateClass<
   T,
   A = T
 >(
   prototype?: OnlyFuncs<Omit<T, 'new'>>,
-  init?: (instance: T, ...args: Parameters<Func<A>>) => void,
-  cls?: new (...args: Parameters<Func<A>>) => T,
+  init?: (instance: T, ...args: Parameters<Constructor<A>>) => void,
+  cls?: new (...args: Parameters<Constructor<A>>) => T,
   clsName?: string,
 ): {
-  new (...args: Parameters<Func<A>>): T;
-  (...args: Parameters<Func<A>>): T;
+  new (...args: Parameters<Constructor<A>>): T;
+  (...args: Parameters<Constructor<A>>): T;
 } {
-  const newCls = function (...args: Parameters<Func<A>>) {
+  const clazz = function (...args: Parameters<Constructor<A>>) {
     let instance;
 
     if (!(this instanceof cls)) {
@@ -43,18 +43,18 @@ export function Intermediate<
   } as any;
 
   if (clsName ?? cls) {
-    Object.defineProperty(newCls, 'name', { value: clsName ?? newCls.name });
+    Object.defineProperty(clazz, 'name', { value: clsName ?? clazz.name });
   }
 
   if (!cls) {
-    cls = newCls;
+    cls = clazz;
   }
 
   if (prototype) {
     cls.prototype = prototype;
   }
 
-  return newCls as any;
+  return clazz as any;
 }
 
 export type PositiveInteger<T extends number> = number extends T 

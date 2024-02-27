@@ -5,16 +5,16 @@ export function spyOnFunction(callable, options, asConstructor?) {
     throw new Error('Callable fn must be callable');
   }
 
-  var originalCallable = callable;
-  var originalCallableAnnotation;
+  let originalCallable = callable;
+  let originalCallableAnnotation;
 
-  if (options && options.argsAnnotation !== void 0) {
-    if (Array.isArray(options.argsAnnotation)) {
-      originalCallableAnnotation = {args: options.argsAnnotation.map(function (arg) {
+  if (options && options._argsAnnotation !== void 0) {
+    if (Array.isArray(options._argsAnnotation)) {
+      originalCallableAnnotation = {args: options._argsAnnotation.map(function (arg) {
         return typeof arg === 'string' ? instance.parseFunctionAnnotationCreateArgDescriptor(arg) : arg;
       })};
-    } else if (typeof options.argsAnnotation === 'function') {
-      originalCallableAnnotation = instance.parseFunctionAnnotation(options.argsAnnotation);
+    } else if (typeof options._argsAnnotation === 'function') {
+      originalCallableAnnotation = instance.parseFunctionAnnotation(options._argsAnnotation);
     } else {
       throw new Error('Spy argsAnnotation must be callable or list of arguments');
     }
@@ -32,8 +32,8 @@ export function spyOnFunction(callable, options, asConstructor?) {
     callable.ARGS = {'*': []};
     callable.CALLS_COUNT ++;
 
-    var isRest = false;
-    var isRestEs6Ind = null;
+    let isRest = false;
+    let isRestEs6Ind = null;
 
     Array.prototype.forEach.call(arguments, function (val, ind) {
       if (ind >= originalCallableAnnotation.args.length) {
@@ -59,11 +59,11 @@ export function spyOnFunction(callable, options, asConstructor?) {
       }
     });
     
-    var result;
+    let result;
 
     try {
       if (options && options.onCall) {
-        if (options.exclude !== true) {
+        if (options._exclude !== true) {
           options.onCall(this, Object.assign(
             spyOnFunctionCreateArgsReport(callable, this, originalCallable, options),
             options.extra || {}
@@ -92,7 +92,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
             callable.RESULT = result;
 
             if (options && options.onCall) {
-              if (options.exclude !== true) {
+              if (options._exclude !== true) {
                 options.onCall(this, Object.assign(
                   spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
                   options.extra || {}
@@ -109,7 +109,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
             callable.RESULT = void 0;
 
             if (options && options.onCall) {
-              if (options.exclude !== true) {
+              if (options._exclude !== true) {
                 options.onCall(this, Object.assign(
                   spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
                   options.extra || {}
@@ -141,7 +141,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
       throw e;
     } finally {
       if (options && options.onCall) {
-        if (options.exclude !== true) {
+        if (options._exclude !== true) {
           options.onCall(this, Object.assign(
             spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
             {
@@ -201,22 +201,22 @@ export function spyOnFunctionCreateResultReport(callable, context, originalCalla
 }
 
 export function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass?) {
-  var initialObj = obj;
-  var objIsClass = typeof obj === 'function' && obj.prototype instanceof Object;
+  let initialObj = obj;
+  let objIsClass = typeof obj === 'function' && obj.prototype instanceof Object;
 
   if (objIsClass && bypassClass !== true) {
     obj = obj.prototype;
   }
 
-  if (! options) {
+  if (!options) {
     options = {};
   }
 
-  if (! options.extra) {
+  if (!options.extra) {
     options.extra = {};
   }
 
-  if (! repDescriptor) {
+  if (!repDescriptor) {
     repDescriptor = Object.getOwnPropertyDescriptor(obj, key);
   }
 
@@ -224,7 +224,7 @@ export function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass?) 
     repDescriptor = {value: repDescriptor};
   }
 
-  var descriptor = instance.getDescriptorAndType(obj, key);
+  let descriptor = instance.getDescriptorAndType(obj, key);
 
   if (! descriptor.descriptor) {
     descriptor = {
