@@ -3,7 +3,17 @@ import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spy
 import * as typeHelpers from './type_helpers';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { History } from './history';
-import { IntermediateClass } from './utils';
+import { Es5Class, Es6Class, Fn, IntermediateClass } from './utils';
+import { Observer } from './observer';
+
+export type MockClass<T extends Es5Class | Es6Class = Es5Class | Es6Class> = Es6Class<T extends Es5Class ? ReturnType<T> : T extends Es6Class ? InstanceType<T> : never > & {
+  OBSERVER?: Observer;
+  RESTORE?: () => void;
+};
+
+export type MockProps<T = any> = T extends Es6Class ? ((keyof T | string)[] | ({
+  [P in keyof T]?: any;
+} & Record<string, any>)) : (string[] | Record<string, any>);
 
 export class Mock {
   explicitInstance: boolean;
@@ -37,19 +47,21 @@ export class Mock {
     return this;
   }
 
-  by(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
+  by<T extends Es5Class | Es6Class = Es5Class | Es6Class>(cls: T, props?: MockProps<T>, bypassOnBehalfOfInstanceReplacement?): MockClass<T> {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
+    const clazz = maker.makePrototypeFor(maker.makeConstructor(cls, true, this.explicitInstance));
 
-    return maker.makePrototypeFor(maker.makeConstructor(cls, true, this.explicitInstance));
+    return clazz;
   }
 
-  from(props, bypassOnBehalfOfInstanceReplacement?) {
+  from(props: MockProps, bypassOnBehalfOfInstanceReplacement?): MockClass {
     const maker = new ClassMaker(this, function () {}, props, bypassOnBehalfOfInstanceReplacement);
+    const clazz = maker.makePrototypeFor(maker.makeConstructor(maker.cls, true, this.explicitInstance), true);
 
-    return maker.makePrototypeFor(maker.makeConstructor(maker.cls, true, this.explicitInstance), true);
+    return clazz;
   }
 
-  override(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
+  override<T extends Es5Class | Es6Class = Es5Class | Es6Class>(cls: T, props?: MockProps<T>, bypassOnBehalfOfInstanceReplacement?): MockClass<T> {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(cls, true);
 
@@ -72,9 +84,9 @@ export class Mock {
       });
       maker.propsMetadata.extraProps.forEach((key) => { delete cls.prototype[key]; });
 
-      delete cls.OBSERVER;
-      delete cls.RESTORE;
-      delete cls.prototype.constructor.RESTORE;
+      delete (cls as any).OBSERVER;
+      delete (cls as any).RESTORE;
+      delete (cls as any).prototype.constructor.RESTORE;
 
       return cls;
     };
@@ -82,7 +94,7 @@ export class Mock {
     return clazz;
   }
 
-  spy(fn) {
+  spy(fn: Fn): Fn {
     return spyOnFunction(fn, {
       argsAnnotation: fn,
       extra: {

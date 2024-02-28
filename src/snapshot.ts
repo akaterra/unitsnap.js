@@ -82,7 +82,7 @@ export class Snapshot {
   }
 
   setMapper(mapper) {
-    if (mapper !== void 0 && typeof mapper !== 'function') {
+    if (mapper !== undefined && typeof mapper !== 'function') {
       throw new Error('Snapshot mapper must be callable');
     }
 
@@ -128,25 +128,25 @@ export class Snapshot {
   }
 
   addProcessor(checker?, serializer?) {
-    let [ ,basicTypeChecker ] = basicTypes.find(function (basicType) {
+    const [ ,basicTypeChecker ] = basicTypes.find((basicType) => {
       return basicType[0] === checker;
     }) ?? [];
 
-    basicTypeChecker = basicTypeChecker
-      ? basicTypeChecker[1].check.bind(basicTypeChecker[1])
+    const basicTypeCheckerFn = basicTypeChecker
+      ? basicTypeChecker.check.bind(basicTypeChecker[1])
       : checker;
 
-    let [ ,basicTypeSerializer ] = basicTypes.find(function (basicType) {
-      return basicType[0] === (serializer === void 0 ? checker : serializer);
+    const [ ,basicTypeSerializer ] = basicTypes.find((basicType) => {
+      return basicType[0] === (serializer === undefined ? checker : serializer);
     }) ?? [];
 
-    basicTypeSerializer = basicTypeSerializer
-      ? basicTypeSerializer[1].serialize.bind(basicTypeSerializer[1])
+    const basicTypeSerializerFn = basicTypeSerializer
+      ? basicTypeSerializer.serialize.bind(basicTypeSerializer[1])
       : serializer;
 
     this._processors.unshift({
-      checker: basicTypeChecker,
-      serializer: basicTypeSerializer,
+      checker: basicTypeCheckerFn,
+      serializer: basicTypeSerializerFn,
     });
 
     return this;
@@ -200,11 +200,11 @@ export class Snapshot {
     return snapshotAssert(this.serialize(), snapshot instanceof Snapshot ? snapshot.serialize() : snapshot, '');
   }
 
-  assertSaved(name) {
+  assertSaved(name?) {
     return this.assert(this.loadCopy(name));
   }
 
-  exists(name) {
+  exists(name?) {
     return this._provider.exists(name || this._name);
   }
 
@@ -454,7 +454,7 @@ export interface ISnapshotProvider {
 export class SnapshotFsProvider implements ISnapshotProvider {
   private _dir: string;
 
-  constructor(dir) {
+  constructor(dir: string) {
     this._dir = dir;
   }
 
@@ -463,7 +463,7 @@ export class SnapshotFsProvider implements ISnapshotProvider {
   }
 
   load(name) {
-    let snapshot = JSON.parse(require('fs').readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json'));
+    const snapshot = JSON.parse(require('fs').readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json'));
 
     return snapshot;
   }
@@ -481,7 +481,7 @@ export class SnapshotFsProvider implements ISnapshotProvider {
       this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json',
       JSON.stringify(
         snapshot instanceof Snapshot ? snapshot.serialize() : snapshot,
-        void 0,
+        undefined,
         4
       )
     );
@@ -493,7 +493,7 @@ export class SnapshotFsProvider implements ISnapshotProvider {
 export class SnapshotMemoryProvider implements ISnapshotProvider {
   private _dictionary: any;
 
-  constructor(dictionary) {
+  constructor(dictionary?: Record<string, any>) {
     this._dictionary = dictionary || {};
   }
 
@@ -522,7 +522,7 @@ export class SnapshotMemoryProvider implements ISnapshotProvider {
   }
 }
 
-const basicTypes = [
+const basicTypes: [ any, typeHelpers.IType ][] = [
   [typeHelpers.AnyType, new typeHelpers.AnyType()],
   [Boolean, new typeHelpers.BooleanType()],
   [typeHelpers.BooleanType, new typeHelpers.BooleanType()],
@@ -535,6 +535,6 @@ const basicTypes = [
   [String, new typeHelpers.StringType()],
   [typeHelpers.StringType, new typeHelpers.StringType()],
   [typeHelpers.This, new typeHelpers.This()],
-  [void 0, new typeHelpers.UndefinedType()],
+  [undefined, new typeHelpers.UndefinedType()],
   [typeHelpers.UndefinedType, new typeHelpers.UndefinedType()],
 ];

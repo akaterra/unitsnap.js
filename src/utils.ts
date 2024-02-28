@@ -1,3 +1,9 @@
+export type Es5Class<T = any> = (...args: any[]) => T & { prototype: T };
+
+export type Es6Class<T = any> = new (...args: any[]) => T;
+
+export type Fn<T = any> = (...args: any[]) => T;
+
 export type IsAny<T> = unknown extends T ? T extends {} ? T : never : never;
 
 export type FuncKeyNotAny<T, K> =  T extends IsAny<T> ? never : K;

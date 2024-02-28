@@ -87,7 +87,7 @@ export class Fixture {
 
   throwOnClassOf(cls) {
     return this.throwOnCallback((value) => {
-      return value !== void 0 && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === cls;
+      return value !== undefined && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === cls;
     });
   }
 

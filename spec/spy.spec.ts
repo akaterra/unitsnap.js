@@ -1,5 +1,4 @@
-import unitsnap from '..';
-const spy = require('../src/spy');
+import * as unitsnap from '..';
 
 describe('Spy', () => {
   describe('when spies on function', () => {
@@ -8,7 +7,7 @@ describe('Spy', () => {
 
       }
 
-      const spied = spy.spyOnFunction(es5);
+      const spied = unitsnap.spyOnFunction(es5);
 
       spied(1, 2, 3, 4, 5);
 
@@ -20,11 +19,11 @@ describe('Spy', () => {
 
       };
 
-      const spied = spy.spyOnFunction(es6);
+      const spied = unitsnap.spyOnFunction(es6);
 
       spied(1, {b: 2, c: 3, d: 4}, 5);
 
-      expect(spied.ARGS).toEqual({a: 1, b: 2, c: 3, dd: 4, e: void 0, ff: void 0, g: [5]});
+      expect(spied.ARGS).toEqual({a: 1, b: 2, c: 3, dd: 4, e: undefined, ff: undefined, g: [5]});
     });
 
     it('should use arguments annotations in ES6 declaration with no brackets single argument', () => {
@@ -32,7 +31,7 @@ describe('Spy', () => {
 
       };
 
-      const spied = spy.spyOnFunction(es6);
+      const spied = unitsnap.spyOnFunction(es6);
 
       spied(1, 2, 3, 4, 5);
 
@@ -44,7 +43,7 @@ describe('Spy', () => {
 
       }
 
-      const Spied = spy.spyOnFunction(Es5Class, void 0, true);
+      const Spied = unitsnap.spyOnFunction(Es5Class, undefined, true);
 
       new Spied(1, 2, 3, 4, 5);
 
@@ -56,7 +55,7 @@ describe('Spy', () => {
         constructor(a, b, c) {}
       }
 
-      const Spied = spy.spyOnFunction(Es6Class, void 0, true);
+      const Spied = unitsnap.spyOnFunction(Es6Class, undefined, true);
 
       new Spied(1, 2, 3, 4, 5);
 
@@ -68,7 +67,7 @@ describe('Spy', () => {
         constructor(a, b, c) { super(); }
       }
 
-      const Spied = spy.spyOnFunction(Es6Class, void 0, true);
+      const Spied = unitsnap.spyOnFunction(Es6Class, undefined, true);
 
       new Spied(1, 2, 3, 4, 5);
 
@@ -80,7 +79,7 @@ describe('Spy', () => {
         return Promise.resolve(1);
       }
 
-      const spied = spy.spyOnFunction(async);
+      const spied = unitsnap.spyOnFunction(async);
 
       spied().then((result) => {
         expect(result).toBe(1);
@@ -96,7 +95,7 @@ describe('Spy', () => {
         return Promise.reject(1);
       }
 
-      const spied = spy.spyOnFunction(async);
+      const spied = unitsnap.spyOnFunction(async);
 
       spied().catch((result) => {
         expect(result).toBe(1);
@@ -120,7 +119,7 @@ describe('Spy', () => {
         },
       };
 
-      const spied = new (spy.spyOnMethod(Es5Class, 'a'));
+      const spied = new (unitsnap.spyOnMethod(Es5Class, 'a'));
 
       spied.a(1);
 
@@ -138,7 +137,7 @@ describe('Spy', () => {
         }
       }
 
-      const spied = new (spy.spyOnMethod(Es6Class, 'a'));
+      const spied = new (unitsnap.spyOnMethod(Es6Class, 'a'));
 
       spied.a(1);
 
@@ -156,7 +155,7 @@ describe('Spy', () => {
         }
       }
 
-      const spied = new (spy.spyOnMethod(Es6Class, 'a'));
+      const spied = new (unitsnap.spyOnMethod(Es6Class, 'a'));
 
       spied.a(1);
 
@@ -176,7 +175,7 @@ describe('Spy', () => {
         },
       });
 
-      const Spied = spy.spyOnStaticMethod(Es5Class, 'a');
+      const Spied = unitsnap.spyOnStaticMethod(Es5Class, 'a');
 
       Spied.a(1);
 
@@ -194,7 +193,7 @@ describe('Spy', () => {
         }
       }
 
-      const Spied = spy.spyOnStaticMethod(Es6Class, 'a');
+      const Spied = unitsnap.spyOnStaticMethod(Es6Class, 'a');
 
       Spied.a(1);
 
@@ -212,7 +211,7 @@ describe('Spy', () => {
         }
       }
 
-      const Spied = spy.spyOnStaticMethod(Es7Class, 'a');
+      const Spied = unitsnap.spyOnStaticMethod(Es7Class, 'a');
 
       Spied.a(1);
 
@@ -232,7 +231,7 @@ describe('Spy', () => {
         },
       };
 
-      const spied = new (spy.spyOnDescriptor(Es5Class, 'a', Object.getOwnPropertyDescriptor(Es5Class.prototype, 'a')));
+      const spied = new (unitsnap.spyOnDescriptor(Es5Class, 'a', Object.getOwnPropertyDescriptor(Es5Class.prototype, 'a')));
 
       spied.a(1);
 
@@ -252,11 +251,11 @@ describe('Spy', () => {
         },
       });
 
-      const spied = new (spy.spyOnDescriptor(Es5Class, 'a', Object.getOwnPropertyDescriptor(Es5Class.prototype, 'a')));
+      const spied = new (unitsnap.spyOnDescriptor(Es5Class, 'a', Object.getOwnPropertyDescriptor(Es5Class.prototype, 'a')));
 
       spied.a;
 
-      expect(Object.getOwnPropertyDescriptor(spied, 'a').get.ARGS).toEqual({'*': []});
+      expect(unitsnap.stat(Object.getOwnPropertyDescriptor(spied, 'a').get).args).toEqual({'*': []});
     });
 
     it('should arguments annotations in ES5 class setter declaration', () => {
@@ -272,11 +271,11 @@ describe('Spy', () => {
         },
       });
 
-      const spied = new (spy.spyOnDescriptor(Es5Class, 'a', Object.getOwnPropertyDescriptor(Es5Class.prototype, 'a')));
+      const spied = new (unitsnap.spyOnDescriptor(Es5Class, 'a', Object.getOwnPropertyDescriptor(Es5Class.prototype, 'a')));
 
       spied.a = 5;
 
-      expect(Object.getOwnPropertyDescriptor(spied, 'a').set.ARGS).toEqual({'*': [], value: 5});
+      expect(unitsnap.stat(Object.getOwnPropertyDescriptor(spied, 'a').set).args).toEqual({'*': [], value: 5});
     });
 
     it('should arguments annotations in ES6 class getter declaration', () => {
@@ -286,11 +285,11 @@ describe('Spy', () => {
         }
       }
 
-      const spied = new (spy.spyOnDescriptor(Es6Class, 'a', Object.getOwnPropertyDescriptor(Es6Class.prototype, 'a')));
+      const spied = new (unitsnap.spyOnDescriptor(Es6Class, 'a', Object.getOwnPropertyDescriptor(Es6Class.prototype, 'a')));
 
       spied.a;
 
-      expect(Object.getOwnPropertyDescriptor(spied, 'a').get.ARGS).toEqual({'*': []});
+      expect(unitsnap.stat(Object.getOwnPropertyDescriptor(spied, 'a').get).args).toEqual({'*': []});
     });
 
     it('should arguments annotations in ES6 class setter declaration', () => {
@@ -300,11 +299,11 @@ describe('Spy', () => {
         }
       }
 
-      const spied = new (spy.spyOnDescriptor(Es6Class, 'a', Object.getOwnPropertyDescriptor(Es6Class.prototype, 'a')));
+      const spied = new (unitsnap.spyOnDescriptor(Es6Class, 'a', Object.getOwnPropertyDescriptor(Es6Class.prototype, 'a')));
 
       spied.a = 5;
 
-      expect(Object.getOwnPropertyDescriptor(spied, 'a').set.ARGS).toEqual({'*': [], value: 5});
+      expect(unitsnap.stat(Object.getOwnPropertyDescriptor(spied, 'a').set).args).toEqual({'*': [], value: 5});
     });
   });
 });

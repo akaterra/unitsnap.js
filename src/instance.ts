@@ -76,17 +76,17 @@ export function parseFunctionAnnotation(func) {
 
 export function parseFunctionAnnotationCreateArgDescriptor(arg) {
   if (arg.substr(0, 3) === '...') {
-    return {alias: null, default: void 0, name: arg.substr(3), type: 'rest'};
+    return {alias: null, default: undefined, name: arg.substr(3), type: 'rest'};
   } else if (arg.substr(0, 1) === '{') {
     return {
       alias: null,
-      default: void 0,
+      default: undefined,
       props: (arg.slice(1, - 1).match(FN_ARGUMENT_NAMES) || []).map(parseFunctionAnnotationCreateArgDescriptor),
       type: 'unpack',
     };
   }
 
-  let argDefault = void 0;
+  let argDefault = undefined;
   let argDefaultIndex = arg.indexOf('=');
 
   if (argDefaultIndex !== - 1) {
@@ -272,7 +272,7 @@ export function copyScope(cls, options?, maxDepth?): Record<string, unknown> {
   let scope = {};
 
   while (true) {
-    if (maxDepth !== void 0) {
+    if (maxDepth !== undefined) {
       maxDepth -= 1;
 
       if (maxDepth < 0) {
@@ -310,7 +310,7 @@ export function copyScopeDescriptors(cls, options?, maxDepth?) {
   let scope = {};
 
   while (true) {
-    if (maxDepth !== void 0) {
+    if (maxDepth !== undefined) {
       maxDepth -= 1;
 
       if (maxDepth < 0) {

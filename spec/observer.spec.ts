@@ -80,7 +80,7 @@ describe('Observer', () => {
     const e = new unitsnap.Observer();
     const E = e.from({a: f});
 
-    expect(fromSpy.calls.first().args).toEqual([{a: f}, void 0]);
+    expect(fromSpy.calls.first().args).toEqual([{a: f}, undefined]);
     expect(fromSpy.calls.first().returnValue).toBe(f);
   });
 
@@ -88,7 +88,7 @@ describe('Observer', () => {
     const e = new unitsnap.Observer();
     const E = e.by(A, ['a']);
 
-    expect(bySpy.calls.first().args).toEqual([A, ['a'], void 0]);
+    expect(bySpy.calls.first().args).toEqual([A, ['a'], undefined]);
     expect(bySpy.calls.first().returnValue).toBe(f);
   });
 
@@ -96,7 +96,7 @@ describe('Observer', () => {
     const e = new unitsnap.Observer();
     const E = e.override(A, ['a']);
 
-    expect(overrideSpy.calls.first().args).toEqual([A, ['a'], void 0]);
+    expect(overrideSpy.calls.first().args).toEqual([A, ['a'], undefined]);
     expect(overrideSpy.calls.first().returnValue).toBe(B);
   });
 

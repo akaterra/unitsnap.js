@@ -1,6 +1,6 @@
 import * as instance from './instance';
 
-export function spyOnFunction(callable, options, asConstructor?) {
+export function spyOnFunction(callable, options?, asConstructor?) {
   if (typeof callable !== 'function') {
     throw new Error('Callable fn must be callable');
   }
@@ -8,7 +8,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
   let originalCallable = callable;
   let originalCallableAnnotation;
 
-  if (options && options._argsAnnotation !== void 0) {
+  if (options && options._argsAnnotation !== undefined) {
     if (Array.isArray(options._argsAnnotation)) {
       originalCallableAnnotation = {args: options._argsAnnotation.map(function (arg) {
         return typeof arg === 'string' ? instance.parseFunctionAnnotationCreateArgDescriptor(arg) : arg;
@@ -22,7 +22,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
     originalCallableAnnotation = instance.parseFunctionAnnotation(options && options.origin || callable);
   }
 
-  if (options && options.onCall !== void 0) {
+  if (options && options.onCall !== undefined) {
     if (typeof options.onCall !== 'function') {
       throw new Error('Spy on call must be function');
     }
@@ -86,7 +86,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
 
         return result.then(
           function (result) {
-            callable.EXCEPTION = void 0;
+            callable.EXCEPTION = undefined;
             callable.IS_ASYNC_PENDING = false;
             callable.IS_EXCEPTION = false;
             callable.RESULT = result;
@@ -106,7 +106,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
             callable.EXCEPTION = error;
             callable.IS_ASYNC_PENDING = false;
             callable.IS_EXCEPTION = true;
-            callable.RESULT = void 0;
+            callable.RESULT = undefined;
 
             if (options && options.onCall) {
               if (options._exclude !== true) {
@@ -122,7 +122,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
         );
       }
 
-      callable.EXCEPTION = void 0;
+      callable.EXCEPTION = undefined;
       callable.IS_ASYNC = false;
       callable.IS_ASYNC_PENDING = false;
       callable.IS_EXCEPTION = false;
@@ -136,7 +136,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
       callable.IS_ASYNC = false;
       callable.IS_ASYNC_PENDING = false;
       callable.IS_EXCEPTION = true;
-      callable.RESULT = void 0;
+      callable.RESULT = undefined;
 
       throw e;
     } finally {
@@ -145,7 +145,7 @@ export function spyOnFunction(callable, options, asConstructor?) {
           options.onCall(this, Object.assign(
             spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
             {
-              result: asConstructor ? void 0 : callable.RESULT
+              result: asConstructor ? undefined : callable.RESULT
             },
             options.extra || {}
           )); // context, fn
@@ -156,21 +156,21 @@ export function spyOnFunction(callable, options, asConstructor?) {
 
   callable.ARGS = {'*': []};
   callable.CALLS_COUNT = 0;
-  callable.EXCEPTION = void 0;
+  callable.EXCEPTION = undefined;
   callable.EXCEPTIONS_COUNT = 0;
   callable.IS_ASYNC_PENDING = false;
   callable.IS_ASYNC = false;
   callable.IS_EXCEPTION = false;
   callable.ORIGIN = options && options.origin || originalCallable;
   callable.REPLACEMENT = options && options.replacement || callable;
-  callable.RESULT = void 0;
+  callable.RESULT = undefined;
 
   Object.defineProperty(callable, 'name', {value: originalCallable.name, writable: false});
 
   return callable;
 }
 
-export function spyOnFunctionCreateArgsReport(callable, context, originalCallable, options) {
+export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?) {
   return {
     args: callable.ARGS,
     callsCount: callable.CALLS_COUNT,
@@ -185,7 +185,7 @@ export function spyOnFunctionCreateArgsReport(callable, context, originalCallabl
   };
 }
 
-export function spyOnFunctionCreateResultReport(callable, context, originalCallable, options) {
+export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?) {
   return {
     callsCount: callable.CALLS_COUNT,
     context: context,
@@ -200,7 +200,7 @@ export function spyOnFunctionCreateResultReport(callable, context, originalCalla
   };
 }
 
-export function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass?) {
+export function spyOnDescriptor(obj, key, repDescriptor?, options?, bypassClass?) {
   let initialObj = obj;
   let objIsClass = typeof obj === 'function' && obj.prototype instanceof Object;
 
@@ -277,13 +277,13 @@ export function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass?) 
         descriptor.get.ARGS = {'*': []};
         descriptor.get.CALLS_COUNT = 0;
         descriptor.get.EXCEPTIONS_COUNT = 0;
-        descriptor.get.EXCEPTION = void 0;
+        descriptor.get.EXCEPTION = undefined;
         descriptor.get.IS_ASYNC = false;
         descriptor.get.IS_ASYNC_PENDING = false;
         descriptor.get.IS_EXCEPTION = false;
         descriptor.get.ORIGIN = options && options.get && options.get.origin;
         descriptor.get.REPLACEMENT = options && options.get && options.get.replacement;
-        descriptor.get.RESULT = void 0;
+        descriptor.get.RESULT = undefined;
       }
 
       if (repDescriptor.set) {
@@ -312,13 +312,13 @@ export function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass?) 
         descriptor.set.ARGS = {'*': []};
         descriptor.set.CALLS_COUNT = 0;
         descriptor.set.EXCEPTIONS_COUNT = 0;
-        descriptor.set.EXCEPTION = void 0;
+        descriptor.set.EXCEPTION = undefined;
         descriptor.set.IS_ASYNC = false;
         descriptor.set.IS_ASYNC_PENDING = false;
         descriptor.set.IS_EXCEPTION = false;
         descriptor.set.ORIGIN = options && options.set && options.set.origin;
         descriptor.set.REPLACEMENT = options && options.set && options.set.replacement;
-        descriptor.set.RESULT = void 0;
+        descriptor.set.RESULT = undefined;
       }
 
       break;
@@ -351,13 +351,13 @@ export function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass?) 
       descriptor.value.ARGS = {'*': []};
       descriptor.value.CALLS_COUNT = 0;
       descriptor.value.EXCEPTIONS_COUNT = 0;
-      descriptor.value.EXCEPTION = void 0;
+      descriptor.value.EXCEPTION = undefined;
       descriptor.value.IS_ASYNC = false;
       descriptor.value.IS_ASYNC_PENDING = false;
       descriptor.value.IS_EXCEPTION = false;
       descriptor.value.ORIGIN = options && options.origin;
       descriptor.value.REPLACEMENT = options && options.replacement;
-      descriptor.value.RESULT = void 0;
+      descriptor.value.RESULT = undefined;
 
       break;
 
@@ -370,19 +370,19 @@ export function spyOnDescriptor(obj, key, repDescriptor, options, bypassClass?) 
   return initialObj;
 }
 
-export function spyOnMethod(cls, key, rep, options) {
+export function spyOnMethod(cls, key, rep?, options?) {
   spyOnDescriptor(cls, key, rep || cls.prototype[key], options);
 
   return cls;
 }
 
-export function spyOnStaticDescriptor(cls, key, repDescriptor, options) {
+export function spyOnStaticDescriptor(cls, key, repDescriptor?, options?) {
   spyOnDescriptor(cls, key, repDescriptor || Object.getOwnPropertyDescriptor(cls, key), options, true);
 
   return cls;
 }
 
-export function spyOnStaticMethod(cls, key, rep, options) {
+export function spyOnStaticMethod(cls, key, rep?, options?) {
   spyOnDescriptor(cls, key, rep || cls[key], options, true);
 
   return cls;

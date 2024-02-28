@@ -2,6 +2,7 @@ import * as fixture from './fixture';
 import * as history from './history';
 import * as mock from './mock';
 import * as snapshot from './snapshot';
+import { Es5Class, Es6Class, Fn } from './utils';
 
 let observerId = 1000;
 
@@ -42,7 +43,7 @@ export class Observer {
     observerId += 1;
   }
 
-  setName(name) {
+  setName(name: Observer['_name']): this {
     this._fixture.setName(name);
     this._name = name;
     this._snapshot.setName(name);
@@ -50,52 +51,49 @@ export class Observer {
     return this;
   }
 
-  begin(epoch?: history.IHistoryEpoch['epoch'], comment?: history.IHistoryEpoch['comment']) {
+  begin(epoch?: history.IHistoryEpoch['epoch'], comment?: history.IHistoryEpoch['comment']): this {
     this._history.begin(epoch, comment);
 
     return this;
   }
 
-  end() {
+  end(): this {
     this._history.end();
 
     return this;
   }
 
-  by(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
-    const mockedCls = this._mock.by(cls, props, bypassOnBehalfOfInstanceReplacement);
+  by<T extends Es5Class | Es6Class = Es5Class | Es6Class>(cls: T, props?: mock.MockProps<T>, bypassOnBehalfOfInstanceReplacement?) {
+    const clazz = this._mock.by<T>(cls, props, bypassOnBehalfOfInstanceReplacement);
+    clazz.OBSERVER = this;
 
-    mockedCls.OBSERVER = this;
-
-    return mockedCls;
+    return clazz;
   }
 
-  from(props, bypassOnBehalfOfInstanceReplacement?) {
-    const mockedCls = this._mock.from(props, bypassOnBehalfOfInstanceReplacement);
+  from(props: mock.MockProps, bypassOnBehalfOfInstanceReplacement?) {
+    const clazz = this._mock.from(props, bypassOnBehalfOfInstanceReplacement);
+    clazz.OBSERVER = this;
 
-    mockedCls.OBSERVER = this;
-
-    return mockedCls;
+    return clazz;
   }
 
-  override(cls, props?, bypassOnBehalfOfInstanceReplacement?) {
-    const mockedCls = this._mock.override(cls, props, bypassOnBehalfOfInstanceReplacement);
-
-    mockedCls.OBSERVER = this;
+  override<T extends Es5Class | Es6Class = Es5Class | Es6Class>(cls: T, props?: mock.MockProps<T>, bypassOnBehalfOfInstanceReplacement?) {
+    const clazz = this._mock.override<T>(cls, props, bypassOnBehalfOfInstanceReplacement);
+    clazz.OBSERVER = this;
 
     this._history.addOnEndCallback(function () {
-      mockedCls.RESTORE();
+      clazz.RESTORE();
     });
 
-    return mockedCls;
+    return clazz;
   }
 
-  spy(fn) {
+  spy(fn: Fn) {
     return this._mock.spy(fn);
   }
 
   push(...args) {
-    this._fixture.push.apply(this._fixture, args);
+    this._fixture.push(...args);
 
     return this;
   }
@@ -114,7 +112,7 @@ export function create() {
 }
 
 export type SpiedFn<T> = (((...args: any[]) => T) | { new (...args: any[]): T }) & Partial<{
-  ARGS: any[];
+  ARGS: { '*': any[] } & Record<string, any>;
   CALLS_COUNT: number;
   EXCEPTIONS_COUNT: number;
   EXCEPTION: any;

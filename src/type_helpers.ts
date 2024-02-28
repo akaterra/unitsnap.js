@@ -1,131 +1,136 @@
-export class AnyType {
-  check() {
+export interface IType {
+  check(value?: any): boolean;
+  serialize(value?: any): any;
+}
+
+export class AnyType implements IType {
+  check(value?) {
     return true;
   }
 
-  serialize() {
+  serialize(value?) {
     return {$$data: null, $$type: 'any'};
   }
 }
 
-export class BooleanType {
-  check(value) {
+export class BooleanType implements IType {
+  check(value?) {
     return typeof value === 'boolean';
   }
 
-  serialize() {
+  serialize(value?) {
     return {$$data: null, $$type: 'boolean'};
   }
 }
 
-export class ClassOfType {
+export class ClassOfType implements IType {
   private _cls: any;
 
   constructor(cls) {
     this._cls = cls;
   }
 
-  check(value) {
-    return value !== void 0 && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls;
+  check(value?) {
+    return value !== undefined && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls;
   }
 
-  serialize() {
+  serialize(value?) {
     return {$$data: this._cls.prototype.constructor.name, $$type: 'classOf'};
   }
 }
 
-export class Continue {
-  check(value) {
+export class Continue implements IType {
+  check(value?) {
     return true;
   }
 
-  serialize() {
+  serialize(value?) {
     return Continue;
   }
 }
 
-export class DateType {
-  check(value) {
+export class DateType implements IType {
+  check(value?) {
     return value instanceof Date;
   }
 
-  serialize() {
+  serialize(value?) {
     return {$$data: null, $$type: 'date'};
   }
 }
 
-export class DateValue {
-  check(value) {
+export class DateValue implements IType {
+  check(value?) {
     return value instanceof Date;
   }
 
-  serialize(value) {
+  serialize(value?) {
     return value.toISOString();
   }
 }
 
-export class Ignore {
-  check(value) {
+export class Ignore implements IType {
+  check(value?) {
     return true;
   }
 
-  serialize() {
+  serialize(value?) {
     return Ignore;
   }
 }
 
-export class InstanceOfType {
+export class InstanceOfType implements IType {
   private _cls: any;
 
   constructor(cls) {
     this._cls = cls;
   }
 
-  check(value) {
+  check(value?) {
     return value instanceof this._cls;
   }
 
-  serialize(value) {
+  serialize(value?) {
     return {$$data: Object.getPrototypeOf(value).constructor.name, $$type: 'instanceOf'};
   }
 }
 
-export class NumberType {
-  check(value) {
+export class NumberType implements IType {
+  check(value?) {
     return typeof value === 'number';
   }
 
-  serialize() {
+  serialize(value?) {
     return {$$data: null, $$type: 'number'};
   }
 }
 
-export class StringType {
-  check(value) {
+export class StringType implements IType {
+  check(value?) {
     return typeof value === 'string';
   }
 
-  serialize() {
+  serialize(value?) {
     return {$$data: null, $$type: 'string'};
   }
 }
 
-export class This {
-  check() {
+export class This implements IType {
+  check(value?) {
     return true;
   }
 
-  serialize() {
+  serialize(value?) {
     return this;
   }
 }
 
-export class UndefinedType {
-  check(value) {
-    return value === void 0;
+export class UndefinedType implements IType {
+  check(value?) {
+    return value === undefined;
   }
 
-  serialize() {
+  serialize(value?) {
     return {$$data: null, $$type: 'undefined'};
   }
 }

@@ -261,9 +261,9 @@ describe('instance', () => {
 
       expect(e).toEqual({
         args: [
-          {alias: null, default: void 0, name: 'a', type: 'positional'},
-          {alias: null, default: void 0, name: 'b', type: 'positional'},
-          {alias: null, default: void 0, name: 'c', type: 'positional'},
+          {alias: null, default: undefined, name: 'a', type: 'positional'},
+          {alias: null, default: undefined, name: 'b', type: 'positional'},
+          {alias: null, default: undefined, name: 'c', type: 'positional'},
         ],
         argsDeclaration: 'a,b,c',
         name: null,
@@ -277,9 +277,9 @@ describe('instance', () => {
 
       expect(e).toEqual({
         args: [
-          {alias: null, default: void 0, name: 'a', type: 'positional'},
-          {alias: null, default: void 0, name: 'b', type: 'positional'},
-          {alias: null, default: void 0, name: 'c', type: 'positional'},
+          {alias: null, default: undefined, name: 'a', type: 'positional'},
+          {alias: null, default: undefined, name: 'b', type: 'positional'},
+          {alias: null, default: undefined, name: 'c', type: 'positional'},
         ],
         argsDeclaration: 'a,b,c',
         name: 'name',
@@ -293,9 +293,9 @@ describe('instance', () => {
 
       expect(e).toEqual({
         args: [
-          {alias: null, default: void 0, name: 'a', type: 'positional'},
-          {alias: null, default: void 0, name: 'b', type: 'positional'},
-          {alias: null, default: void 0, name: 'c', type: 'positional'},
+          {alias: null, default: undefined, name: 'a', type: 'positional'},
+          {alias: null, default: undefined, name: 'b', type: 'positional'},
+          {alias: null, default: undefined, name: 'c', type: 'positional'},
         ],
         argsDeclaration: 'a,b,c',
         name: null,
@@ -309,9 +309,9 @@ describe('instance', () => {
 
       expect(e).toEqual({
         args: [
-          {alias: null, default: void 0, name: 'a', type: 'positional'},
-          {alias: null, default: void 0, name: 'b', type: 'positional'},
-          {alias: null, default: void 0, name: 'c', type: 'positional'},
+          {alias: null, default: undefined, name: 'a', type: 'positional'},
+          {alias: null, default: undefined, name: 'b', type: 'positional'},
+          {alias: null, default: undefined, name: 'c', type: 'positional'},
         ],
         argsDeclaration: 'a,b,c',
         name: 'name',
@@ -325,9 +325,9 @@ describe('instance', () => {
 
       expect(e).toEqual({
         args: [
-          {alias: null, default: void 0, name: 'a', type: 'positional'},
-          {alias: null, default: void 0, name: 'b', type: 'positional'},
-          {alias: null, default: void 0, name: 'c', type: 'positional'},
+          {alias: null, default: undefined, name: 'a', type: 'positional'},
+          {alias: null, default: undefined, name: 'b', type: 'positional'},
+          {alias: null, default: undefined, name: 'c', type: 'positional'},
         ],
         argsDeclaration: 'a,b,c',
         name: null,
@@ -341,9 +341,9 @@ describe('instance', () => {
 
       expect(e).toEqual({
         args: [
-          {alias: null, default: void 0, name: 'a', type: 'positional'},
-          {alias: null, default: void 0, name: 'b', type: 'positional'},
-          {alias: null, default: void 0, name: 'c', type: 'positional'},
+          {alias: null, default: undefined, name: 'a', type: 'positional'},
+          {alias: null, default: undefined, name: 'b', type: 'positional'},
+          {alias: null, default: undefined, name: 'c', type: 'positional'},
         ],
         argsDeclaration: 'a,b,c',
         name: null,
@@ -363,9 +363,9 @@ describe('instance', () => {
 
       expect(e).toEqual({
         args: [
-          {alias: null, default: void 0, name: 'a', type: 'positional'},
-          {alias: null, default: void 0, name: 'b', type: 'positional'},
-          {alias: null, default: void 0, name: 'c', type: 'positional'},
+          {alias: null, default: undefined, name: 'a', type: 'positional'},
+          {alias: null, default: undefined, name: 'b', type: 'positional'},
+          {alias: null, default: undefined, name: 'c', type: 'positional'},
         ],
         argsDeclaration: 'a,b,c',
         name: 'a',
@@ -385,9 +385,9 @@ describe('instance', () => {
 
       expect(e).toEqual({
         args: [
-          {alias: null, default: void 0, name: 'a', type: 'positional'},
-          {alias: null, default: void 0, name: 'b', type: 'positional'},
-          {alias: null, default: void 0, name: 'c', type: 'positional'},
+          {alias: null, default: undefined, name: 'a', type: 'positional'},
+          {alias: null, default: undefined, name: 'b', type: 'positional'},
+          {alias: null, default: undefined, name: 'c', type: 'positional'},
         ],
         argsDeclaration: 'a,b,c',
         name: 'a',
