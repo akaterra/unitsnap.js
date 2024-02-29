@@ -1,8 +1,20 @@
-export type Es5Class<T = any> = (...args: any[]) => T & { prototype: T };
+export type Es5ClassDef<T> = (...args: unknown[]) => T & { prototype: T };
 
-export type Es6Class<T = any> = new (...args: any[]) => T;
+export type Es6ClassDef<T> = new (...args: unknown[]) => T;
 
-export type Fn<T = any> = (...args: any[]) => T;
+export type ClassDef<T> = Es5ClassDef<T> | Es6ClassDef<T>;
+
+export type Es5Class<
+  T = any,
+  P extends unknown[] = T extends ClassDef<T> ? ConstructorParameters<T> : any[]
+> = (...args: P) => T & { prototype: T };
+
+export type Es6Class<
+  T = any,
+  P extends unknown[] = T extends ClassDef<T> ? ConstructorParameters<T> : any[]
+> = new (...args: P) => T;
+
+export type Fn<T = any> = (...args: unknown[]) => T;
 
 export type IsAny<T> = unknown extends T ? T extends {} ? T : never : never;
 
@@ -14,11 +26,19 @@ export type FuncKeys<T> = {
 
 export type OnlyFuncs<T> = Pick<T, FuncKeys<T>>; 
 
-export type Constructor<T> = T extends abstract new (...args: infer P) => T
+export type Constructor<T> = T extends new (...args: infer P) => T
   ? (...args: P) => T
-  : T extends (...args: any[]) => T
+  : T extends (...args: unknown[]) => T
     ? T
     : never;
+
+export type ConstructorParameters<T> = T extends new (...args: infer P) => unknown
+  ? P
+  : T extends (...args: infer P) => unknown
+    ? P
+    : never;
+
+export type Prototype<T> = T extends { prototype: infer P } ? P : never;
 
 export function IntermediateClass<
   T,

@@ -63,7 +63,7 @@ export class Observer {
     return this;
   }
 
-  by<T extends Es5Class | Es6Class = Es5Class | Es6Class>(cls: T, props?: mock.MockProps<T>, bypassOnBehalfOfInstanceReplacement?) {
+  by<T extends Es5Class | Es6Class>(cls: T, props?: mock.MockProps<T>, bypassOnBehalfOfInstanceReplacement?) {
     const clazz = this._mock.by<T>(cls, props, bypassOnBehalfOfInstanceReplacement);
     clazz.OBSERVER = this;
 
@@ -77,7 +77,7 @@ export class Observer {
     return clazz;
   }
 
-  override<T extends Es5Class | Es6Class = Es5Class | Es6Class>(cls: T, props?: mock.MockProps<T>, bypassOnBehalfOfInstanceReplacement?) {
+  override<T extends Es5Class | Es6Class>(cls: T, props?: mock.MockProps<T>, bypassOnBehalfOfInstanceReplacement?) {
     const clazz = this._mock.override<T>(cls, props, bypassOnBehalfOfInstanceReplacement);
     clazz.OBSERVER = this;
 

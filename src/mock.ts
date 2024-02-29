@@ -3,17 +3,55 @@ import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spy
 import * as typeHelpers from './type_helpers';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { History } from './history';
-import { Es5Class, Es6Class, Fn, IntermediateClass } from './utils';
+import { ClassDef, Constructor, ConstructorParameters, Es5Class, Es6Class, Fn, IntermediateClass, Prototype } from './utils';
 import { Observer } from './observer';
 
-export type MockClass<T extends Es5Class | Es6Class = Es5Class | Es6Class> = Es6Class<T extends Es5Class ? ReturnType<T> : T extends Es6Class ? InstanceType<T> : never > & {
+export type MockClassDef<
+  T extends ClassDef<any> = Es6Class<any>,
+  // P extends MockProps = MockProps<T>,
+> = Es6Class<
+  T extends Es5Class
+    ? ReturnType<T> extends void ? any : ReturnType<T>
+    : T extends Es6Class
+      ? InstanceType<T>
+      : never,
+  ConstructorParameters<T>
+>
+
+export type MockClass<
+  T extends ClassDef<any> = Es6Class<any>,
+  // P extends MockProps = MockProps<T>,
+> = MockClassDef<T> & {
   OBSERVER?: Observer;
-  RESTORE?: () => void;
+  RESTORE?: () => T;
 };
 
 export type MockProps<T = any> = T extends Es6Class ? ((keyof T | string)[] | ({
   [P in keyof T]?: any;
 } & Record<string, any>)) : (string[] | Record<string, any>);
+
+class X {
+  constructor(x: number) {
+
+  }
+
+  a() {
+
+  }
+}
+
+// function Y(y: string) {
+
+// }
+
+// Y.prototype = {
+//   a() {}
+// }
+
+// const m: Mock = null;
+// const E = m.override(Y);
+// const e = new E(4);
+// e.a();
 
 export class Mock {
   explicitInstance: boolean;
@@ -33,11 +71,11 @@ export class Mock {
     return this._history;
   }
 
-  constructor(history) {
+  constructor(history?: History) {
     this._history = history;
 
-    if (history && history._observer) {
-      this._fixturePop = history._observer._fixture.pop.bind(history._observer._fixture);
+    if (history && history.observer) {
+      this._fixturePop = history.observer.env.fixture.pop.bind(history.observer.env.fixture);
     }
   }
 
@@ -47,7 +85,7 @@ export class Mock {
     return this;
   }
 
-  by<T extends Es5Class | Es6Class = Es5Class | Es6Class>(cls: T, props?: MockProps<T>, bypassOnBehalfOfInstanceReplacement?): MockClass<T> {
+  by<T extends Es5Class | Es6Class>(cls: T, props?: MockProps<T>, bypassOnBehalfOfInstanceReplacement?): MockClass<T> {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(maker.makeConstructor(cls, true, this.explicitInstance));
 
@@ -61,7 +99,7 @@ export class Mock {
     return clazz;
   }
 
-  override<T extends Es5Class | Es6Class = Es5Class | Es6Class>(cls: T, props?: MockProps<T>, bypassOnBehalfOfInstanceReplacement?): MockClass<T> {
+  override<T extends Es5Class | Es6Class>(cls: T, props?: MockProps<T>, bypassOnBehalfOfInstanceReplacement?): MockClass<T> {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(cls, true);
 
