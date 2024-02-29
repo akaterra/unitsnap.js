@@ -1,3 +1,5 @@
+import {ClassDef} from './utils';
+
 export interface IType {
   check(value?: any): boolean;
   serialize(value?: any): any;
@@ -24,10 +26,8 @@ export class BooleanType implements IType {
 }
 
 export class ClassOfType implements IType {
-  private _cls: any;
+  constructor(private _cls: ClassDef<unknown>) {
 
-  constructor(cls) {
-    this._cls = cls;
   }
 
   check(value?) {
@@ -80,10 +80,8 @@ export class Ignore implements IType {
 }
 
 export class InstanceOfType implements IType {
-  private _cls: any;
+  constructor(private _cls: ClassDef<unknown>) {
 
-  constructor(cls) {
-    this._cls = cls;
   }
 
   check(value?) {
@@ -102,6 +100,76 @@ export class NumberType implements IType {
 
   serialize(value?) {
     return {$$data: null, $$type: 'number'};
+  }
+}
+
+export class NumberIsCloseToType implements IType {
+  constructor(private _value: number, private _precision: number) {
+
+  }
+
+  check(value?) {
+    if (typeof value !== 'number') {
+      return false;
+    }
+
+    if (value === Number.POSITIVE_INFINITY && this._value === Number.POSITIVE_INFINITY) {
+      return true;
+    }
+    
+    if (value === Number.NEGATIVE_INFINITY && this._value === Number.NEGATIVE_INFINITY) {
+      return true;
+    }
+    
+    return Math.abs(this._value - value) < Math.pow(10, -this._precision) / 2;
+  }
+
+  serialize(value?) {
+    return {$$data: this._precision, $$type: 'numberIsPricise'};
+  }
+}
+
+export class RangeType implements IType {
+  constructor(_min: number, _max: number);
+
+  constructor(_min: string, _max: string);
+
+  constructor(_min: Date, _max: Date);
+
+  constructor(private _min: number | string | Date, private _max: number | string | Date) {
+
+  }
+
+  check(value?) {
+    if (!this.isSameType(value, this._min) || !this.isSameType(value, this._max)) {
+      return false;
+    }
+
+    return this._min <= value && value <= this._max;
+  }
+
+  serialize(value?) {
+    return {$$data: [ this.primitive(this._min), this.primitive(this._max) ], $$type: 'range'};
+  }
+
+  private isSameType(val1, val2): boolean {
+    if (val1 instanceof Date && !(val2 instanceof Date)) {
+      return false;
+    }
+
+    if (val2 instanceof Date && !(val1 instanceof Date)) {
+      return false;
+    }
+
+    return typeof val1 === typeof val2;
+  }
+
+  private primitive(value: number | string | Date) {
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    return value;
   }
 }
 
