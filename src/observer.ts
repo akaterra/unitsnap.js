@@ -63,8 +63,8 @@ export class Observer {
     return this;
   }
 
-  by<T extends Es5Class | Es6Class>(cls: T, props?: mock.MockProps<T>, bypassOnBehalfOfInstanceReplacement?) {
-    const clazz = this._mock.by<T>(cls, props, bypassOnBehalfOfInstanceReplacement);
+  by<T extends Es5Class | Es6Class, P extends keyof T | Record<string, any>>(cls: T, props?: mock.MockProps<T, P>, bypassOnBehalfOfInstanceReplacement?) {
+    const clazz = this._mock.by<T, P>(cls, props, bypassOnBehalfOfInstanceReplacement);
     clazz.OBSERVER = this;
 
     return clazz;
@@ -77,8 +77,8 @@ export class Observer {
     return clazz;
   }
 
-  override<T extends Es5Class | Es6Class>(cls: T, props?: mock.MockProps<T>, bypassOnBehalfOfInstanceReplacement?) {
-    const clazz = this._mock.override<T>(cls, props, bypassOnBehalfOfInstanceReplacement);
+  override<T extends Es5Class | Es6Class, P extends keyof T | Record<string, any>>(cls: T, props?: mock.MockProps<T, P>, bypassOnBehalfOfInstanceReplacement?) {
+    const clazz = this._mock.override<T, P>(cls, props, bypassOnBehalfOfInstanceReplacement);
     clazz.OBSERVER = this;
 
     this._history.addOnEndCallback(function () {

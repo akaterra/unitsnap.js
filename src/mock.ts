@@ -6,21 +6,62 @@ import { History } from './history';
 import { ClassDef, Constructor, ConstructorParameters, Es5Class, Es6Class, Fn, IntermediateClass, Prototype } from './utils';
 import { Observer } from './observer';
 
+export class Initial { private constructor() {}; private __initial() {} };
+export const Observe = Initial;
+export class This { private constructor() {}; private __this() {} };
+export class Null { private constructor() {}; private __null() {} };
+export class Undefined { private constructor() {}; private __undefined() {} };
+
 export type ExtractValue<T> = T extends _Custom<T> ? T['value'] : T;
 
-export type Primitive = string | number | boolean | symbol | null | undefined;
+export type PlaceholderFn<T, TThis = never> = T extends Initial | typeof Observe
+  ? never
+  : T extends typeof This
+    ? Fn<TThis>
+    : T extends typeof Null // same as null
+      ? Fn<null>
+      : T extends typeof Undefined // same as undefined
+        ? Fn<undefined>
+        : Fn<T>;
 
-export type MockPropsPrimitive<T, U = never> = T extends Primitive ? Fn<T> : T extends _Property ? ReturnType<T['descriptor']['get']> : U;
+export type NonFuncPlaceholders = typeof This | typeof Null | typeof Undefined;
+
+export type FuncPlaceholders = typeof Initial | typeof Observe | typeof This | typeof Null | typeof Undefined;
+      
+export type NonFunc = string |
+  number |
+  boolean |
+  symbol |
+  null |
+  undefined |
+  Record<string | number | symbol, unknown> |
+  unknown[] |
+  NonFuncPlaceholders;
+
+export type MockPropsNonFunc<T, U = never, TThis = never> = T extends NonFunc ? PlaceholderFn<T, TThis> : T extends _Property ? ReturnType<T['descriptor']['get']> : U;
 
 export type MockPropsFunc<T, U = never> = T extends Fn ? T : U;
 
-export type MockPropsStaticPrimitive<T, U = never> = T extends _StaticProperty ? ReturnType<T['descriptor']['get']> : U;
+export type MockPropsStaticNonFunc<T, U = never> = T extends _StaticProperty ? PlaceholderFn<ReturnType<T['descriptor']['get']>> : U;
 
 export type MockPropsStaticFunc<T, U = never> = T extends _StaticMethod ? T['fn'] : U;
 
 export type MockClassDef<
   T extends ClassDef<any> = Es6Class<any>,
   P extends keyof T | Record<string, any> = keyof T,
+  TProps extends Record<string, any> = {
+    [K in keyof MockProps<T, P>]?: MockPropsNonFunc<
+      MockProps<T, P>[K],
+      MockPropsFunc<MockProps<T, P>[K]>,
+      MockClassDef<T, P>
+    >;
+  },
+  TStaticProps extends Record<string, any> = {
+    [K in keyof MockProps<T, P>]?: MockPropsStaticNonFunc<
+      MockProps<T, P>[K],
+      MockPropsStaticFunc<MockProps<T, P>[K]>
+    >;
+  }
 > = Es6Class<
   T extends Es5Class
     ? ReturnType<T> extends void ? any : ReturnType<T>
@@ -28,18 +69,8 @@ export type MockClassDef<
       ? InstanceType<T>
       : never,
   ConstructorParameters<T>,
-  P extends keyof T ? never : {
-    [K in keyof MockProps<T, P>]?: MockPropsPrimitive<
-      MockProps<T, P>[K],
-      MockPropsFunc<MockProps<T, P>[K]>
-    >;
-  }
-> & T & {
-  [K in keyof MockProps<T, P>]?: MockPropsStaticPrimitive<
-    MockProps<T, P>[K],
-    MockPropsStaticFunc<MockProps<T, P>[K]>
-  >;
-};
+  P extends keyof T ? never : TProps
+> & TStaticProps;
 
 export type MockClass<
   T extends ClassDef<any> = Es6Class<any>,
@@ -54,31 +85,37 @@ export type MockProps<
   P extends keyof T | Record<string, any> = keyof T,
 > = P extends keyof T ? {} : P;
 
-// type check
+// type check, never runs
 if (0) {
   class X {
     constructor(x: number) {}
-  
     a(a?: string) { return 'a' }
-
-    d(d?: string) { return 'd' }
+    b(b?: string) { return 'b' }
+    c(c?: string) { return 'c' }
+    static A(a?: string) { return 'a' }
+    static B(b?: string) { return 'b' }
+    static C(c?: string) { return 'c' }
   }
   
   function Y(y: string) {
-  
   }
-  
+
   Y.prototype = {
-    a(a?: string) { return 'a' }
+    a(a?: string) { return 'a' },
+    b(b?: string) { return 'b' },
+    c(c?: string) { return 'c' },
   }
 
   const m: Mock = null;
-  const E = m.override(X, { b: StaticMethod(() => 1), c: 1, d: 1 });
-  E.b() === 1;
+  const E = m.override(X, { a: StaticMethod(() => 1), b: 1, c: Observe, n: Null, t: This, u: Undefined });
+  E.a() === 1;
   const e = new E(1);
   e.a() === 'a';
+  e.b() === 1;
   e.c() === 1;
-  e.d() === 'd';
+  e.n() === null;
+  e.t() === e;
+  e.u() === undefined;
 }
 
 export class Mock {
@@ -236,7 +273,7 @@ export function StaticProperty<T extends ReturnType<_StaticProperty['descriptor'
   return new _StaticProperty<T>(descriptor);
 }
 
-export class _Custom<T = any> {
+export class _Custom<T = typeof Observe> {
   _argsAnnotation: string[];
   _epoch: string;
   _exclude: boolean;
@@ -266,27 +303,21 @@ export class _Custom<T = any> {
   }
 }
 
-export function Custom<T = any>(value?: T) {
+export function Custom<T = typeof Observe>(value?: T) {
   return new _Custom<T>(value);
-};
+}
 
-export function ArgsAnnotation<T = any>(argsAnnotation: _Custom<T>['_argsAnnotation'], value?: T) {
+export function ArgsAnnotation<T = typeof Observe>(argsAnnotation: _Custom<T>['_argsAnnotation'], value?: T) {
   return new _Custom<T>(value).argsAnnotation(argsAnnotation);
 }
 
-export function Epoch<T = any>(epoch: _Custom<T>['_epoch'], value?: T) {
+export function Epoch<T = typeof Observe>(epoch: _Custom<T>['_epoch'], value?: T) {
   return new _Custom<T>(value).epoch(epoch);
 }
 
-export function Exclude<T = any>(value?: T) {
+export function Exclude<T = typeof Observe>(value?: T) {
   return new _Custom<T>(value).exclude();
 }
-
-export const Initial = Symbol('Initial');
-export const Observe = Initial;
-export const This = Symbol('This');
-export const Null = Symbol('Null');
-export const Undefined = Symbol('Undefined');
 
 const CLASS_NATIVE_PROPS = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
 
@@ -361,7 +392,7 @@ export class ClassMaker {
               break;
 
             default:
-              acc[key] = new Property(descriptor.descriptor);
+              acc[key] = Property(descriptor.descriptor);
           }
         } else {
           acc[key] = cls;

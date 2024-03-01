@@ -8,13 +8,13 @@ export type Es5Class<
   T = any,
   P extends unknown[] = T extends ClassDef<T> ? ConstructorParameters<T> : any[],
   Q extends Record<string, any> = {}
-> = (...args: P) => T & Q;
+> = (...args: P) => Omit<T, keyof Q> & Q;
 
 export type Es6Class<
   T = any,
   P extends unknown[] = T extends ClassDef<T> ? ConstructorParameters<T> : any[],
-  Q extends Record<string, any> = {}
-> = new (...args: P) => T & Q;
+  Q extends Record<string, any> = {},
+> = new (...args: P) => Omit<T, keyof Q> & Q;
 
 export type Fn<T = any, P extends unknown[] = unknown[]> = (...args: P) => T;
 
