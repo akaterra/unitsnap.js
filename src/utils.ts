@@ -6,15 +6,17 @@ export type ClassDef<T> = Es5ClassDef<T> | Es6ClassDef<T>;
 
 export type Es5Class<
   T = any,
-  P extends unknown[] = T extends ClassDef<T> ? ConstructorParameters<T> : any[]
-> = (...args: P) => T & { prototype: T };
+  P extends unknown[] = T extends ClassDef<T> ? ConstructorParameters<T> : any[],
+  Q extends Record<string, any> = {}
+> = (...args: P) => T & Q;
 
 export type Es6Class<
   T = any,
-  P extends unknown[] = T extends ClassDef<T> ? ConstructorParameters<T> : any[]
-> = new (...args: P) => T;
+  P extends unknown[] = T extends ClassDef<T> ? ConstructorParameters<T> : any[],
+  Q extends Record<string, any> = {}
+> = new (...args: P) => T & Q;
 
-export type Fn<T = any> = (...args: unknown[]) => T;
+export type Fn<T = any, P extends unknown[] = unknown[]> = (...args: P) => T;
 
 export type IsAny<T> = unknown extends T ? T extends {} ? T : never : never;
 

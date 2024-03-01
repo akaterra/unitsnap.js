@@ -6,52 +6,80 @@ import { History } from './history';
 import { ClassDef, Constructor, ConstructorParameters, Es5Class, Es6Class, Fn, IntermediateClass, Prototype } from './utils';
 import { Observer } from './observer';
 
+export type ExtractValue<T> = T extends _Custom<T> ? T['value'] : T;
+
+export type Primitive = string | number | boolean | symbol | null | undefined;
+
+export type MockPropsPrimitive<T, U = never> = T extends Primitive ? Fn<T> : T extends _Property ? ReturnType<T['descriptor']['get']> : U;
+
+export type MockPropsFunc<T, U = never> = T extends Fn ? T : U;
+
+export type MockPropsStaticPrimitive<T, U = never> = T extends _StaticProperty ? ReturnType<T['descriptor']['get']> : U;
+
+export type MockPropsStaticFunc<T, U = never> = T extends _StaticMethod ? T['fn'] : U;
+
 export type MockClassDef<
   T extends ClassDef<any> = Es6Class<any>,
-  // P extends MockProps = MockProps<T>,
+  P extends keyof T | Record<string, any> = keyof T,
 > = Es6Class<
   T extends Es5Class
     ? ReturnType<T> extends void ? any : ReturnType<T>
     : T extends Es6Class
       ? InstanceType<T>
       : never,
-  ConstructorParameters<T>
->
+  ConstructorParameters<T>,
+  P extends keyof T ? never : {
+    [K in keyof MockProps<T, P>]?: MockPropsPrimitive<
+      MockProps<T, P>[K],
+      MockPropsFunc<MockProps<T, P>[K]>
+    >;
+  }
+> & T & {
+  [K in keyof MockProps<T, P>]?: MockPropsStaticPrimitive<
+    MockProps<T, P>[K],
+    MockPropsStaticFunc<MockProps<T, P>[K]>
+  >;
+};
 
 export type MockClass<
   T extends ClassDef<any> = Es6Class<any>,
-  // P extends MockProps = MockProps<T>,
-> = MockClassDef<T> & {
+  P extends keyof T | Record<string, any> = keyof T,
+> = MockClassDef<T, P> & {
   OBSERVER?: Observer;
   RESTORE?: () => T;
 };
 
-export type MockProps<T = any> = T extends Es6Class ? ((keyof T | string)[] | ({
-  [P in keyof T]?: any;
-} & Record<string, any>)) : (string[] | Record<string, any>);
+export type MockProps<
+  T extends ClassDef<any> = Es6Class<any>,
+  P extends keyof T | Record<string, any> = keyof T,
+> = P extends keyof T ? {} : P;
 
-class X {
-  constructor(x: number) {
+// type check
+if (0) {
+  class X {
+    constructor(x: number) {}
+  
+    a(a?: string) { return 'a' }
 
+    d(d?: string) { return 'd' }
+  }
+  
+  function Y(y: string) {
+  
+  }
+  
+  Y.prototype = {
+    a(a?: string) { return 'a' }
   }
 
-  a() {
-
-  }
+  const m: Mock = null;
+  const E = m.override(X, { b: StaticMethod(() => 1), c: 1, d: 1 });
+  E.b() === 1;
+  const e = new E(1);
+  e.a() === 'a';
+  e.c() === 1;
+  e.d() === 'd';
 }
-
-// function Y(y: string) {
-
-// }
-
-// Y.prototype = {
-//   a() {}
-// }
-
-// const m: Mock = null;
-// const E = m.override(Y);
-// const e = new E(4);
-// e.a();
 
 export class Mock {
   explicitInstance: boolean;
@@ -85,7 +113,7 @@ export class Mock {
     return this;
   }
 
-  by<T extends Es5Class | Es6Class>(cls: T, props?: MockProps<T>, bypassOnBehalfOfInstanceReplacement?): MockClass<T> {
+  by<T extends Es5Class | Es6Class, P extends keyof T | Record<string, any>>(cls: T, props?: MockProps<T, P>, bypassOnBehalfOfInstanceReplacement?): MockClass<T, P> {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(maker.makeConstructor(cls, true, this.explicitInstance));
 
@@ -99,7 +127,7 @@ export class Mock {
     return clazz;
   }
 
-  override<T extends Es5Class | Es6Class>(cls: T, props?: MockProps<T>, bypassOnBehalfOfInstanceReplacement?): MockClass<T> {
+  override<T extends Es5Class | Es6Class, P extends keyof T | Record<string, any>>(cls: T, props?: MockProps<T, P>, bypassOnBehalfOfInstanceReplacement?): MockClass<T, P> {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(cls, true);
 
@@ -149,139 +177,114 @@ export class Mock {
   }
 }
 
-export interface _Property {
-  descriptor: { get?: PropertyDescriptor['get'], set?: PropertyDescriptor['set'] };
-  new(descriptor?: _Property['descriptor']): _Property;
-  get(get): this;
-  set(set): this;
-}
+export type PropertyDescriptor<T = any> = {
+  get?: Fn<T>;
+  set?: Fn<void, Parameters<(value: T) => void>>;
+};
 
-export const Property = IntermediateClass<_Property>({
-  get(get) {
+export class _Property<T = any> {
+  constructor(public readonly descriptor: PropertyDescriptor<T> = {}) {
+
+  }
+
+  get(get: _Property<T>['descriptor']['get']): this {
     this.descriptor.get = get;
 
     return this;
-  },
-  set(set) {
+  }
+
+  set(set: _Property<T>['descriptor']['set']): this {
     this.descriptor.set = set;
 
     return this;
   }
-}, (instance, descriptor?) => {
-  instance.descriptor = descriptor ?? {};
-});
+}
 
-export class _StaticMethod {
-  value: any;
+export function Property<T extends ReturnType<_Property['descriptor']['get']>>(descriptor?: _Property<T>['descriptor']) {
+  return new _Property<T>(descriptor);
+}
 
-  constructor(value?) {
-    this.value = value ?? Function;
+export class _StaticMethod<T extends Fn = Fn> {
+  constructor(public readonly fn?: T) {
+
   }
 }
 
-export interface _StaticMethod {
-  value: PropertyDescriptor['value'];
-  new(value?): _StaticMethod;
+export function StaticMethod<T extends _StaticMethod['fn']>(fn?: _StaticMethod<T>['fn']) {
+  return new _StaticMethod<T>(fn);
 }
 
-export const StaticMethod = IntermediateClass<_StaticMethod>(null, (instance, value?) => {
-  instance.value = value ?? Function;
-});
+export class _StaticProperty<T = any> {
+  constructor(public readonly descriptor: PropertyDescriptor<T> = {}) {
 
-export interface _StaticProperty {
-  descriptor: { get?: PropertyDescriptor['get'], set?: PropertyDescriptor['set'] };
-  new(descriptor?: _StaticProperty['descriptor']): _StaticProperty;
-  get(get): this;
-  set(set): this;
-}
+  }
 
-export const StaticProperty = IntermediateClass<_StaticProperty>({
-  get(get) {
+  get(get: _StaticProperty<T>['descriptor']['get']): this {
     this.descriptor.get = get;
 
     return this;
-  },
-  set(set) {
+  }
+
+  set(set: _StaticProperty<T>['descriptor']['set']): this {
     this.descriptor.set = set;
 
     return this;
   }
-}, (instance, descriptor?) => {
-  instance.descriptor = descriptor ?? {};
-});
+}
 
-export interface _Custom {
-  value: any;
-  _argsAnnotation: any;
-  _epoch: any;
+export function StaticProperty<T extends ReturnType<_StaticProperty['descriptor']['get']>>(descriptor?: _StaticProperty<T>['descriptor']) {
+  return new _StaticProperty<T>(descriptor);
+}
+
+export class _Custom<T = any> {
+  _argsAnnotation: string[];
+  _epoch: string;
   _exclude: boolean;
-  new(value?): _Custom;
-  argsAnnotation(argsAnnotation): this;
-  epoch(epoch): this;
-  exclude(): this;
-}
 
-export const Custom = IntermediateClass<_Custom>({
-  argsAnnotation(argsAnnotation) {
+  constructor(public readonly value?: T) {
+    if (value instanceof _Custom) {
+      this.value = new _Custom<T>(value.value) as unknown as T;
+    }
+  }
+
+  argsAnnotation(argsAnnotation: _Custom['_argsAnnotation']): this {
     this._argsAnnotation = argsAnnotation;
 
     return this;
-  },
-  epoch(epoch) {
+  }
+
+  epoch(epoch: _Custom['_epoch']): this {
     this._epoch = epoch;
 
     return this;
-  },
-  exclude() {
+  }
+
+  exclude(): this {
     this._exclude = true;
 
     return this;
   }
-}, (instance, value?) => {
-  instance.value = value ?? Function;
-}, null, 'Custom');
-
-export interface _ArgsAnnotation {
-  new(value, argsAnnotation): _Custom;
 }
 
-export const ArgsAnnotation = IntermediateClass<_Custom, _ArgsAnnotation>(null, (instance, value, argsAnnotation) => {
-  if (value instanceof Custom) {
-    value = Custom(value.value);
-  }
+export function Custom<T = any>(value?: T) {
+  return new _Custom<T>(value);
+};
 
-  instance.value = value ?? Function;
-  instance.argsAnnotation(argsAnnotation);
-}, Custom);
-
-export interface _Epoch {
-  new(value, epoch): _Custom;
+export function ArgsAnnotation<T = any>(argsAnnotation: _Custom<T>['_argsAnnotation'], value?: T) {
+  return new _Custom<T>(value).argsAnnotation(argsAnnotation);
 }
 
-export const Epoch = IntermediateClass<_Custom, _Epoch>(null, (instance, value, epoch) => {
-  if (value instanceof Custom) {
-    value = Custom(value.value);
-  }
- 
-  instance.value = value ?? Function;
-  instance.epoch(epoch);
-}, Custom);
-
-export interface _Exclude {
-  new(value): _Custom;
+export function Epoch<T = any>(epoch: _Custom<T>['_epoch'], value?: T) {
+  return new _Custom<T>(value).epoch(epoch);
 }
 
-export const Exclude = IntermediateClass<_Custom, _Exclude>(null, (instance, value) => {
-  if (value instanceof Custom) {
-    value = Custom(value.value);
-  }
- 
-  instance.value = value ?? Function;
-  instance.exclude();
-}, Custom);
+export function Exclude<T = any>(value?: T) {
+  return new _Custom<T>(value).exclude();
+}
 
 export const Initial = Symbol('Initial');
 export const Observe = Initial;
+export const This = Symbol('This');
 export const Null = Symbol('Null');
 export const Undefined = Symbol('Undefined');
 

@@ -5,13 +5,8 @@ describe('Property', () => {
   const descriptor = {};
 
   it('should be constructed by call as factory', () => {
-    expect(unitsnap.Property(descriptor) instanceof unitsnap.Property).toBeTruthy();
-    expect(new unitsnap.Property(descriptor).descriptor).toBe(descriptor);
-  });
-
-  it('should be constructed by "new"', () => {
-    expect(new unitsnap.Property(descriptor) instanceof unitsnap.Property).toBeTruthy();
-    expect(new unitsnap.Property(descriptor).descriptor).toBe(descriptor);
+    expect(unitsnap.Property(descriptor) instanceof unitsnap._Property).toBeTruthy();
+    expect(unitsnap.Property(descriptor).descriptor).toBe(descriptor);
   });
 });
 
@@ -19,37 +14,36 @@ describe('StaticProperty', () => {
   const descriptor = {};
 
   it('should be constructed by call as factory', () => {
-    expect(unitsnap.StaticProperty(descriptor) instanceof unitsnap.StaticProperty).toBeTruthy();
-    expect(new unitsnap.StaticProperty(descriptor).descriptor).toBe(descriptor);
-  });
-
-  it('should be constructed by "new"', () => {
-    expect(new unitsnap.StaticProperty(descriptor) instanceof unitsnap.StaticProperty).toBeTruthy();
-    expect(new unitsnap.StaticProperty(descriptor).descriptor).toBe(descriptor);
+    expect(unitsnap.StaticProperty(descriptor) instanceof unitsnap._StaticProperty).toBeTruthy();
+    expect(unitsnap.StaticProperty(descriptor).descriptor).toBe(descriptor);
   });
 });
 
 describe('StaticMethod', () => {
-  const value = {};
+  const fn = () => {};
 
   it('should be constructed by call as factory', () => {
-    expect(unitsnap.StaticMethod(value) instanceof unitsnap.StaticMethod).toBeTruthy();
-    expect(new unitsnap.StaticMethod(value).value).toBe(value);
-  });
-
-  it('should be constructed by "new"', () => {
-    expect(new unitsnap.StaticMethod(value) instanceof unitsnap.StaticMethod).toBeTruthy();
-    expect(new unitsnap.StaticMethod(value).value).toBe(value);
+    expect(unitsnap.StaticMethod(fn) instanceof unitsnap._StaticMethod).toBeTruthy();
+    expect(unitsnap.StaticMethod(fn).fn).toBe(fn);
   });
 });
 
 describe('Custom', () => {
   describe('when uses ArgsAnnotation', () => {
-    it('should return Custom with enabled "argsAnnotation"', () => {
+    it('should return Custom with initialized "argsAnnotation"', () => {
       const e = unitsnap.ArgsAnnotation(null, ['a']);
 
-      expect(e instanceof unitsnap.Custom).toBeTruthy();
+      expect(e instanceof unitsnap._Custom).toBeTruthy();
       expect(e._argsAnnotation).toEqual(['a']);
+    });
+  });
+
+  describe('when uses Epoch', () => {
+    it('should return Custom with initialized "epoch"', () => {
+      const e = unitsnap.Epoch(null, 'epoch');
+
+      expect(e instanceof unitsnap._Custom).toBeTruthy();
+      expect(e._epoch).toBe('epoch');
     });
   });
 
@@ -57,7 +51,7 @@ describe('Custom', () => {
     it('should return Custom with enabled "exclude"', () => {
       const e = unitsnap.Exclude(null);
 
-      expect(e instanceof unitsnap.Custom).toBeTruthy();
+      expect(e instanceof unitsnap._Custom).toBeTruthy();
       expect(e._exclude).toBeTruthy();
     });
   });
@@ -70,7 +64,7 @@ describe('Mock', () => {
   const observer = new unitsnap.Observer();
 
   class A {
-    constructor(p) {
+    constructor(p?, ...args: any[]) {
 
     }
 
@@ -80,15 +74,15 @@ describe('Mock', () => {
   }
 
   class B extends A {
-    a(a) {
+    a(a?) {
       return a;
     }
 
-    b(a, b) {
+    b(a?, b?) {
       return b;
     }
 
-    c(a) {
+    c(a?, ...args: any[]): number {
       throw new Error('error');
     }
 
@@ -116,7 +110,7 @@ describe('Mock', () => {
 
     }
 
-    static a() {
+    static a(...args: any[]) {
 
     }
 
@@ -281,7 +275,7 @@ describe('Mock', () => {
     it('should built mock be instance of original class', () => {
       const E = new unitsnap.Mock(history.begin()).by(A);
 
-      expect(new E instanceof A);
+      expect(new E(null) instanceof A);
     });
 
     it('should save original constructor in class prototype', () => {
