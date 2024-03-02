@@ -183,15 +183,15 @@ export class StringType implements IType {
   }
 }
 
-export class This implements IType {
-  check(value?) {
-    return true;
-  }
+// export class This implements IType {
+//   check(value?) {
+//     return true;
+//   }
 
-  serialize(value?) {
-    return this;
-  }
-}
+//   serialize(value?) {
+//     return this;
+//   }
+// }
 
 export class UndefinedType implements IType {
   check(value?) {

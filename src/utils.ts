@@ -52,51 +52,6 @@ export type ConstructorReturnType<T> = T extends new (...args: unknown[]) => inf
     ? P
     : never;
 
-export type Prototype<T> = T extends { prototype: infer P } ? P : never;
-
-export function IntermediateClass<
-  T,
-  A = T
->(
-  prototype?: OnlyFuncs<Omit<T, 'new'>>,
-  init?: (instance: T, ...args: Parameters<Constructor<A>>) => void,
-  cls?: new (...args: Parameters<Constructor<A>>) => T,
-  clsName?: string,
-): {
-  new (...args: Parameters<Constructor<A>>): T;
-  (...args: Parameters<Constructor<A>>): T;
-} {
-  const clazz = function (...args: Parameters<Constructor<A>>) {
-    let instance;
-
-    if (!(this instanceof cls)) {
-      instance = new cls(...args);
-    } else {
-      instance = this;
-    }
-
-    if (init) {
-      init(instance, ...args);
-    }
-
-    return instance;
-  } as any;
-
-  if (clsName ?? cls) {
-    Object.defineProperty(clazz, 'name', { value: clsName ?? clazz.name });
-  }
-
-  if (!cls) {
-    cls = clazz;
-  }
-
-  if (prototype) {
-    cls.prototype = prototype;
-  }
-
-  return clazz as any;
-}
-
 export type PositiveInteger<T extends number> = number extends T 
   ? never 
   : `${T}` extends `-${string}` | `${string}.${string}` | `0`

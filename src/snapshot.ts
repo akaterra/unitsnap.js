@@ -534,7 +534,6 @@ const basicTypes: [ any, typeHelpers.IType ][] = [
   [typeHelpers.NumberType, new typeHelpers.NumberType()],
   [String, new typeHelpers.StringType()],
   [typeHelpers.StringType, new typeHelpers.StringType()],
-  [typeHelpers.This, new typeHelpers.This()],
   [undefined, new typeHelpers.UndefinedType()],
   [typeHelpers.UndefinedType, new typeHelpers.UndefinedType()],
 ];

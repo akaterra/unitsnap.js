@@ -1,9 +1,8 @@
 import * as fixture from './fixture';
 import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod } from './spy';
-import * as typeHelpers from './type_helpers';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { History } from './history';
-import { ClassDef, Constructor, ConstructorParameters, ConstructorReturnType, Es5Class, Es6Class, Fn, IntermediateClass, NotNeverKeys, Prototype } from './utils';
+import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5Class, Es6Class, Fn, NotNeverKeys } from './utils';
 import { Observer } from './observer';
 
 export class Observe { private constructor() {} private __observe() {} };
@@ -18,21 +17,13 @@ export type PlaceholderFn<T, TSelf = never> = T extends typeof Observe | typeof 
   ? never
   : T extends typeof This
     ? Fn<TSelf>
-    : T extends typeof Null // same as null
+    : T extends typeof Null // same as "null"
       ? Fn<null>
-      : T extends typeof Undefined // same as undefined
+      : T extends typeof Undefined // same as "undefined"
         ? Fn<undefined>
-        : Fn<T>;
-
-export type PlaceholderMaybeFn<T, TSelf = never> = T extends typeof Observe | typeof Initial
-  ? never
-  : T extends typeof This
-    ? Fn<TSelf>
-    : T extends typeof Null // same as null
-      ? Fn<null>
-      : T extends typeof Undefined // same as undefined
-        ? Fn<undefined>
-        : T;
+        : T extends Fn
+          ? T
+          : Fn<T>;
 
 export type NonFuncPlaceholders = typeof This | typeof Null | typeof Undefined;
 
@@ -47,20 +38,20 @@ export type MockPropsNonFunc<T, U = never, TSelf = never> = T extends NonFunc
   : T extends _Property ? ReturnType<T['descriptor']['get']> : U;
 
 export type MockPropsFunc<T, U = never, TSelf = never> = T extends Fn
-  ? PlaceholderMaybeFn<T, TSelf>
+  ? PlaceholderFn<T, TSelf>
   : U;
 
 export type MockPropsStaticNonFunc<T, U = never, TSelf = never> = T extends _StaticProperty
   ? PlaceholderFn<ReturnType<T['descriptor']['get']>, TSelf>
   : U;
 
-export type MockPropsStaticFunc<T, U = never, TSelf = never> = T extends _StaticMethod<any>
-  ? PlaceholderMaybeFn<T['fn'], TSelf>
+export type MockPropsStaticFunc<T, U = never, TSelf = never> = T extends _StaticMethod
+  ? PlaceholderFn<T['fn'], TSelf>
   : U;
 
 export type MockPropsMap = Record<
   string,
-  Simple | FuncPlaceholders | _StaticMethod<any> | _StaticProperty
+  Simple | FuncPlaceholders | _StaticMethod | _StaticProperty
 >;
 
 export type MockProps<
@@ -77,7 +68,7 @@ export type MockClass<
   T extends ClassDef<any> = Es6Class<any>,
   P extends keyof T | Record<string, any> = keyof T,
   TConstructorReturnType = ConstructorReturnType<T>,
-  TMockProps = MockProps<T, P>,
+  TMockProps = P extends keyof T ? { [K in P]: Observe } : P,
   TProps extends Record<string, any> = {
     [K in keyof TMockProps]?: MockPropsNonFunc<
       TMockProps[K],
@@ -260,8 +251,8 @@ export class Mock {
 }
 
 export type PropertyDescriptor<T = any> = {
-  get?: Fn<T>;
-  set?: Fn<void, Parameters<(value: T) => void>>;
+  get?: T;
+  set?: T;
 };
 
 export class _Property<T = any> {
@@ -286,13 +277,13 @@ export function Property<T extends ReturnType<_Property['descriptor']['get']>>(d
   return new _Property<T>(descriptor);
 }
 
-export class _StaticMethod<T extends Fn | FuncPlaceholders> {
+export class _StaticMethod<T = any> {
   constructor(public readonly fn?: T) {
 
   }
 }
 
-export function StaticMethod<T extends Fn | FuncPlaceholders>(fn?: _StaticMethod<T>['fn']) {
+export function StaticMethod<T = any>(fn?: _StaticMethod<T>['fn']) {
   return new _StaticMethod<T>(fn);
 }
 
@@ -419,7 +410,7 @@ export class ClassMaker {
     this._clsProtoScope = copyScope(cls.prototype);
     this._mock = mock;
 
-    if (! props) {
+    if (!props) {
       props = Object.getOwnPropertyNames(cls.prototype);
 
       props.push('constructor');
@@ -778,7 +769,7 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
     return prop.pop.bind(prop);
   }
 
-  if (prop === typeHelpers.This) {
+  if (prop === This) {
     return function () { return this; }
   }
 
