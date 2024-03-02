@@ -3,18 +3,18 @@ import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spy
 import * as typeHelpers from './type_helpers';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { History } from './history';
-import { ClassDef, Constructor, ConstructorParameters, Es5Class, Es6Class, Fn, IntermediateClass, Prototype } from './utils';
+import { ClassDef, Constructor, ConstructorParameters, ConstructorReturnType, Es5Class, Es6Class, Fn, IntermediateClass, NotNeverKeys, Prototype } from './utils';
 import { Observer } from './observer';
 
-export class Initial { private constructor() {}; private __initial() {} };
-export const Observe = Initial;
-export class This { private constructor() {}; private __this() {} };
-export class Null { private constructor() {}; private __null() {} };
-export class Undefined { private constructor() {}; private __undefined() {} };
+export class Observe { private constructor() {} private __observe() {} };
+export const Initial = Observe;
+export class This { private constructor() {} private __this() {} };
+export class Null { private constructor() {} private __null() {} };
+export class Undefined { private constructor() {} private __undefined() {} };
 
-export type ExtractValue<T> = T extends _Custom<T> ? T['value'] : T;
+export type CustomValue<T> = T extends _Custom<T> ? T['value'] : T;
 
-export type PlaceholderFn<T, TThis = never> = T extends Initial | typeof Observe
+export type PlaceholderFn<T, TThis = never> = T extends Observe | typeof Initial
   ? never
   : T extends typeof This
     ? Fn<TThis>
@@ -34,15 +34,15 @@ export type NonFunc = string |
   symbol |
   null |
   undefined |
-  Record<string | number | symbol, unknown> |
-  unknown[] |
+  // Record<string | number | symbol, unknown> |
+  // unknown[] |
   NonFuncPlaceholders;
 
-export type MockPropsNonFunc<T, U = never, TThis = never> = T extends NonFunc ? PlaceholderFn<T, TThis> : T extends _Property ? ReturnType<T['descriptor']['get']> : U;
+export type MockPropsNonFunc<T, U = never, TSelf = never> = T extends NonFunc ? PlaceholderFn<T, TSelf> : T extends _Property ? ReturnType<T['descriptor']['get']> : U;
 
 export type MockPropsFunc<T, U = never> = T extends Fn ? T : U;
 
-export type MockPropsStaticNonFunc<T, U = never> = T extends _StaticProperty ? PlaceholderFn<ReturnType<T['descriptor']['get']>> : U;
+export type MockPropsStaticNonFunc<T, U = never, TSelf = never> = T extends _StaticProperty ? PlaceholderFn<ReturnType<T['descriptor']['get']>, TSelf> : U;
 
 export type MockPropsStaticFunc<T, U = never> = T extends _StaticMethod ? T['fn'] : U;
 
@@ -53,29 +53,32 @@ export type MockClassDef<
     [K in keyof MockProps<T, P>]?: MockPropsNonFunc<
       MockProps<T, P>[K],
       MockPropsFunc<MockProps<T, P>[K]>,
-      MockClassDef<T, P>
+      ConstructorReturnType<T>
     >;
   },
   TStaticProps extends Record<string, any> = {
     [K in keyof MockProps<T, P>]?: MockPropsStaticNonFunc<
       MockProps<T, P>[K],
       MockPropsStaticFunc<MockProps<T, P>[K]>
+      // MockClassDef<T, P>
     >;
-  }
-> = Es6Class<
-  T extends Es5Class
+  },
+  TConstructable = T extends Es5Class
     ? ReturnType<T> extends void ? any : ReturnType<T>
     : T extends Es6Class
       ? InstanceType<T>
-      : never,
+      : never
+> = Es6Class<
+  TConstructable,
   ConstructorParameters<T>,
   P extends keyof T ? never : TProps
-> & TStaticProps;
+> & Omit<T, NotNeverKeys<TStaticProps>> & Pick<TStaticProps, NotNeverKeys<TStaticProps>>;
 
 export type MockClass<
   T extends ClassDef<any> = Es6Class<any>,
   P extends keyof T | Record<string, any> = keyof T,
-> = MockClassDef<T, P> & {
+  TClass = MockClassDef<T, P>
+> = TClass & {
   OBSERVER?: Observer;
   RESTORE?: () => T;
 };
@@ -107,14 +110,17 @@ if (0) {
   }
 
   const m: Mock = null;
-  const E = m.override(X, { a: StaticMethod(() => 1), b: 1, c: Observe, n: Null, t: This, u: Undefined });
-  E.a() === 1;
+  const E = m.override(X, { B: StaticMethod(() => 1), b: 1, c: Observe, n: Null, t: This, u: Undefined });
+  // E.a() === 1;
+  E.A() === 'a';
+  E.B() === 1;
+  E.C() === 'c';
   const e = new E(1);
   e.a() === 'a';
   e.b() === 1;
-  e.c() === 1;
+  e.c() === 'c';
   e.n() === null;
-  e.t() === e;
+  e.t();
   e.u() === undefined;
 }
 
@@ -303,19 +309,19 @@ export class _Custom<T = typeof Observe> {
   }
 }
 
-export function Custom<T = typeof Observe>(value?: T) {
+export function Custom<T = Observe>(value?: T) {
   return new _Custom<T>(value);
 }
 
-export function ArgsAnnotation<T = typeof Observe>(argsAnnotation: _Custom<T>['_argsAnnotation'], value?: T) {
+export function ArgsAnnotation<T = Observe>(argsAnnotation: _Custom<T>['_argsAnnotation'], value?: T) {
   return new _Custom<T>(value).argsAnnotation(argsAnnotation);
 }
 
-export function Epoch<T = typeof Observe>(epoch: _Custom<T>['_epoch'], value?: T) {
+export function Epoch<T = Observe>(epoch: _Custom<T>['_epoch'], value?: T) {
   return new _Custom<T>(value).epoch(epoch);
 }
 
-export function Exclude<T = typeof Observe>(value?: T) {
+export function Exclude<T = Observe>(value?: T) {
   return new _Custom<T>(value).exclude();
 }
 
