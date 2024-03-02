@@ -37,26 +37,43 @@ export type PlaceholderMaybeFn<T, TSelf = never> = T extends typeof Observe | ty
 export type NonFuncPlaceholders = typeof This | typeof Null | typeof Undefined;
 
 export type FuncPlaceholders = typeof Initial | typeof Observe | typeof This | typeof Null | typeof Undefined;
-      
-export type NonFunc = string |
-  number |
-  boolean |
-  symbol |
-  null |
-  undefined |
-  // Record<string | number | symbol, unknown> |
-  // unknown[] |
-  NonFuncPlaceholders;
 
-export type MockPropsNonFunc<T, U = never, TSelf = never> = T extends NonFunc ? PlaceholderFn<T, TSelf> : T extends _Property ? ReturnType<T['descriptor']['get']> : U;
+export type Simple = string | number | boolean | symbol | null | undefined;
 
-export type MockPropsFunc<T, U = never, TSelf = never> = T extends Fn ? PlaceholderMaybeFn<T, TSelf> : U;
+export type NonFunc = Simple | NonFuncPlaceholders;
 
-export type MockPropsStaticNonFunc<T, U = never, TSelf = never> = T extends _StaticProperty ? PlaceholderFn<ReturnType<T['descriptor']['get']>, TSelf> : U;
+export type MockPropsNonFunc<T, U = never, TSelf = never> = T extends NonFunc
+  ? PlaceholderFn<T, TSelf>
+  : T extends _Property ? ReturnType<T['descriptor']['get']> : U;
 
-export type MockPropsStaticFunc<T, U = never, TSelf = never> = T extends _StaticMethod<any> ? PlaceholderMaybeFn<T['fn'], TSelf> : U;
+export type MockPropsFunc<T, U = never, TSelf = never> = T extends Fn
+  ? PlaceholderMaybeFn<T, TSelf>
+  : U;
 
-export type MockClassDef<
+export type MockPropsStaticNonFunc<T, U = never, TSelf = never> = T extends _StaticProperty
+  ? PlaceholderFn<ReturnType<T['descriptor']['get']>, TSelf>
+  : U;
+
+export type MockPropsStaticFunc<T, U = never, TSelf = never> = T extends _StaticMethod<any>
+  ? PlaceholderMaybeFn<T['fn'], TSelf>
+  : U;
+
+export type MockPropsMap = Record<
+  string,
+  Simple | FuncPlaceholders | _StaticMethod<any> | _StaticProperty
+>;
+
+export type MockProps<
+  T extends ClassDef<any> = Es6Class<any>,
+  P extends keyof T | MockPropsMap = keyof T,
+> = P extends keyof T ? {} : P;
+
+export type MockClassMixin<T> = {
+  OBSERVER?: Observer;
+  RESTORE?: () => T;
+}
+
+export type MockClass<
   T extends ClassDef<any> = Es6Class<any>,
   P extends keyof T | Record<string, any> = keyof T,
   TConstructorReturnType = ConstructorReturnType<T>,
@@ -84,21 +101,10 @@ export type MockClassDef<
   TConstructable,
   ConstructorParameters<T>,
   P extends keyof T ? never : TProps
-> & Omit<T, NotNeverKeys<TStaticProps>> & Pick<TStaticProps, NotNeverKeys<TStaticProps>>;
-
-export type MockClass<
-  T extends ClassDef<any> = Es6Class<any>,
-  P extends keyof T | Record<string, any> = keyof T,
-  TClass = MockClassDef<T, P>
-> = TClass & {
-  OBSERVER?: Observer;
-  RESTORE?: () => T;
-};
-
-export type MockProps<
-  T extends ClassDef<any> = Es6Class<any>,
-  P extends keyof T | Record<string, any> = keyof T,
-> = P extends keyof T ? {} : P;
+> &
+  Omit<T, NotNeverKeys<TStaticProps>> &
+  Pick<TStaticProps, NotNeverKeys<TStaticProps>> &
+  MockClassMixin<TConstructable>;
 
 // type check, never runs
 if (0) {
@@ -181,7 +187,11 @@ export class Mock {
     return this;
   }
 
-  by<T extends Es5Class | Es6Class, P extends keyof T | Record<string, any>>(cls: T, props?: MockProps<T, P>, bypassOnBehalfOfInstanceReplacement?): MockClass<T, P> {
+  by<T extends Es5Class | Es6Class, P extends keyof T | MockPropsMap>(
+    cls: T,
+    props?: MockProps<T, P>,
+    bypassOnBehalfOfInstanceReplacement?,
+  ): MockClass<T, P> {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(maker.makeConstructor(cls, true, this.explicitInstance));
 
@@ -195,7 +205,11 @@ export class Mock {
     return clazz;
   }
 
-  override<T extends Es5Class | Es6Class, P extends keyof T | Record<string, any>>(cls: T, props?: MockProps<T, P>, bypassOnBehalfOfInstanceReplacement?): MockClass<T, P> {
+  override<T extends Es5Class | Es6Class, P extends keyof T | MockPropsMap>(
+    cls: T,
+    props?: MockProps<T, P>,
+    bypassOnBehalfOfInstanceReplacement?,
+  ): MockClass<T, P> {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(cls, true);
 
@@ -228,7 +242,7 @@ export class Mock {
     return clazz;
   }
 
-  spy(fn: Fn): Fn {
+  spy<T extends Fn>(fn: T): T {
     return spyOnFunction(fn, {
       argsAnnotation: fn,
       extra: {
