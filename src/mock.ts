@@ -14,15 +14,25 @@ export class Undefined { private constructor() {} private __undefined() {} };
 
 export type CustomValue<T> = T extends _Custom<T> ? T['value'] : T;
 
-export type PlaceholderFn<T, TThis = never> = T extends Observe | typeof Initial
+export type PlaceholderFn<T, TSelf = never> = T extends typeof Observe | typeof Initial
   ? never
   : T extends typeof This
-    ? Fn<TThis>
+    ? Fn<TSelf>
     : T extends typeof Null // same as null
       ? Fn<null>
       : T extends typeof Undefined // same as undefined
         ? Fn<undefined>
         : Fn<T>;
+
+export type PlaceholderMaybeFn<T, TSelf = never> = T extends typeof Observe | typeof Initial
+  ? never
+  : T extends typeof This
+    ? Fn<TSelf>
+    : T extends typeof Null // same as null
+      ? Fn<null>
+      : T extends typeof Undefined // same as undefined
+        ? Fn<undefined>
+        : T;
 
 export type NonFuncPlaceholders = typeof This | typeof Null | typeof Undefined;
 
@@ -40,27 +50,29 @@ export type NonFunc = string |
 
 export type MockPropsNonFunc<T, U = never, TSelf = never> = T extends NonFunc ? PlaceholderFn<T, TSelf> : T extends _Property ? ReturnType<T['descriptor']['get']> : U;
 
-export type MockPropsFunc<T, U = never> = T extends Fn ? T : U;
+export type MockPropsFunc<T, U = never, TSelf = never> = T extends Fn ? PlaceholderMaybeFn<T, TSelf> : U;
 
 export type MockPropsStaticNonFunc<T, U = never, TSelf = never> = T extends _StaticProperty ? PlaceholderFn<ReturnType<T['descriptor']['get']>, TSelf> : U;
 
-export type MockPropsStaticFunc<T, U = never> = T extends _StaticMethod ? T['fn'] : U;
+export type MockPropsStaticFunc<T, U = never, TSelf = never> = T extends _StaticMethod<any> ? PlaceholderMaybeFn<T['fn'], TSelf> : U;
 
 export type MockClassDef<
   T extends ClassDef<any> = Es6Class<any>,
   P extends keyof T | Record<string, any> = keyof T,
+  TConstructorReturnType = ConstructorReturnType<T>,
+  TMockProps = MockProps<T, P>,
   TProps extends Record<string, any> = {
-    [K in keyof MockProps<T, P>]?: MockPropsNonFunc<
-      MockProps<T, P>[K],
-      MockPropsFunc<MockProps<T, P>[K]>,
-      ConstructorReturnType<T>
+    [K in keyof TMockProps]?: MockPropsNonFunc<
+      TMockProps[K],
+      MockPropsFunc<TMockProps[K], never, TConstructorReturnType>,
+      TConstructorReturnType
     >;
   },
   TStaticProps extends Record<string, any> = {
-    [K in keyof MockProps<T, P>]?: MockPropsStaticNonFunc<
-      MockProps<T, P>[K],
-      MockPropsStaticFunc<MockProps<T, P>[K]>
-      // MockClassDef<T, P>
+    [K in keyof TMockProps]?: MockPropsStaticNonFunc<
+      TMockProps[K],
+      MockPropsStaticFunc<TMockProps[K], never, T>,
+      T
     >;
   },
   TConstructable = T extends Es5Class
@@ -110,18 +122,31 @@ if (0) {
   }
 
   const m: Mock = null;
-  const E = m.override(X, { B: StaticMethod(() => 1), b: 1, c: Observe, n: Null, t: This, u: Undefined });
-  // E.a() === 1;
+  const E = m.override(X, {
+    B: StaticMethod(() => 1),
+    C: StaticMethod(Observe),
+    X: StaticMethod(Null),
+    Y: StaticMethod(This),
+    Z: StaticMethod(Undefined),
+    b: 1, 
+    c: Observe,
+    x: Null,
+    y: This,
+    z: Undefined,
+  });
   E.A() === 'a';
   E.B() === 1;
   E.C() === 'c';
+  E.X() === null;
+  E.Y()
+  E.Z() === undefined;
   const e = new E(1);
   e.a() === 'a';
   e.b() === 1;
   e.c() === 'c';
-  e.n() === null;
-  e.t();
-  e.u() === undefined;
+  e.x() === null;
+  e.y();
+  e.z() === undefined;
 }
 
 export class Mock {
@@ -247,13 +272,13 @@ export function Property<T extends ReturnType<_Property['descriptor']['get']>>(d
   return new _Property<T>(descriptor);
 }
 
-export class _StaticMethod<T extends Fn = Fn> {
+export class _StaticMethod<T extends Fn | FuncPlaceholders> {
   constructor(public readonly fn?: T) {
 
   }
 }
 
-export function StaticMethod<T extends _StaticMethod['fn']>(fn?: _StaticMethod<T>['fn']) {
+export function StaticMethod<T extends Fn | FuncPlaceholders>(fn?: _StaticMethod<T>['fn']) {
   return new _StaticMethod<T>(fn);
 }
 
