@@ -553,7 +553,7 @@ describe('Mock', () => {
     it('should spy on result of call', () => {
       history.begin('epoch', 'comment');
 
-      const e = new (new unitsnap.Mock(history).by(B, ['constructor', 'a', 'x']))(1, 2, 3);
+      const e = new (new unitsnap.Mock(history).by(B, ['constructor', 'a', 'x'] as const))(1, 2, 3);
 
       for (let i = 0; i < 2; i ++) {
         try {

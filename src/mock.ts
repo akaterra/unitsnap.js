@@ -2,7 +2,7 @@ import * as fixture from './fixture';
 import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod } from './spy';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { History } from './history';
-import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5Class, Es6Class, Fn, NotNeverKeys } from './utils';
+import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5Class, Es6Class, Fn, NotNeverKeys, ObjectFromList } from './utils';
 import { Observer } from './observer';
 
 export class Observe { private constructor() {} private __observe() {} };
@@ -54,11 +54,6 @@ export type MockPropsMap = Record<
   Simple | FuncPlaceholders | _StaticMethod | _StaticProperty
 >;
 
-export type MockProps<
-  T extends ClassDef<any> = Es6Class<any>,
-  P extends keyof T | MockPropsMap = keyof T,
-> = P extends keyof T ? {} : P;
-
 export type MockClassMixin<T> = {
   OBSERVER?: Observer;
   RESTORE?: () => T;
@@ -66,9 +61,11 @@ export type MockClassMixin<T> = {
 
 export type MockClass<
   T extends ClassDef<any> = Es6Class<any>,
-  P extends keyof T | Record<string, any> = keyof T,
+  P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[],
   TConstructorReturnType = ConstructorReturnType<T>,
-  TMockProps = P extends keyof T ? { [K in P]: Observe } : P,
+  TMockProps = P extends ReadonlyArray<string | number | symbol>
+    ? { [K in keyof ObjectFromList<P, unknown>]: K extends keyof T ? typeof Observe : typeof Undefined } // not implemented
+    : P,
   TProps extends Record<string, any> = {
     [K in keyof TMockProps]?: MockPropsNonFunc<
       TMockProps[K],
@@ -91,7 +88,7 @@ export type MockClass<
 > = Es6Class<
   TConstructable,
   ConstructorParameters<T>,
-  P extends keyof T ? never : TProps
+  TProps
 > &
   Omit<T, NotNeverKeys<TStaticProps>> &
   Pick<TStaticProps, NotNeverKeys<TStaticProps>> &
@@ -178,9 +175,9 @@ export class Mock {
     return this;
   }
 
-  by<T extends Es5Class | Es6Class, P extends keyof T | MockPropsMap>(
+  by<T extends Es5Class | Es6Class, P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[]>(
     cls: T,
-    props?: MockProps<T, P>,
+    props?: P,
     bypassOnBehalfOfInstanceReplacement?,
   ): MockClass<T, P> {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
@@ -189,16 +186,16 @@ export class Mock {
     return clazz;
   }
 
-  from(props: MockProps, bypassOnBehalfOfInstanceReplacement?): MockClass {
+  from<P extends MockPropsMap>(props: P, bypassOnBehalfOfInstanceReplacement?): MockClass<() => {}, P> {
     const maker = new ClassMaker(this, function () {}, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(maker.makeConstructor(maker.cls, true, this.explicitInstance), true);
 
     return clazz;
   }
 
-  override<T extends Es5Class | Es6Class, P extends keyof T | MockPropsMap>(
+  override<T extends Es5Class | Es6Class, P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[]>(
     cls: T,
-    props?: MockProps<T, P>,
+    props?: P,
     bypassOnBehalfOfInstanceReplacement?,
   ): MockClass<T, P> {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);

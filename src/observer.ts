@@ -63,21 +63,29 @@ export class Observer {
     return this;
   }
 
-  by<T extends Es5Class | Es6Class, P extends keyof T | Record<string, any>>(cls: T, props?: mock.MockProps<T, P>, bypassOnBehalfOfInstanceReplacement?) {
+  by<T extends Es5Class | Es6Class, P extends ReadonlyArray<string | number | symbol> | mock.MockPropsMap = (keyof T)[]>(
+    cls: T,
+    props?: P,
+    bypassOnBehalfOfInstanceReplacement?,
+  ) {
     const clazz = this._mock.by<T, P>(cls, props, bypassOnBehalfOfInstanceReplacement);
     clazz.OBSERVER = this;
 
     return clazz;
   }
 
-  from(props: mock.MockProps, bypassOnBehalfOfInstanceReplacement?) {
-    const clazz = this._mock.from(props, bypassOnBehalfOfInstanceReplacement);
+  from<P extends mock.MockPropsMap>(props: P, bypassOnBehalfOfInstanceReplacement?) {
+    const clazz = this._mock.from<P>(props, bypassOnBehalfOfInstanceReplacement);
     clazz.OBSERVER = this;
 
     return clazz;
   }
 
-  override<T extends Es5Class | Es6Class, P extends keyof T | Record<string, any>>(cls: T, props?: mock.MockProps<T, P>, bypassOnBehalfOfInstanceReplacement?) {
+  override<T extends Es5Class | Es6Class, P extends ReadonlyArray<string | number | symbol> | mock.MockPropsMap = (keyof T)[]>(
+    cls: T,
+    props?: P,
+    bypassOnBehalfOfInstanceReplacement?,
+  ) {
     const clazz = this._mock.override<T, P>(cls, props, bypassOnBehalfOfInstanceReplacement);
     clazz.OBSERVER = this;
 

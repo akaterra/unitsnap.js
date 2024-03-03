@@ -4,6 +4,10 @@ export type Es6ClassDef<T> = new (...args: unknown[]) => T;
 
 export type ClassDef<T> = Es5ClassDef<T> | Es6ClassDef<T>;
 
+export type ObjectFromList<T extends ReadonlyArray<string | number | symbol>, U> = {
+  [K in (T extends ReadonlyArray<infer P> ? P : never)]: U
+};
+
 export type NotNeverKeys<T> = {
   [K in keyof T]: T[K] extends never ? never : K;
 }[keyof T];
