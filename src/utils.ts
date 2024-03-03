@@ -1,4 +1,4 @@
-export type Es5ClassDef<T> = (...args: unknown[]) => T & { prototype: T };
+export type Es5ClassDef<T> = (...args: unknown[]) => void & { prototype: T };
 
 export type Es6ClassDef<T> = new (...args: unknown[]) => T;
 
@@ -52,7 +52,7 @@ export type ConstructorParameters<T> = T extends new (...args: infer P) => unkno
   
 export type ConstructorReturnType<T> = T extends new (...args: unknown[]) => infer P
   ? P
-  : T extends (...args: unknown[]) => infer P
+  : T extends (...args: unknown[]) => void & { prototype: infer P }
     ? P
     : never;
 

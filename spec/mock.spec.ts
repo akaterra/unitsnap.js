@@ -2276,7 +2276,7 @@ describe('Mock', () => {
 
       history.begin('epoch', 'comment');
 
-      e.a('call');
+      e.a();
 
       history.end();
 

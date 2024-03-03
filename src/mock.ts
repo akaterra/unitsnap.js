@@ -29,7 +29,7 @@ export type NonFuncPlaceholders = typeof This | typeof Null | typeof Undefined;
 
 export type FuncPlaceholders = typeof Initial | typeof Observe | typeof This | typeof Null | typeof Undefined;
 
-export type Simple = string | number | boolean | symbol | null | undefined;
+export type Simple = string | number | boolean | symbol | null | undefined | ((...args: any[]) => any);
 
 export type NonFunc = Simple | NonFuncPlaceholders;
 
@@ -51,7 +51,7 @@ export type MockPropsStaticFunc<T, U = never, TSelf = never> = T extends _Static
 
 export type MockPropsMap = Record<
   string,
-  Simple | FuncPlaceholders | _StaticMethod | _StaticProperty
+  Simple | FuncPlaceholders | fixture.Fixture | typeof fixture.Fixture | _StaticMethod | _StaticProperty
 >;
 
 export type MockClassMixin<T> = {
@@ -64,7 +64,7 @@ export type MockClass<
   P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[],
   TConstructorReturnType = ConstructorReturnType<T>,
   TMockProps = P extends ReadonlyArray<string | number | symbol>
-    ? { [K in keyof ObjectFromList<P, unknown>]: K extends keyof T ? typeof Observe : typeof Undefined } // not implemented
+    ? { [K in keyof ObjectFromList<P, unknown>]: K extends keyof T ? typeof Observe : typeof Undefined }
     : P,
   TProps extends Record<string, any> = {
     [K in keyof TMockProps]?: MockPropsNonFunc<
@@ -115,8 +115,10 @@ if (0) {
     c(c?: string) { return 'c' },
   }
 
+  type YR = ConstructorReturnType<typeof Y['constructor']>;
+
   const m: Mock = null;
-  const E = m.override(X, {
+  const E = m.override(Y, {
     B: StaticMethod(() => 1),
     C: StaticMethod(Observe),
     X: StaticMethod(Null),
@@ -306,7 +308,7 @@ export function StaticProperty<T extends ReturnType<_StaticProperty['descriptor'
   return new _StaticProperty<T>(descriptor);
 }
 
-export class _Custom<T = typeof Observe> {
+export class _Custom<T extends any = typeof Observe> {
   _argsAnnotation: string[];
   _epoch: string;
   _exclude: boolean;
@@ -336,19 +338,19 @@ export class _Custom<T = typeof Observe> {
   }
 }
 
-export function Custom<T = Observe>(value?: T) {
+export function Custom<T extends any = typeof Observe>(value?: T) {
   return new _Custom<T>(value);
 }
 
-export function ArgsAnnotation<T = Observe>(argsAnnotation: _Custom<T>['_argsAnnotation'], value?: T) {
+export function ArgsAnnotation<T extends any = typeof Observe>(argsAnnotation: _Custom<T>['_argsAnnotation'], value?: T) {
   return new _Custom<T>(value).argsAnnotation(argsAnnotation);
 }
 
-export function Epoch<T = Observe>(epoch: _Custom<T>['_epoch'], value?: T) {
+export function Epoch<T extends any = typeof Observe>(epoch: _Custom<T>['_epoch'], value?: T) {
   return new _Custom<T>(value).epoch(epoch);
 }
 
-export function Exclude<T = Observe>(value?: T) {
+export function Exclude<T extends any = typeof Observe>(value?: T) {
   return new _Custom<T>(value).exclude();
 }
 
