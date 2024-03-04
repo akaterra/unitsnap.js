@@ -2,20 +2,22 @@ import * as unitsnap from '..';
 import { stat } from '..';
 
 describe('Property', () => {
-  const descriptor = {};
+  const get = 1;
+  const set = 2;
 
   it('should be constructed by call as factory', () => {
-    expect(unitsnap.Property(descriptor) instanceof unitsnap._Property).toBeTruthy();
-    expect(unitsnap.Property(descriptor).descriptor).toBe(descriptor);
+    expect(unitsnap.Property(get, set) instanceof unitsnap._Property).toBeTruthy();
+    expect(unitsnap.Property().descriptor).toEqual({ get, set });
   });
 });
 
 describe('StaticProperty', () => {
-  const descriptor = {};
+  const get = 1;
+  const set = 2;
 
   it('should be constructed by call as factory', () => {
-    expect(unitsnap.StaticProperty(descriptor) instanceof unitsnap._StaticProperty).toBeTruthy();
-    expect(unitsnap.StaticProperty(descriptor).descriptor).toBe(descriptor);
+    expect(unitsnap.StaticProperty(get, set) instanceof unitsnap._StaticProperty).toBeTruthy();
+    expect(unitsnap.StaticProperty().descriptor).toEqual({ get, set });
   });
 });
 
@@ -31,7 +33,7 @@ describe('StaticMethod', () => {
 describe('Custom', () => {
   describe('when uses ArgsAnnotation', () => {
     it('should return Custom with initialized "argsAnnotation"', () => {
-      const e = unitsnap.ArgsAnnotation(null, ['a']);
+      const e = unitsnap.ArgsAnnotation(['a']);
 
       expect(e instanceof unitsnap._Custom).toBeTruthy();
       expect(e._argsAnnotation).toEqual(['a']);
@@ -40,7 +42,7 @@ describe('Custom', () => {
 
   describe('when uses Epoch', () => {
     it('should return Custom with initialized "epoch"', () => {
-      const e = unitsnap.Epoch(null, 'epoch');
+      const e = unitsnap.Epoch('epoch');
 
       expect(e instanceof unitsnap._Custom).toBeTruthy();
       expect(e._epoch).toBe('epoch');
@@ -49,7 +51,7 @@ describe('Custom', () => {
 
   describe('when uses Exclude', () => {
     it('should return Custom with enabled "exclude"', () => {
-      const e = unitsnap.Exclude(null);
+      const e = unitsnap.Exclude();
 
       expect(e instanceof unitsnap._Custom).toBeTruthy();
       expect(e._exclude).toBeTruthy();
@@ -1199,7 +1201,7 @@ describe('Mock', () => {
     it('should spy with custom args annotation', () => {
       history.begin('epoch', 'comment');
 
-      const custom = unitsnap.Custom(function (a, b, c) { return 0; }).argsAnnotation(['x', 'y', 'z']);
+      const custom = unitsnap.Custom<number>().argsAnnotation(['x', 'y', 'z']);
 
       const E = new unitsnap.Mock(history).by(B, {
         constructor: custom,
@@ -1208,7 +1210,7 @@ describe('Mock', () => {
         d: unitsnap.Property(custom, custom),
         e: unitsnap.StaticProperty().get(custom).set(custom),
         x: custom,
-        y: unitsnap.Property().get(custom).set(custom),
+        y: unitsnap.Property(custom, custom),
         z: unitsnap.StaticProperty().get(custom).set(custom),
       });
 
@@ -1232,24 +1234,24 @@ describe('Mock', () => {
 
       history.end();
 
-      expect(history.entries[0].args).toEqual({'*': [], x: 1, y: 2, z: 3});
-      expect(history.entries[2].args).toEqual({'*': [], x: 1, y: 2, z: 3});
-      expect(history.entries[4].args).toEqual({'*': [], x: 1, y: 2, z: 3});
-      expect(history.entries[6].args).toEqual({'*': [], x: 1, y: 2, z: 3});
-      expect(history.entries[8].args).toEqual({'*': []});
-      expect(history.entries[10].args).toEqual({'*': [], x: 1});
-      expect(history.entries[12].args).toEqual({'*': []});
-      expect(history.entries[14].args).toEqual({'*': [], x: 1});
-      expect(history.entries[16].args).toEqual({'*': []});
-      expect(history.entries[18].args).toEqual({'*': [], x: 1});
-      expect(history.entries[20].args).toEqual({'*': []});
-      expect(history.entries[22].args).toEqual({'*': [], x: 1});
+      expect(history.entries[0].args).toEqual({'*': [], x: 1, y: 2, z: 3}); // constructor
+      expect(history.entries[2].args).toEqual({'*': [], x: 1, y: 2, z: 3}); // e.c()
+      expect(history.entries[4].args).toEqual({'*': [], x: 1, y: 2, z: 3}); // e.x()
+      expect(history.entries[6].args).toEqual({'*': [], x: 1, y: 2, z: 3}); // e.a()
+      expect(history.entries[8].args).toEqual({'*': []}); // e.d
+      expect(history.entries[10].args).toEqual({'*': [], x: 1}); // e.d = 1
+      expect(history.entries[12].args).toEqual({'*': []}); // E.e
+      expect(history.entries[14].args).toEqual({'*': [], x: 1}); // E.e = 1
+      expect(history.entries[16].args).toEqual({'*': []}); // e.y
+      expect(history.entries[18].args).toEqual({'*': [], x: 1}); // e.y = 1
+      expect(history.entries[20].args).toEqual({'*': []}); // E.z
+      expect(history.entries[22].args).toEqual({'*': [], x: 1}); // E.z = 1
     });
 
     it('should spy with custom exclude from history', () => {
       history.begin('epoch', 'comment');
 
-      const custom = unitsnap.Custom(function (a, b, c) { return 0; }).exclude();
+      const custom = unitsnap.Custom<number>().exclude();
 
       const E = new unitsnap.Mock(history).by(B, {
         constructor: custom,

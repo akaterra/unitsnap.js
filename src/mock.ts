@@ -16,14 +16,12 @@ export type CustomValue<T> = T extends _Custom<any> ? T['value'] : T;
 export type Placeholder<T, TSelf = never> = T extends typeof Observe | typeof Initial
   ? never
   : T extends typeof This
-    ? Fn<TSelf>
+    ? TSelf
     : T extends typeof Null // same as "null"
-      ? Fn<null>
+      ? null
       : T extends typeof Undefined // same as "undefined"
-        ? Fn<undefined>
-        : T extends Fn
-          ? T
-          : T;
+        ? undefined
+        : T;
 
 export type PlaceholderFn<T, TSelf = never> = T extends typeof Observe | typeof Initial
   ? never
@@ -33,35 +31,27 @@ export type PlaceholderFn<T, TSelf = never> = T extends typeof Observe | typeof 
       ? Fn<null>
       : T extends typeof Undefined // same as "undefined"
         ? Fn<undefined>
-        : T extends Fn
-          ? T
-          : Fn<T>;
+        : T extends Fn ? T : Fn<T>;
 
-export type NonFuncPlaceholders = typeof This | typeof Null | typeof Undefined;
+export type Integrated<T = any> = string | number | boolean | symbol | null | undefined | Fn<T>;
 
-export type FuncPlaceholders = typeof Initial | typeof Observe | typeof This | typeof Null | typeof Undefined;
+export type AllPlaceholders = typeof Initial | typeof Observe | typeof This | typeof Null | typeof Undefined;
 
-export type Simple<T = any> = string | number | boolean | symbol | null | undefined | Fn<T>;
+export type StubPlaceholders = typeof This | typeof Null | typeof Undefined;
 
-export type NonFunc = Simple | NonFuncPlaceholders;
+export type MockProps<T, U = never, TSelf = never> = CustomValue<T> extends Integrated | StubPlaceholders
+  ? PlaceholderFn<CustomValue<T>, TSelf>
+  : T extends _Property<any>
+    ? Placeholder<CustomValue<T['descriptor']['value']>, TSelf>
+    : U;
 
-export type MockPropsNonFunc<T, U = never, TSelf = never> = T extends NonFunc
-  ? PlaceholderFn<T, TSelf>
-  : T extends _Property<any> ? Placeholder<CustomValue<T['descriptor']['value']>, TSelf> : U;
-
-export type MockPropsFunc<T, U = never, TSelf = never> = T extends Fn
-  ? PlaceholderFn<T, TSelf>
-  : U;
-
-export type MockPropsStaticNonFunc<T, U = never, TSelf = never> = T extends _StaticProperty<any>
+export type MockPropsStatic<T, U = never, TSelf = never> = T extends _StaticProperty<any>
   ? Placeholder<CustomValue<T['descriptor']['value']>, TSelf>
-  : U;
+  : T extends _StaticMethod<any>
+    ? PlaceholderFn<CustomValue<T['fn']>, TSelf>
+    : U;
 
-export type MockPropsStaticFunc<T, U = never, TSelf = never> = T extends _StaticMethod<any>
-  ? PlaceholderFn<CustomValue<T['fn']>, TSelf>
-  : U;
-
-export type MockPropsTypes<T = any> = Simple<T> | FuncPlaceholders | fixture.Fixture | typeof fixture.Fixture | _Custom<T>;
+export type MockPropsTypes<T = any> = Integrated<T> | AllPlaceholders | fixture.Fixture | typeof fixture.Fixture | _Custom<any>;
 
 export type MockPropsMap = Record<
   string,
@@ -81,16 +71,16 @@ export type MockClass<
     ? { [K in keyof ObjectFromList<P, unknown>]: K extends keyof T ? typeof Observe : typeof Undefined }
     : P,
   TProps extends Record<string, any> = {
-    [K in keyof TMockProps]?: MockPropsNonFunc<
-      CustomValue<TMockProps[K]>,
-      MockPropsFunc<CustomValue<TMockProps[K]>, never, TConstructorReturnType>,
+    [K in keyof TMockProps]?: MockProps<
+      TMockProps[K],
+      never,
       TConstructorReturnType
     >;
   },
   TStaticProps extends Record<string, any> = {
-    [K in keyof TMockProps]?: MockPropsStaticNonFunc<
+    [K in keyof TMockProps]?: MockPropsStatic<
       TMockProps[K],
-      MockPropsStaticFunc<TMockProps[K], never, T>,
+      never,
       T
     >;
   },
@@ -140,15 +130,17 @@ if (0) {
     B: StaticMethod(() => 1),
     C: StaticMethod(Observe),
     P: StaticProperty().get(2),
-    Q: StaticProperty().get(2),
+    Q: StaticProperty().get(3),
+    R: StaticProperty().get(Custom(4)),
     X: StaticMethod(Null),
     Y: StaticMethod(This),
     Z: StaticMethod(Undefined),
     S: StaticMethod(Custom(() => 1)),
-    b: 1, 
+    b: 1,
     c: Observe,
     p: Property().get(2),
-    q: Property().get(2),
+    q: Property().get(3),
+    r: Property().get(Custom(4)),
     x: Null,
     y: This,
     z: Undefined,
@@ -157,26 +149,24 @@ if (0) {
   E.A() === 'a';
   E.B() === 1;
   E.C() === 'c';
-  E.P;
-  E.Q;
+  E.P === 2;
+  E.Q === 3;
+  E.R === 4;
   E.X() === null;
-  E.Y()
+  E.Y();
   E.Z() === undefined;
   E.S();
   const e = new E(1);
   e.a() === 'a';
   e.b() === 1;
   e.c() === 'c';
-  e.p;
-  e.q;
+  e.p === 2;
+  e.q === 3;
+  e.r === 4;
   e.x() === null;
   e.y();
   e.z() === undefined;
   e.s();
-}
-
-function NullFn() {
-
 }
 
 export class Mock {
@@ -289,8 +279,6 @@ export type PropertyDescriptor<T = any> = {
   value?: T;
 };
 
-type Ex<T> = T | _Custom<T> | Fn<T> | Simple
-
 export class _Property<T extends MockPropsTypes = typeof Observe> {
   readonly descriptor: PropertyDescriptor<T>;
 
@@ -355,24 +343,24 @@ export function StaticProperty<T extends MockPropsTypes = typeof Observe>(get?: 
   return new _StaticProperty<T>(get, set);
 }
 
-export class _Custom<T extends MockPropsTypes = typeof Observe> {
+export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Null> {
   _argsAnnotation: string[];
   _epoch: string;
   _exclude: boolean;
 
-  constructor(public readonly value?: T) {
+  constructor(public readonly value: T = Null as T) {
     if (value instanceof _Custom) {
-      this.value = new _Custom<T>(value.value) as unknown as T;
+      this.value = value.value as unknown as T;
     }
   }
 
-  argsAnnotation(argsAnnotation: _Custom['_argsAnnotation']): this {
+  argsAnnotation(argsAnnotation: _Custom<T>['_argsAnnotation']): this {
     this._argsAnnotation = argsAnnotation;
 
     return this;
   }
 
-  epoch(epoch: _Custom['_epoch']): this {
+  epoch(epoch: _Custom<T>['_epoch']): this {
     this._epoch = epoch;
 
     return this;
@@ -387,19 +375,19 @@ export class _Custom<T extends MockPropsTypes = typeof Observe> {
   private __custom() {}
 }
 
-export function Custom<T extends MockPropsTypes = typeof Observe>(value?: T) {
+export function Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Null>(value: T = Null as T) {
   return new _Custom<T>(value);
 }
 
-export function ArgsAnnotation<T extends MockPropsTypes = typeof Observe>(argsAnnotation: _Custom<T>['_argsAnnotation'], value?: T) {
+export function ArgsAnnotation<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Observe>(argsAnnotation: _Custom<T>['_argsAnnotation'], value: T = Observe as T) {
   return new _Custom<T>(value).argsAnnotation(argsAnnotation);
 }
 
-export function Epoch<T extends MockPropsTypes = typeof Observe>(epoch: _Custom<T>['_epoch'], value?: T) {
+export function Epoch<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Observe>(epoch: _Custom<T>['_epoch'], value: T = Observe as T) {
   return new _Custom<T>(value).epoch(epoch);
 }
 
-export function Exclude<T extends MockPropsTypes = typeof Observe>(value?: T) {
+export function Exclude<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Observe>(value: T = Observe as T) {
   return new _Custom<T>(value).exclude();
 }
 
