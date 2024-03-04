@@ -86,11 +86,11 @@ describe('Mock', () => {
       throw new Error('error');
     }
 
-    get d() {
+    get d(): number {
       return 1;
     }
 
-    set d(value) {
+    set d(value: number) {
 
     }
 
@@ -1205,7 +1205,7 @@ describe('Mock', () => {
         constructor: custom,
         a: unitsnap.StaticMethod(custom),
         c: custom,
-        d: unitsnap.Property().get(custom).set(custom),
+        d: unitsnap.Property(custom, custom),
         e: unitsnap.StaticProperty().get(custom).set(custom),
         x: custom,
         y: unitsnap.Property().get(custom).set(custom),
@@ -1314,7 +1314,7 @@ describe('Mock', () => {
 
       history.begin('epoch', 'comment');
 
-      e.a('call');
+      e.a();
 
       history.end();
 
@@ -2234,7 +2234,8 @@ describe('Mock', () => {
     });
 
     it('should RESTORE overridden props by list of props', () => {
-      const E = new unitsnap.Mock(history).override(B, ['a', 'b', 'x']).RESTORE();
+      const E = new unitsnap.Mock(history).override(B, ['a', 'b', 'x']);
+      E.RESTORE();
 
       expect(E.prototype.a).toBe(bPrototype.a);
       expect(E.prototype.b).toBe(bPrototype.b);
@@ -2249,7 +2250,8 @@ describe('Mock', () => {
         e: unitsnap.StaticProperty(),
         m: f,
         x: f
-      }).RESTORE();
+      });
+      E.RESTORE();
 
       expect(E.prototype.a).toBe(bPrototype.a);
       expect(E.b).toBe(bProperties.b);
@@ -2301,7 +2303,7 @@ describe('Mock', () => {
   });
 
   it('should spy on single callable result', () => {
-    const x = new unitsnap.Mock(history).spy(function x(a) { return a * 2; });
+    const x = new unitsnap.Mock(history).spy(function x(a: number) { return a * 2; });
 
     history.begin('epoch', 'comment');
 

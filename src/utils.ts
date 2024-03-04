@@ -1,4 +1,4 @@
-export type Es5ClassDef<T> = (...args: unknown[]) => void & { prototype: T };
+export type Es5ClassDef<T> = (...args: unknown[]) => void; // & { prototype?: T };
 
 export type Es6ClassDef<T> = new (...args: unknown[]) => T;
 

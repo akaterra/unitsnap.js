@@ -11,7 +11,19 @@ export class This { private constructor() {} private __this() {} };
 export class Null { private constructor() {} private __null() {} };
 export class Undefined { private constructor() {} private __undefined() {} };
 
-export type CustomValue<T> = T extends _Custom<T> ? T['value'] : T;
+export type CustomValue<T> = T extends _Custom<any> ? T['value'] : T;
+
+export type Placeholder<T, TSelf = never> = T extends typeof Observe | typeof Initial
+  ? never
+  : T extends typeof This
+    ? Fn<TSelf>
+    : T extends typeof Null // same as "null"
+      ? Fn<null>
+      : T extends typeof Undefined // same as "undefined"
+        ? Fn<undefined>
+        : T extends Fn
+          ? T
+          : T;
 
 export type PlaceholderFn<T, TSelf = never> = T extends typeof Observe | typeof Initial
   ? never
@@ -29,29 +41,31 @@ export type NonFuncPlaceholders = typeof This | typeof Null | typeof Undefined;
 
 export type FuncPlaceholders = typeof Initial | typeof Observe | typeof This | typeof Null | typeof Undefined;
 
-export type Simple = string | number | boolean | symbol | null | undefined | ((...args: any[]) => any);
+export type Simple<T = any> = string | number | boolean | symbol | null | undefined | Fn<T>;
 
 export type NonFunc = Simple | NonFuncPlaceholders;
 
 export type MockPropsNonFunc<T, U = never, TSelf = never> = T extends NonFunc
   ? PlaceholderFn<T, TSelf>
-  : T extends _Property ? ReturnType<T['descriptor']['get']> : U;
+  : T extends _Property<any> ? Placeholder<CustomValue<T['descriptor']['value']>, TSelf> : U;
 
 export type MockPropsFunc<T, U = never, TSelf = never> = T extends Fn
   ? PlaceholderFn<T, TSelf>
   : U;
 
-export type MockPropsStaticNonFunc<T, U = never, TSelf = never> = T extends _StaticProperty
-  ? PlaceholderFn<ReturnType<T['descriptor']['get']>, TSelf>
+export type MockPropsStaticNonFunc<T, U = never, TSelf = never> = T extends _StaticProperty<any>
+  ? Placeholder<CustomValue<T['descriptor']['value']>, TSelf>
   : U;
 
-export type MockPropsStaticFunc<T, U = never, TSelf = never> = T extends _StaticMethod
-  ? PlaceholderFn<T['fn'], TSelf>
+export type MockPropsStaticFunc<T, U = never, TSelf = never> = T extends _StaticMethod<any>
+  ? PlaceholderFn<CustomValue<T['fn']>, TSelf>
   : U;
+
+export type MockPropsTypes<T = any> = Simple<T> | FuncPlaceholders | fixture.Fixture | typeof fixture.Fixture | _Custom<T>;
 
 export type MockPropsMap = Record<
   string,
-  Simple | FuncPlaceholders | fixture.Fixture | typeof fixture.Fixture | _StaticMethod | _StaticProperty
+  MockPropsTypes<any> | _Property<any> | _StaticMethod<any> | _StaticProperty<any>
 >;
 
 export type MockClassMixin<T> = {
@@ -68,8 +82,8 @@ export type MockClass<
     : P,
   TProps extends Record<string, any> = {
     [K in keyof TMockProps]?: MockPropsNonFunc<
-      TMockProps[K],
-      MockPropsFunc<TMockProps[K], never, TConstructorReturnType>,
+      CustomValue<TMockProps[K]>,
+      MockPropsFunc<CustomValue<TMockProps[K]>, never, TConstructorReturnType>,
       TConstructorReturnType
     >;
   },
@@ -101,9 +115,13 @@ if (0) {
     a(a?: string) { return 'a' }
     b(b?: string) { return 'b' }
     c(c?: string) { return 'c' }
+    get p(): string { return 'c' }
+    set p(p: string) {}
     static A(a?: string) { return 'a' }
     static B(b?: string) { return 'b' }
     static C(c?: string) { return 'c' }
+    static get P(): string { return 'c' }
+    static set P(p: string) {}
   }
   
   function Y(y: string) {
@@ -115,34 +133,50 @@ if (0) {
     c(c?: string) { return 'c' },
   }
 
-  type YR = ConstructorReturnType<typeof Y['constructor']>;
+  // type YR = ConstructorReturnType<typeof Y['constructor']>;
 
   const m: Mock = null;
-  const E = m.override(Y, {
+  const E = m.override(X, {
     B: StaticMethod(() => 1),
     C: StaticMethod(Observe),
+    P: StaticProperty().get(2),
+    Q: StaticProperty().get(2),
     X: StaticMethod(Null),
     Y: StaticMethod(This),
     Z: StaticMethod(Undefined),
+    S: StaticMethod(Custom(() => 1)),
     b: 1, 
     c: Observe,
+    p: Property().get(2),
+    q: Property().get(2),
     x: Null,
     y: This,
     z: Undefined,
+    s: Custom(() => 1),
   });
   E.A() === 'a';
   E.B() === 1;
   E.C() === 'c';
+  E.P;
+  E.Q;
   E.X() === null;
   E.Y()
   E.Z() === undefined;
+  E.S();
   const e = new E(1);
   e.a() === 'a';
   e.b() === 1;
   e.c() === 'c';
+  e.p;
+  e.q;
   e.x() === null;
   e.y();
   e.z() === undefined;
+  e.s();
+}
+
+function NullFn() {
+
 }
 
 export class Mock {
@@ -188,7 +222,7 @@ export class Mock {
     return clazz;
   }
 
-  from<P extends MockPropsMap>(props: P, bypassOnBehalfOfInstanceReplacement?): MockClass<() => {}, P> {
+  from<P extends ReadonlyArray<string | number | symbol> | MockPropsMap>(props: P, bypassOnBehalfOfInstanceReplacement?): MockClass<() => {}, P> {
     const maker = new ClassMaker(this, function () {}, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(maker.makeConstructor(maker.cls, true, this.explicitInstance), true);
 
@@ -250,65 +284,78 @@ export class Mock {
 }
 
 export type PropertyDescriptor<T = any> = {
-  get?: T;
-  set?: T;
+  get?: any;
+  set?: any;
+  value?: T;
 };
 
-export class _Property<T = any> {
-  constructor(public readonly descriptor: PropertyDescriptor<T> = {}) {
+type Ex<T> = T | _Custom<T> | Fn<T> | Simple
 
+export class _Property<T extends MockPropsTypes = typeof Observe> {
+  readonly descriptor: PropertyDescriptor<T>;
+
+  constructor(get?: T, set?: T) {
+    this.descriptor = { get, set };
   }
 
-  get(get: _Property<T>['descriptor']['get']): this {
+  get<U extends MockPropsTypes = _Property<T>['descriptor']['value']>(get: U): _Property<U> {
     this.descriptor.get = get;
 
-    return this;
+    return this as unknown as _Property<U>;
   }
 
-  set(set: _Property<T>['descriptor']['set']): this {
+  set<U extends MockPropsTypes = _Property<T>['descriptor']['value']>(set: U): _Property<U> {
     this.descriptor.set = set;
 
-    return this;
+    return this as unknown as _Property<U>;
   }
+
+  private __property() {}
 }
 
-export function Property<T extends ReturnType<_Property['descriptor']['get']>>(descriptor?: _Property<T>['descriptor']) {
-  return new _Property<T>(descriptor);
+export function Property<T extends MockPropsTypes = typeof Observe>(get?: T, set?: T) {
+  return new _Property<T>(get, set);
 }
 
-export class _StaticMethod<T = any> {
+export class _StaticMethod<T extends MockPropsTypes = typeof Observe> {
   constructor(public readonly fn?: T) {
 
   }
+
+  private __staticMethod() {}
 }
 
-export function StaticMethod<T = any>(fn?: _StaticMethod<T>['fn']) {
+export function StaticMethod<T extends MockPropsTypes = typeof Observe>(fn?: _StaticMethod<T>['fn']) {
   return new _StaticMethod<T>(fn);
 }
 
-export class _StaticProperty<T = any> {
-  constructor(public readonly descriptor: PropertyDescriptor<T> = {}) {
+export class _StaticProperty<T extends MockPropsTypes = typeof Observe> {
+  readonly descriptor: PropertyDescriptor<T>;
 
+  constructor(get?: T, set?: T) {
+    this.descriptor = { get, set };
   }
 
-  get(get: _StaticProperty<T>['descriptor']['get']): this {
+  get<U extends MockPropsTypes = _StaticProperty<T>['descriptor']['value']>(get: U): _StaticProperty<U> {
     this.descriptor.get = get;
 
-    return this;
+    return this as unknown as _StaticProperty<U>;
   }
 
-  set(set: _StaticProperty<T>['descriptor']['set']): this {
+  set<U extends MockPropsTypes = _StaticProperty<T>['descriptor']['value']>(set: U): _StaticProperty<U> {
     this.descriptor.set = set;
 
-    return this;
+    return this as unknown as _StaticProperty<U>;
   }
+
+  private __staticProperty() {}
 }
 
-export function StaticProperty<T extends ReturnType<_StaticProperty['descriptor']['get']>>(descriptor?: _StaticProperty<T>['descriptor']) {
-  return new _StaticProperty<T>(descriptor);
+export function StaticProperty<T extends MockPropsTypes = typeof Observe>(get?: T, set?: T) {
+  return new _StaticProperty<T>(get, set);
 }
 
-export class _Custom<T extends any = typeof Observe> {
+export class _Custom<T extends MockPropsTypes = typeof Observe> {
   _argsAnnotation: string[];
   _epoch: string;
   _exclude: boolean;
@@ -336,21 +383,23 @@ export class _Custom<T extends any = typeof Observe> {
 
     return this;
   }
+
+  private __custom() {}
 }
 
-export function Custom<T extends any = typeof Observe>(value?: T) {
+export function Custom<T extends MockPropsTypes = typeof Observe>(value?: T) {
   return new _Custom<T>(value);
 }
 
-export function ArgsAnnotation<T extends any = typeof Observe>(argsAnnotation: _Custom<T>['_argsAnnotation'], value?: T) {
+export function ArgsAnnotation<T extends MockPropsTypes = typeof Observe>(argsAnnotation: _Custom<T>['_argsAnnotation'], value?: T) {
   return new _Custom<T>(value).argsAnnotation(argsAnnotation);
 }
 
-export function Epoch<T extends any = typeof Observe>(epoch: _Custom<T>['_epoch'], value?: T) {
+export function Epoch<T extends MockPropsTypes = typeof Observe>(epoch: _Custom<T>['_epoch'], value?: T) {
   return new _Custom<T>(value).epoch(epoch);
 }
 
-export function Exclude<T extends any = typeof Observe>(value?: T) {
+export function Exclude<T extends MockPropsTypes = typeof Observe>(value?: T) {
   return new _Custom<T>(value).exclude();
 }
 
