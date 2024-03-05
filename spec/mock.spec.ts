@@ -209,7 +209,7 @@ describe('Mock', () => {
     Object.defineProperties(Function.prototype, {
       'bind': {
         value: function () {
-          var func = bind.apply(this, arguments);
+          const func = bind.apply(this, arguments);
 
           func.original = this;
 

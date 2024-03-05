@@ -154,13 +154,13 @@ export class Snapshot {
   }
 
   addClassOfProcessor(cls, serializer?) {
-    const usefulCls = new typeHelpers.ClassOfType(cls);
+    const usefulCls = new typeHelpers.ClassOf(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   }
 
   addInstanceOfProcessor(cls, serializer?) {
-    const usefulCls = new typeHelpers.InstanceOfType(cls);
+    const usefulCls = new typeHelpers.InstanceOf(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   }

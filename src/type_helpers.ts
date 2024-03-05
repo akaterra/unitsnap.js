@@ -6,7 +6,7 @@ export interface IType {
 }
 
 export class AnyType implements IType {
-  check() {
+  check(value?) {
     return true;
   }
 
@@ -25,7 +25,7 @@ export class BooleanType implements IType {
   }
 }
 
-export class ClassOfType implements IType {
+export class ClassOf implements IType {
   constructor(private _cls: ClassDef<unknown>) {
 
   }
@@ -70,7 +70,7 @@ export class DateValue implements IType {
 }
 
 export class Ignore implements IType {
-  check() {
+  check(value?) {
     return true;
   }
 
@@ -79,7 +79,7 @@ export class Ignore implements IType {
   }
 }
 
-export class InstanceOfType implements IType {
+export class InstanceOf implements IType {
   constructor(private _cls: ClassDef<unknown>) {
 
   }
@@ -103,7 +103,37 @@ export class NumberType implements IType {
   }
 }
 
-export class NumberIsCloseToType implements IType {
+export class NumberIsCloseTo implements IType {
+  constructor(private _value: number, private _diff: number) {
+
+  }
+
+  check(value?) {
+    if (typeof value !== 'number') {
+      return false;
+    }
+
+    if (value === Number.POSITIVE_INFINITY && this._value === Number.POSITIVE_INFINITY) {
+      return true;
+    }
+    
+    if (value === Number.NEGATIVE_INFINITY && this._value === Number.NEGATIVE_INFINITY) {
+      return true;
+    }
+    
+    return Math.abs(this._value - value) <= this._diff;
+  }
+
+  serialize() {
+    const diff = this._value === Number.POSITIVE_INFINITY || this._value === Number.NEGATIVE_INFINITY
+      ? 0
+      : this._diff;
+
+    return { $$data: `${this._value} ±${diff}`, $$type: 'numberIsCloseTo' };
+  }
+}
+
+export class NumberIsPreciseTo implements IType {
   constructor(private _value: number, private _precision: number) {
 
   }
@@ -121,15 +151,19 @@ export class NumberIsCloseToType implements IType {
       return true;
     }
     
-    return Math.abs(this._value - value) < Math.pow(10, -this._precision) / 2;
+    return Math.abs(this._value - value) <= Math.pow(10, -this._precision);
   }
 
   serialize() {
-    return { $$data: this._precision, $$type: 'numberIsPricise' };
+    const diff = this._value === Number.POSITIVE_INFINITY || this._value === Number.NEGATIVE_INFINITY
+      ? 0
+      : Math.pow(10, -this._precision);
+
+    return { $$data: `${this._value} ±${diff}`, $$type: 'numberIsPreciseTo' };
   }
 }
 
-export class RangeType implements IType {
+export class Range implements IType {
   constructor(_min: number, _max: number);
 
   constructor(_min: string, _max: string);
@@ -149,7 +183,7 @@ export class RangeType implements IType {
   }
 
   serialize() {
-    return { $$data: [ this.primitive(this._min), this.primitive(this._max) ], $$type: 'range' };
+    return { $$data: `${this.primitive(this._min)} .. ${this.primitive(this._max)}`, $$type: 'range' };
   }
 
   private isSameType(val1, val2): boolean {
