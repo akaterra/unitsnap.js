@@ -35,8 +35,8 @@ npm install @akaterra.co/unitsnap
 
 ### Example of snapshot generation
 
-```javascript
-const observer = require('@akaterra.co/unitsnap').default; // default pre-created UnitSnap observer
+```typescript
+import observer from ('@akaterra.co/unitsnap'); // default pre-created UnitSnap observer
 
 class A {
     a(a, b, c) {
@@ -77,14 +77,14 @@ Serialized snapshot (snapshot.serialize()):
 
 Save taken snapshot:
 
-```javascript
+```typescript
 snapshot.setFsProvider(__dirname).save('snapshot');
 ```
 
 ### Example of snapshot assertion
 
-```javascript
-const observer = require('@akaterra/unitsnap').default; // default pre-created UnitSnap observer
+```typescript
+import observer from ('@akaterra.co/unitsnap'); // default pre-created UnitSnap observer
 
 class A {
     a(a, b, c) {
@@ -125,13 +125,13 @@ Serialized snapshot (snapshot.serialize()):
 
 Assert saved snapshot:
 
-```javascript
+```typescript
 const checkResult = snapshot.setFsProvider(__dirname).assertSaved('snapshot'); // "[0].args.b" as path of mismatched value
 ```
 
 ### Observer
 
-```javascript
+```typescript
 const Observer = require('@akaterra/unitsnap').Observer;
 ```
 
@@ -142,7 +142,7 @@ For ease of use, Observer also implements a set of methods that are proxy method
 
 * **config()** - returns a config object with the History, Mock, Fixture and Snapshot of the Observer.
 
-  ```javascript
+  ```typescript
   observer.config().snapshot.setFsProvider(__dirname);
   
   observer.snapshot(); // a new Snapshot automatically configured to use the filesystem provider
@@ -172,15 +172,15 @@ For ease of use, Observer also implements a set of methods that are proxy method
 
 ### History
 
-```javascript
-const History = require('@akaterra/unitsnap').History;
+```typescript
+import { History } from '@akaterra/unitsnap';
 ```
 
 History chronologically collects the entries with results of execution of each single observed function of the execution flow.
 
 The general structure of the entry:
 
-```javascript
+```typescript
 args: {
     '*': [ // rest of arguments
         <value>,..
@@ -212,7 +212,7 @@ A some single called function is commonly will generate two entries:
 1) with the **args** field on the function call
 2) with the **result** and **exception** fields on the end of the function execution
 
-```javascript
+```typescript
 function a(a, b, c) {
     return 1;
 }
@@ -222,7 +222,7 @@ a(1, 2, 3);
 
 generates entries containing the next fields:
 
-```javascript
+```typescript
 [
     {
         args: {
@@ -238,7 +238,7 @@ generates entries containing the next fields:
 ]
 ```
 
-```javascript
+```typescript
 function a(a, b, c) {
     throw 1;
 }
@@ -248,7 +248,7 @@ a(1, 2, 3);
 
 generates entries containing the next fields:
 
-```javascript
+```typescript
 [
     {
         args: {
@@ -287,8 +287,8 @@ Epochs can be nested.
 
 ### Mock
 
-```javascript
-const Mock = require('@akaterra/unitsnap').Mock;
+```typescript
+import { Mock } from '@akaterra/unitsnap';
 ```
 
 The Mock builds a mock that commonly is a fake representation of the initial entity and can be used instead of original entity.
@@ -299,24 +299,28 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
     Single mock:
 
-    ```javascript
-    const Mock = require('@akaterra/unitsnap').Mock;
-    const Property = require('@akaterra/unitsnap').Property;
-    const StaticMethod = require('@akaterra/unitsnap').StaticMethod;
-    const StaticProperty = require('@akaterra/unitsnap').StaticProperty;
+    ```typescript
+    import {
+      Mock,
+      Property,
+      StaticMethod,
+      StaticProperty,
+      Undefined,
+      This
+    } from '@akaterra/unitsnap';
 
-    const mock = new Mock(history);
+    const mock = Mock(history);
 
     const Mocked = mock.from({
         a: function () { return 1; }, // custom function
-        b: Function, // stub function
+        b: Undefined, // stub function
         c: 123, // function returning 123
         d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // exception - can be linked to observer Fixture only in context of observer
-        f: StaticMethod(Function), // custom static method
-        g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
-        h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
-        i: typeHelpers.This, // stub function returning this
+        f: StaticMethod(Undefined), // custom static method
+        g: Property().get(1).set(Undefined), // custom property returning "1" on get and does nothing on set
+        h: StaticProperty().get(1).set(Undefined), // custom static property returning "1" on get and does nothing on set
+        i: This, // stub function returning this
     });
 
     const mocked = new Mocked();
@@ -336,24 +340,28 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
     Mock in context of observer:
 
-    ```javascript
-    const Observer = require('@akaterra/unitsnap').Observer;
-    const Property = require('@akaterra/unitsnap').Property;
-    const StaticMethod = require('@akaterra/unitsnap').StaticMethod;
-    const StaticProperty = require('@akaterra/unitsnap').StaticProperty;
+    ```typescript
+    import {
+      Observer,
+      Property,
+      StaticMethod,
+      StaticProperty,
+      Undefined,
+      This
+    } from '@akaterra/unitsnap';
 
-    const observer = new Observer();
+    const observer = Observer();
 
     const Mocked = observer.from({
         a: function () { return 1; }, // custom function
-        b: Function, // stub function
+        b: Undefined, // stub function
         c: 123, // function returning 123
         d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // linked to observer.Fixture.pop
         f: StaticMethod(2), // custom static method returning "2"
-        g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
-        h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
-        i: typeHelpers.This, // stub function returning this
+        g: Property().get(1).set(Undefined), // custom property returning "1" on get and does nothing on set
+        h: StaticProperty().get(1).set(Undefined), // custom static property returning "1" on get and does nothing on set
+        i: This, // stub function returning this
     });
 
     const mocked = new Mocked();
@@ -373,7 +381,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
 * **by(class, props)** - constructs mock by the class with the custom props
 
-    ```javascript
+    ```typescript
     class A {
         a(a, b, c) {
             return a + b + c;
@@ -395,13 +403,15 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
     Mock by entire class:
 
-    ```javascript
-    const Mock = require('@akaterra/unitsnap').Mock;
-    const Property = require('@akaterra/unitsnap').Property;
-    const StaticMethod = require('@akaterra/unitsnap').StaticMethod;
-    const StaticProperty = require('@akaterra/unitsnap').StaticProperty;
+    ```typescript
+    import {
+      Mock,
+      Property,
+      StaticMethod,
+      StaticProperty
+    } from '@akaterra/unitsnap';
 
-    const mock = new Mock(history);
+    const mock = Mock(history);
 
     const Mocked = mock.by(A);
     
@@ -416,13 +426,17 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
     Single mock with a custom props:
 
-    ```javascript
-    const Mock = require('@akaterra/unitsnap').Mock;
-    const Property = require('@akaterra/unitsnap').Property;
-    const StaticMethod = require('@akaterra/unitsnap').StaticMethod;
-    const StaticProperty = require('@akaterra/unitsnap').StaticProperty;
+    ```typescript
+    import {
+      Mock,
+      Property,
+      StaticMethod,
+      StaticProperty,
+      Undefined,
+      This
+    } from '@akaterra/unitsnap';
 
-    const mock = new Mock(history);
+    const mock = Mock(history);
 
     const Mocked = mock.by(A, {
         constructor: 123, // generates constructor returning "123"
@@ -432,9 +446,9 @@ Besides, this mock can optionally be linked to the history so that the state of 
         d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // exception - can be linked to observer Fixture only in context of observer
         f: StaticMethod(2), // custom static method returning "2"
-        g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
-        h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
-        i: typeHelpers.This, // stub function returning this
+        g: Property().get(1).set(Undefined), // custom property returning "1" on get and does nothing on set
+        h: StaticProperty().get(1).set(Undefined), // custom static property returning "1" on get and does nothing on set
+        i: This, // stub function returning this
     });
 
     const mocked = new Mocked();
@@ -454,13 +468,17 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
     Mock with a custom props in the Observer's context:
 
-    ```javascript
-    const Observer = require('@akaterra/unitsnap').Observer;
-    const Property = require('@akaterra/unitsnap').Property;
-    const StaticMethod = require('@akaterra/unitsnap').StaticMethod;
-    const StaticProperty = require('@akaterra/unitsnap').StaticProperty;
+    ```typescript
+    import {
+      Observer,
+      Property,
+      StaticMethod,
+      StaticProperty,
+      Undefined,
+      This
+    } from '@akaterra/unitsnap';
 
-    const observer = new Observer();
+    const observer = Observer();
 
     const Mocked = observer.by(A, {
         constructor: 123, // generates constructor returning "123"
@@ -470,9 +488,9 @@ Besides, this mock can optionally be linked to the history so that the state of 
         d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // linked to observer.Fixture.pop
         f: StaticMethod(2), // custom static method returning "2"
-        g: Property().get(1).set(Function), // custom property returning "1" on get and does nothing on set
-        h: StaticProperty().get(1).set(Function), // custom static property returning "1" on get and does nothing on set
-        i: typeHelpers.This, // stub function returning this
+        g: Property().get(1).set(Undefined), // custom property returning "1" on get and does nothing on set
+        h: StaticProperty().get(1).set(Undefined), // custom static property returning "1" on get and does nothing on set
+        i: This, // stub function returning this
    });
 
     const mocked = new Mocked();
@@ -495,10 +513,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
     Generally can be used same as the **by** but instead of creation of a new class it overrides props of the provided class.
     The overridden props can be restored after by calling **RESTORE**:
 
-    ```javascript
-    const Mock = require('@akaterra/unitsnap').Mock;
+    ```typescript
+    import { Mock } from '@akaterra/unitsnap';
 
-    const mock = new Mock(history);
+    const mock = Mock(history);
 
     mock.override(A, {
         constructor: 123, // does nothing, the original constructor can't be overridden
@@ -514,10 +532,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
 
 Note, that the mocked method will be dynamically replaced by its copy on the first call of this method.
 This make for the ability to collect call statistic on behalf of the instance but not its prototype.
-```javascript
-const Mock = require('@akaterra/unitsnap').Mock;
+```typescript
+import { Mock } from '@akaterra/unitsnap';
 
-const mock = new Mock(history);
+const mock = Mock(history);
 
 const MockA = mock.by(A, {
     x: 1
@@ -529,10 +547,10 @@ a.x(); // statistics available now by "a.x", not by "a.prototype.x"
 ```
 
 To leave statistics collection on behalf of prototype:
-```javascript
-const Mock = require('@akaterra/unitsnap').Mock;
+```typescript
+import { Mock } from '@akaterra/unitsnap';
 
-const mock = new Mock(history);
+const mock = Mock(history);
 
 const MockA = mock.by(A, {
     x: 1
@@ -549,26 +567,29 @@ Same is for the "from" and the "override".
 
 Properties can be customized with the **Custom** entity.
 
-```javascript
-const ArgsAnnotation = require('@akaterra/unitsnap').ArgsAnnotation;
-const Custom = require('@akaterra/unitsnap').Custom;
-const Exclude = require('@akaterra/unitsnap').Exclude;
-const Mock = require('@akaterra/unitsnap').Mock;
+```typescript
+import {
+  ArgsAnnotation,
+  Custom,
+  Exclude,
+  Mock,
+  Undefined
+} from '@akaterra/unitsnap';
 
-const mock = new Mock(history);
+const mock = Mock(history);
 
 const Mocked = mock.by(A, {
-    a: Custom(Function).argsAnnotation(['x', 'y', 'z']), // callee arguments with be named as "x", "y" and "z"
-    b: Custom(Function).exclude(), // will be excluded from history
-    c: ArgsAnnotation(Function, ['x', 'y', 'z']), // same as "a" field
-    d: Exclude(Function), // same as "b" field
+    a: Custom(Undefined).argsAnnotation(['x', 'y', 'z']), // callee arguments with be named as "x", "y" and "z"
+    b: Custom(Undefined).exclude(), // will be excluded from history
+    c: ArgsAnnotation(['x', 'y', 'z'], Undefined), // same as "a" field
+    d: Exclude(Undefined), // same as "b" field
 });
 ```
 
 ### Fixture
 
-```javascript
-const Fixture = require('@akaterra/unitsnap').Fixture;
+```typescript
+import { Fixture } from '@akaterra/unitsnap';
 ```
 
 Fixture provides a fake data to be used as a result of the function call.
@@ -587,7 +608,7 @@ Fixture provides a fake data to be used as a result of the function call.
 
 Callback strategy allows to use a custom callback as a generator for the popped value.
 
-```
+```typescript
 fixture.setCallbackStrategy(() => 1);
 
 fixture.push(1, 2, 3); // calls the callback with 1, 2, 3
@@ -599,7 +620,7 @@ fixture.pop(); // 1
 
 Queue strategy allows to use a queued values.
 
-```
+```typescript
 fixture.setQueueStrategy();
 
 fixture.push(1, 2, 3); // [1, 2, 3]
@@ -611,7 +632,7 @@ fixture.pop(); // 1 - popped from the beginning of the queue; [2, 3] is a rest
 
 Filesystem provider allows to load values from the file.
 
-```
+```typescript
 fixture.setName('test'); // set fixture name that will be used as a part of filename
 
 fixture.setQueueStrategy();
@@ -623,7 +644,7 @@ fixture.setFsProvider(__dirname); // values from the __dirname/test.fixture.json
 
 Filesystem provider allows to load values from the memory.
 
-```
+```typescript
 fixture.setName('test'); // set fixture name that will be a key in the dictionary of values
 
 fixture.setQueueStrategy();
@@ -649,7 +670,7 @@ Then the snapshot over this subset of the historical entries can be created.
 * **tags(...tags)** - adds "filter by tags", all entries having the tags will be taken.
 
 * **not()** - enables "negative" filter once so that the next filter will perform a negative comparison:
-  ```javascript
+  ```typescript
   filter.not().epoch('excluded epoch'); // excludes all entries with "epoch" fields = "excluded epoch"
   ```
 
@@ -712,7 +733,7 @@ Note, that each added processor will be inserted into beginning of the processor
   **checker** is a function that checks if the value should be serialized, **serializer** performs value serialization.
 
 * **addClassOfProcessor(class, serializer)** - adds "class of" processor, the value will be serialized as:
-  ```javascript
+  ```typescript
   {
     $$data: <class name>,
     $$type: 'classOf'
@@ -720,7 +741,7 @@ Note, that each added processor will be inserted into beginning of the processor
   ```
 
 * **addInstanceOfProcessor(class, serializer)** - adds "instance of" processor, the value will be serialized as:
-  ```javascript
+  ```typescript
   {
     $$data: <class name of instance>,
     $$type: 'instanceOf'
@@ -734,7 +755,7 @@ Note, that each added processor will be inserted into beginning of the processor
 * **addRegexPathProcessor(regex, serializer)** - adds "match to regex path" processor, the value with path matched to the **regex** will be serialized with **serializer**.
 
 * **addUndefinedProcessor(serializer)** - adds "undefined value" processor, the value will be serialized as:
-  ```javascript
+  ```typescript
   {
     $$data: null,
     $$type: 'undefined'
@@ -742,7 +763,7 @@ Note, that each added processor will be inserted into beginning of the processor
   ```
 
 If matched and serialized value has to be continued with the rest processors use **Continue** type helper.
-```javascript
+```typescript
 snapshot.addProcessor((value) => value === 5, (value) => new Continue(value));
 ```
 
@@ -750,7 +771,7 @@ snapshot.addProcessor((value) => value === 5, (value) => new Continue(value));
 
 The set of special type helpers can be used with value processors that can be useful in some cases.
 
-```javascript
+```typescript
 snapshot.addProcessor(Date); // adds checker "instance of Date" and serializer to {$$data: null, $$type: 'date'}
 ```
 
@@ -775,7 +796,7 @@ Serialized snapshot:
 Available helpers:
 
 * **AnyType** - serializes any value as:
-  ```javascript
+  ```typescript
   {
     $$data: null,
     $$type: "any"
@@ -783,17 +804,17 @@ Available helpers:
   ```
 
 * **BooleanType (or JS Boolean type)** - checks the value to be boolean and serializes the value as:
-  ```javascript
+  ```typescript
   {
     $$data: null,
     $$type: "boolean"
   }
   ```
 
-* **ClassOfType** - checks the value to be class of and serializes the value as:
-  ```javascript
+* **ClassOf** - checks the value to be class of and serializes the value as:
+  ```typescript
   {
-    $$data: <class name>,
+    $$data: "<class name>",
     $$type: "classOf"
   }
   ```
@@ -801,7 +822,7 @@ Available helpers:
 * **Continue** - the value will be continued with the rest processors.
 
 * **DateType (or JS Date type)** - checks the value to be instance of Date and serializes the value as:
-  ```javascript
+  ```typescript
   {
     $$data: null,
     $$type: "date"
@@ -809,33 +830,57 @@ Available helpers:
   ```
 
 * **DateValue** - checks the value to be instance of Date and serializes the value as:
-  ```javascript
+  ```typescript
   {
-    $$data: <ISO string>,
+    $$data: "<ISO string>",
     $$type: "date"
   }
   ```
 
 * **Ignore** - the value will be omitted in the serialized snapshot.
 
-* **InstanceOfType** - checks the value to be instance of Date and serializes the value as:
-  ```javascript
+* **InstanceOf** - checks the value to be instance of Date and serializes the value as:
+  ```typescript
   {
-    $$data: <class name>,
+    $$data: "<class name>",
     $$type: "instanceOf"
   }
   ```
 
+* **NumberIsCloseTo** - checks the value to be number which is close to some number with a difference and serializes the value as:
+  ```typescript
+  {
+    $$data: "<expected> ±<difference>",
+    $$type: "numberIsCloseTo"
+  }
+  ```
+
+* **NumberIsPreciseTo** - same as **NumberIsCloseTo** but uses negative exponent to calculate an expected difference:
+  ```typescript
+  {
+    $$data: "<expected> ±<difference>",
+    $$type: "numberIsPreciseTo"
+  }
+  ```
+
 * **NumberType (or JS Number type)** - checks the value to be number and serializes the value as:
-  ```javascript
+  ```typescript
   {
     $$data: null,
     $$type: "number"
   }
   ```
 
+* **Range** - checks the value is in range (numeric, lexicographic or dates) and serializes the value as:
+  ```typescript
+  {
+    $$data: "<min> .. <max>",
+    $$type: "range"
+  }
+  ```
+
 * **StringType (or JS String type)** - checks the value to be string and serializes the value as:
-  ```javascript
+  ```typescript
   {
     $$data: null,
     $$type: "string"
@@ -843,7 +888,7 @@ Available helpers:
   ```
 
 * **UndefinedType (or undefined)** - checks the value to be undefined value and serializes the value as:
-  ```javascript
+  ```typescript
   {
     $$data: null,
     $$type: "undefined"
@@ -854,7 +899,7 @@ Available helpers:
 
 Filesystem provider allows to load and save snapshots as files.
 
-```javascript
+```typescript
 snapshot.setFsProvider(__dirname);
 
 snapshot.save('test'); // __dirname/test.snapshot.json
@@ -866,7 +911,7 @@ snapshot.load('test');
 
 Memory provider allows to load and save temporary snapshot in the process memory.
 
-```javascript
+```typescript
 snapshot.setMemoryProvider();
 
 snapshot.save('test');
@@ -880,7 +925,7 @@ The special Jasmine matcher **toMatchSnapshot** can be used in specs for snapsho
 
 Enable the matcher and configure default snapshot, for example, to use the file system provider:
 
-```javascript
+```typescript
 var unitsnap = require('@akaterra/unitsnap');
 
 unitsnap.extendJasmine();
@@ -890,7 +935,7 @@ unitsnap.config().snapshot.setFsProvider(__dirname);
 
 Use the matcher in some **it**:
 
-```
+```typescript
 it('should do something', function () {
     ...
 
@@ -908,7 +953,7 @@ It will throw standard Jasmine **toEqual** error on mismatch.
 
 Example (see full example /spec/jasmine.spec.js):
 
-```javascript
+```typescript
 const unitsnap = require('@akaterra/unitsnap');
 
 describe('some suite', () => {

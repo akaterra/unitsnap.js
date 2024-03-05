@@ -24,10 +24,10 @@ describe('Observer', () => {
 
   beforeEach(() => {
     // TODO fix
-    bySpy = unitsnap.Mock.prototype.by = spyOn(unitsnap.Mock.prototype, 'by').and.callThrough().and.returnValue(f as any) as any;
-    fromSpy = unitsnap.Mock.prototype.from = spyOn(unitsnap.Mock.prototype, 'from').and.callThrough().and.returnValue(f as any) as any;
-    overrideSpy = unitsnap.Mock.prototype.override = spyOn(unitsnap.Mock.prototype, 'override').and.callThrough().and.returnValue(B) as any;
-    spySpy = unitsnap.Mock.prototype.spy = spyOn(unitsnap.Mock.prototype, 'spy').and.callThrough().and.returnValue(f as any) as any;
+    bySpy = unitsnap._Mock.prototype.by = spyOn(unitsnap._Mock.prototype, 'by').and.callThrough().and.returnValue(f as any) as any;
+    fromSpy = unitsnap._Mock.prototype.from = spyOn(unitsnap._Mock.prototype, 'from').and.callThrough().and.returnValue(f as any) as any;
+    overrideSpy = unitsnap._Mock.prototype.override = spyOn(unitsnap._Mock.prototype, 'override').and.callThrough().and.returnValue(B) as any;
+    spySpy = unitsnap._Mock.prototype.spy = spyOn(unitsnap._Mock.prototype, 'spy').and.callThrough().and.returnValue(f as any) as any;
   });
 
   afterEach(() => {
@@ -47,7 +47,7 @@ describe('Observer', () => {
     expect(e.env.fixture instanceof unitsnap._Fixture);
     expect(e.env.history instanceof unitsnap.History);
     expect(e.env.history.observer).toBe(e);
-    expect(e.env.mock instanceof unitsnap.Mock);
+    expect(e.env.mock instanceof unitsnap._Mock);
     expect(e.env.mock.history).toBe(e.env.history);
     expect(e.env.snapshot instanceof unitsnap.Snapshot);
     expect(e.env.snapshot.observer).toBe(e);

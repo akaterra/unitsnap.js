@@ -148,7 +148,7 @@ if (0) {
   // static get P(): string { return 'c' }
   // static set P(p: string) {}
 
-  const m: Mock = null;
+  const m: _Mock = null;
   const E = m.override(X, {
     B: StaticMethod(() => 1),
     C: StaticMethod(Observe),
@@ -192,7 +192,7 @@ if (0) {
   e.s();
 }
 
-export class Mock {
+export class _Mock {
   explicitInstance: boolean;
 
   private _history: History;
@@ -294,6 +294,10 @@ export class Mock {
       }
     });
   }
+}
+
+export function Mock(history?: History) {
+  return new _Mock(history);
 }
 
 export type PropertyDescriptor<T = any> = {

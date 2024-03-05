@@ -240,14 +240,14 @@ describe('Mock', () => {
   beforeEach(() => history.flush());
 
   it('should be constructed with history', () => {
-    const e = new unitsnap.Mock(history);
+    const e = new unitsnap._Mock(history);
 
     expect(e.history).toBe(history);
   });
 
   describe('when builds mock by class (unitsnap.from)', () => {
     it('should builds mock', () => {
-      const E = new unitsnap.Mock(history).from({c: f});
+      const E = new unitsnap._Mock(history).from({c: f});
 
       expect(stat(E.prototype.c).replacement).toBe(f);
     });
@@ -255,7 +255,7 @@ describe('Mock', () => {
 
   describe('when uses mocked class (unitsnap.from)', () => {
     it('should mock be constructed', () => {
-      const E = new unitsnap.Mock(history).from({c: f});
+      const E = new unitsnap._Mock(history).from({c: f});
 
       expect(new E instanceof E).toBeTruthy();
     });
@@ -263,32 +263,32 @@ describe('Mock', () => {
 
   describe('when builds mock by class (unitsnap.by)', () => {
     it('should throw exception on bad argument', () => {
-      const E = new unitsnap.Mock(history);
+      const E = new unitsnap._Mock(history);
 
       expect(() => E.by(1 as any)).toThrow();
     });
 
     it('should build mock', () => {
-      const E = new unitsnap.Mock(history).by(A);
+      const E = new unitsnap._Mock(history).by(A);
 
       expect(E).not.toBe(A);
     });
 
     it('should built mock be instance of original class', () => {
-      const E = new unitsnap.Mock(history.begin()).by(A);
+      const E = new unitsnap._Mock(history.begin()).by(A);
 
       expect(new E(null) instanceof A);
     });
 
     it('should save original constructor in class prototype', () => {
-      const E = new unitsnap.Mock(history).by(A, ['constructor']);
+      const E = new unitsnap._Mock(history).by(A, ['constructor']);
 
       expect(E.prototype.constructor).toBe(A);
     });
 
     describe('when uses list of props', () => {
       it('should override all props with spy', () => {
-        const E = new unitsnap.Mock(history).by(B);
+        const E = new unitsnap._Mock(history).by(B);
 
         expect(stat(E.prototype.a).origin).toBe(B.prototype.a);
         expect(stat(E.prototype.b).origin).toBe(B.prototype.b);
@@ -302,7 +302,7 @@ describe('Mock', () => {
       });
 
       it('should override constructor with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, ['constructor']);
+        const E = new unitsnap._Mock(history).by(B, ['constructor']);
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E).origin).toBe(B);
@@ -310,7 +310,7 @@ describe('Mock', () => {
       });
 
       it('should override props with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, ['c']);
+        const E = new unitsnap._Mock(history).by(B, ['c']);
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -318,13 +318,13 @@ describe('Mock', () => {
       });
 
       it('should stub absented props with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, ['x']);
+        const E = new unitsnap._Mock(history).by(B, ['x']);
 
         expect(typeof E.prototype.x === 'function').toBeTruthy();
       });
 
       it('should stub constructor', () => {
-        const E = new unitsnap.Mock(history).by(B, ['constructor']);
+        const E = new unitsnap._Mock(history).by(B, ['constructor']);
 
         expect(stat(E).origin).toBe(B);
       });
@@ -332,7 +332,7 @@ describe('Mock', () => {
 
     describe('when uses dictionary of props (prop name: custom handler)', () => {
       it('should override constructor with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, {constructor: f});
+        const E = new unitsnap._Mock(history).by(B, {constructor: f});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E).origin).toBe(B);
@@ -340,7 +340,7 @@ describe('Mock', () => {
       });
 
       it('should override methods with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: f});
+        const E = new unitsnap._Mock(history).by(B, {c: f});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -348,7 +348,7 @@ describe('Mock', () => {
       });
 
       it('should override methods of parent class with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, {m: f});
+        const E = new unitsnap._Mock(history).by(B, {m: f});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.m).origin).toBe(A.prototype.m);
@@ -356,7 +356,7 @@ describe('Mock', () => {
       });
 
       it('should override static methods with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: unitsnap.StaticMethod(f)});
+        const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(f)});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(B.c);
@@ -364,7 +364,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on single getter', () => {
-        const E = new unitsnap.Mock(history).by(B, {d: unitsnap.Property().get(f)});
+        const E = new unitsnap._Mock(history).by(B, {d: unitsnap.Property().get(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
@@ -372,7 +372,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on single setter', () => {
-        const E = new unitsnap.Mock(history).by(B, {d: unitsnap.Property().set(f)});
+        const E = new unitsnap._Mock(history).by(B, {d: unitsnap.Property().set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
@@ -380,7 +380,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on getter of getter/setter pair', () => {
-        const E = new unitsnap.Mock(history).by(B, {d: unitsnap.Property().get(f).set(f)});
+        const E = new unitsnap._Mock(history).by(B, {d: unitsnap.Property().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
@@ -388,7 +388,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on setter of getter/setter pair', () => {
-        const E = new unitsnap.Mock(history).by(B, {d: unitsnap.Property().get(f).set(f)});
+        const E = new unitsnap._Mock(history).by(B, {d: unitsnap.Property().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
@@ -396,7 +396,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on single getter', () => {
-        const E = new unitsnap.Mock(history).by(B, {d: unitsnap.StaticProperty().get(f)});
+        const E = new unitsnap._Mock(history).by(B, {d: unitsnap.StaticProperty().get(f)});
 
         expect(E.a).toBe(B.a);
         expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
@@ -404,7 +404,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on single setter', () => {
-        const E = new unitsnap.Mock(history).by(B, {d: unitsnap.StaticProperty().set(f)});
+        const E = new unitsnap._Mock(history).by(B, {d: unitsnap.StaticProperty().set(f)});
 
         expect(E.a).toBe(B.a);
         expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
@@ -412,7 +412,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on getter of getter/setter pair', () => {
-        const E = new unitsnap.Mock(history).by(B, {d: unitsnap.StaticProperty().get(f).set(f)});
+        const E = new unitsnap._Mock(history).by(B, {d: unitsnap.StaticProperty().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
         expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
@@ -420,7 +420,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on setter of getter/setter pair', () => {
-        const E = new unitsnap.Mock(history).by(B, {d: unitsnap.StaticProperty().get(f).set(f)});
+        const E = new unitsnap._Mock(history).by(B, {d: unitsnap.StaticProperty().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
         expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
@@ -428,7 +428,7 @@ describe('Mock', () => {
       });
 
       it('should stub methods marked as This', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: unitsnap.This});
+        const E = new unitsnap._Mock(history).by(B, {c: unitsnap.This});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -436,7 +436,7 @@ describe('Mock', () => {
       });
 
       it('should stub static methods marked as This', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: unitsnap.StaticMethod(unitsnap.This)});
+        const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(unitsnap.This)});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(B.c);
@@ -444,7 +444,7 @@ describe('Mock', () => {
       });
 
       it('should stub methods marked as Function', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: Function});
+        const E = new unitsnap._Mock(history).by(B, {c: Function});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -452,7 +452,7 @@ describe('Mock', () => {
       });
 
       it('should stub static methods marked as Function', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: unitsnap.StaticMethod(Function)});
+        const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(Function)});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(B.c);
@@ -460,7 +460,7 @@ describe('Mock', () => {
       });
 
       it('should stub methods marked as primitive value', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: 123});
+        const E = new unitsnap._Mock(history).by(B, {c: 123});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -468,7 +468,7 @@ describe('Mock', () => {
       });
 
       it('should stub static methods marked as primitive value', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: unitsnap.StaticMethod(123)});
+        const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(123)});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(B.c);
@@ -476,7 +476,7 @@ describe('Mock', () => {
       });
 
       it('should set methods marked as class prototype methods', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: () => {}});
+        const E = new unitsnap._Mock(history).by(B, {c: () => {}});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -484,7 +484,7 @@ describe('Mock', () => {
       });
 
       it('should set methods marked by Initial as class prototype methods', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: unitsnap.Initial});
+        const E = new unitsnap._Mock(history).by(B, {c: unitsnap.Initial});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -492,7 +492,7 @@ describe('Mock', () => {
       });
 
       it('should set static methods marked as initial static methods', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: unitsnap.StaticMethod(() => {})});
+        const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(() => {})});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(B.c);
@@ -500,19 +500,19 @@ describe('Mock', () => {
       });
 
       it('should stub absented methods with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, {x: f});
+        const E = new unitsnap._Mock(history).by(B, {x: f});
 
         expect(typeof E.prototype.x === 'function').toBeTruthy();
       });
 
       it('should stub absented static methods with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, {x: unitsnap.StaticMethod(f)});
+        const E = new unitsnap._Mock(history).by(B, {x: unitsnap.StaticMethod(f)});
 
         expect(typeof E.x === 'function').toBeTruthy();
       });
 
       it('should override methods linked to fixture with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: fixture});
+        const E = new unitsnap._Mock(history).by(B, {c: fixture});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -520,7 +520,7 @@ describe('Mock', () => {
       });
 
       it('should override static methods linked to fixture with spy', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: unitsnap.StaticMethod(fixture)});
+        const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(fixture)});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(B.c);
@@ -528,7 +528,7 @@ describe('Mock', () => {
       });
 
       it('should override methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).by(B, {c: unitsnap._Fixture});
+        const E = new unitsnap._Mock(new unitsnap.History().link(observer)).by(B, {c: unitsnap._Fixture});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -536,7 +536,7 @@ describe('Mock', () => {
       });
 
       it('should override static methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).by(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
+        const E = new unitsnap._Mock(new unitsnap.History().link(observer)).by(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(B.c);
@@ -544,7 +544,7 @@ describe('Mock', () => {
       });
 
       it('should throw exception on methods linked to fixture of unlinked observer by Fixture ref', () => {
-        const E = new unitsnap.Mock(history);
+        const E = new unitsnap._Mock(history);
 
         expect(() => E.by(B, {c: unitsnap._Fixture})).toThrow();
       });
@@ -555,7 +555,7 @@ describe('Mock', () => {
     it('should spy on result of call', () => {
       history.begin('epoch', 'comment');
 
-      const e = new (new unitsnap.Mock(history).by(B, ['constructor', 'a', 'x'] as const))(1, 2, 3);
+      const e = new (new unitsnap._Mock(history).by(B, ['constructor', 'a', 'x'] as const))(1, 2, 3);
 
       for (let i = 0; i < 2; i ++) {
         try {
@@ -715,7 +715,7 @@ describe('Mock', () => {
     it('should spy on exception of call', () => {
       history.begin('epoch', 'comment');
 
-      const E = new unitsnap.Mock(history).by(B, {
+      const E = new unitsnap._Mock(history).by(B, {
         constructor: unitsnap.Observe,
         a: unitsnap.StaticMethod(unitsnap.Observe),
         c: unitsnap.Observe,
@@ -1203,7 +1203,7 @@ describe('Mock', () => {
 
       const custom = unitsnap.Custom<number>().argsAnnotation(['x', 'y', 'z']);
 
-      const E = new unitsnap.Mock(history).by(B, {
+      const E = new unitsnap._Mock(history).by(B, {
         constructor: custom,
         a: unitsnap.StaticMethod(custom),
         c: custom,
@@ -1253,7 +1253,7 @@ describe('Mock', () => {
 
       const custom = unitsnap.Custom<number>().exclude();
 
-      const E = new unitsnap.Mock(history).by(B, {
+      const E = new unitsnap._Mock(history).by(B, {
         constructor: custom,
         a: unitsnap.StaticMethod(custom),
         c: custom,
@@ -1288,19 +1288,19 @@ describe('Mock', () => {
     });
 
     it('should return mocked this value', () => {
-      const e = new (new unitsnap.Mock(history.begin()).by(B, {c: unitsnap.This}))();
+      const e = new (new unitsnap._Mock(history.begin()).by(B, {c: unitsnap.This}))();
 
       expect(e.c()).toBe(e);
     });
 
     it('should return mocked primitive value', () => {
-      const e = new (new unitsnap.Mock(history.begin()).by(B, {c: 123}))();
+      const e = new (new unitsnap._Mock(history.begin()).by(B, {c: 123}))();
 
       expect(e.c()).toBe(123);
     });
 
     it('should include valid class.method name on absented constructor in class prototype', () => {
-      const e = new (new unitsnap.Mock(history).by(D, ['a']));
+      const e = new (new unitsnap._Mock(history).by(D, ['a']));
 
       history.begin('epoch', 'comment');
 
@@ -1312,7 +1312,7 @@ describe('Mock', () => {
     });
 
     it('should include valid class.method name on presented constructor in class prototype', () => {
-      const e = new (new unitsnap.Mock(history).by(C, {'a': f}));
+      const e = new (new unitsnap._Mock(history).by(C, {'a': f}));
 
       history.begin('epoch', 'comment');
 
@@ -1326,32 +1326,32 @@ describe('Mock', () => {
 
   describe('when builds mock by overridden class (unitsnap.override)', () => {
     it('should throw exception on bad argument', () => {
-      const E = new unitsnap.Mock(history);
+      const E = new unitsnap._Mock(history);
 
       expect(() => E.override(null)).toThrow();
     });
 
     it('should from mock', () => {
-      const E = new unitsnap.Mock(history).override(A);
+      const E = new unitsnap._Mock(history).override(A);
 
       expect(E).toBe(A);
     });
 
     it('should built mock be instance of original class', () => {
-      const E = new unitsnap.Mock(history).override(A);
+      const E = new unitsnap._Mock(history).override(A);
 
       expect(new E instanceof A);
     });
 
     it('should save original constructor in class prototype', () => {
-      const E = new unitsnap.Mock(history).override(A, {'constructor': f});
+      const E = new unitsnap._Mock(history).override(A, {'constructor': f});
 
       expect(E.prototype.constructor).toBe(A);
     });
 
     describe('when uses list of props', () => {
       it('should override all props with spy', () => {
-        const E = new unitsnap.Mock(history).override(B);
+        const E = new unitsnap._Mock(history).override(B);
 
         expect(stat(E.prototype.a).origin).toBe(bPrototype.a);
         expect(stat(E.prototype.b).origin).toBe(bPrototype.b);
@@ -1365,7 +1365,7 @@ describe('Mock', () => {
       });
 
       it('should override props with spy', () => {
-        const E = new unitsnap.Mock(history).override(B, ['c']);
+        const E = new unitsnap._Mock(history).override(B, ['c']);
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1373,7 +1373,7 @@ describe('Mock', () => {
       });
 
       it('should stub absented props with spy', () => {
-        const E = new unitsnap.Mock(history).override(B, ['x']);
+        const E = new unitsnap._Mock(history).override(B, ['x']);
 
         expect(typeof E.prototype.x === 'function').toBeTruthy();
       });
@@ -1381,7 +1381,7 @@ describe('Mock', () => {
 
     describe('when uses dictionary of props (prop name: custom handler)', () => {
       it('should override methods with spy', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: f});
+        const E = new unitsnap._Mock(history).override(B, {c: f});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1389,7 +1389,7 @@ describe('Mock', () => {
       });
 
       it('should override methods of parent class with spy', () => {
-        const E = new unitsnap.Mock(history).override(B, {m: f});
+        const E = new unitsnap._Mock(history).override(B, {m: f});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.m).origin).toBe(A.prototype.m);
@@ -1397,7 +1397,7 @@ describe('Mock', () => {
       });
 
       it('should override static methods with spy', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: unitsnap.StaticMethod(f)});
+        const E = new unitsnap._Mock(history).override(B, {c: unitsnap.StaticMethod(f)});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(bProperties.c);
@@ -1405,7 +1405,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on single getter', () => {
-        const E = new unitsnap.Mock(history).override(B, {d: unitsnap.Property().get(f)});
+        const E = new unitsnap._Mock(history).override(B, {d: unitsnap.Property().get(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(bPrototypeDescriptors.d.get);
@@ -1413,7 +1413,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on single setter', () => {
-        const E = new unitsnap.Mock(history).override(B, {d: unitsnap.Property().set(f)});
+        const E = new unitsnap._Mock(history).override(B, {d: unitsnap.Property().set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(bPrototypeDescriptors.d.set);
@@ -1421,7 +1421,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on getter of getter/setter pair', () => {
-        const E = new unitsnap.Mock(history).override(B, {d: unitsnap.Property().get(f).set(f)});
+        const E = new unitsnap._Mock(history).override(B, {d: unitsnap.Property().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(bPrototypeDescriptors.d.get);
@@ -1429,7 +1429,7 @@ describe('Mock', () => {
       });
 
       it('should override properties with spy on setter of getter/setter pair', () => {
-        const E = new unitsnap.Mock(history).override(B, {d: unitsnap.Property().get(f).set(f)});
+        const E = new unitsnap._Mock(history).override(B, {d: unitsnap.Property().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(bPrototypeDescriptors.d.set);
@@ -1437,7 +1437,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on single getter', () => {
-        const E = new unitsnap.Mock(history).override(B, {d: unitsnap.StaticProperty().get(f)});
+        const E = new unitsnap._Mock(history).override(B, {d: unitsnap.StaticProperty().get(f)});
 
         expect(E.a).toBe(B.a);
         expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(bPropertiesDescriptors.d.get);
@@ -1445,7 +1445,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on single setter', () => {
-        const E = new unitsnap.Mock(history).override(B, {d: unitsnap.StaticProperty().set(f)});
+        const E = new unitsnap._Mock(history).override(B, {d: unitsnap.StaticProperty().set(f)});
 
         expect(E.a).toBe(B.a);
         expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(bPropertiesDescriptors.d.set);
@@ -1453,7 +1453,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on getter of getter/setter pair', () => {
-        const E = new unitsnap.Mock(history).override(B, {d: unitsnap.StaticProperty().get(f).set(f)});
+        const E = new unitsnap._Mock(history).override(B, {d: unitsnap.StaticProperty().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
         expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(bPropertiesDescriptors.d.get);
@@ -1461,7 +1461,7 @@ describe('Mock', () => {
       });
 
       it('should override static properties with spy on setter of getter/setter pair', () => {
-        const E = new unitsnap.Mock(history).override(B, {d: unitsnap.StaticProperty().get(f).set(f)});
+        const E = new unitsnap._Mock(history).override(B, {d: unitsnap.StaticProperty().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
         expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(bPropertiesDescriptors.d.set);
@@ -1469,7 +1469,7 @@ describe('Mock', () => {
       });
 
       it('should stub methods marked as Function', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: Function});
+        const E = new unitsnap._Mock(history).override(B, {c: Function});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1477,7 +1477,7 @@ describe('Mock', () => {
       });
 
       it('should stub static methods marked as Function', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: unitsnap.StaticMethod(Function)});
+        const E = new unitsnap._Mock(history).override(B, {c: unitsnap.StaticMethod(Function)});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(bProperties.c);
@@ -1485,7 +1485,7 @@ describe('Mock', () => {
       });
 
       it('should stub methods marked as primitive value', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: 123});
+        const E = new unitsnap._Mock(history).override(B, {c: 123});
 
         expect(E.prototype.a).toBe(bPrototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1493,7 +1493,7 @@ describe('Mock', () => {
       });
 
       it('should stub static methods marked as primitive value', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: unitsnap.StaticMethod(123)});
+        const E = new unitsnap._Mock(history).override(B, {c: unitsnap.StaticMethod(123)});
 
         expect(E.a).toBe(bProperties.a);
         expect(stat(E.c).origin).toBe(bProperties.c);
@@ -1501,7 +1501,7 @@ describe('Mock', () => {
       });
 
       it('should set methods marked as class prototype props', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: () => {}});
+        const E = new unitsnap._Mock(history).override(B, {c: () => {}});
 
         expect(E.prototype.a).toBe(bPrototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1509,7 +1509,7 @@ describe('Mock', () => {
       });
 
       it('should set methods marked by Initial as class prototype props', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: unitsnap.Initial});
+        const E = new unitsnap._Mock(history).override(B, {c: unitsnap.Initial});
 
         expect(E.prototype.a).toBe(bPrototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1517,7 +1517,7 @@ describe('Mock', () => {
       });
 
       it('should set static methods marked as class prototype props', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: unitsnap.StaticMethod(() => {})});
+        const E = new unitsnap._Mock(history).override(B, {c: unitsnap.StaticMethod(() => {})});
 
         expect(E.a).toBe(bProperties.a);
         expect(stat(E.c).origin).toBe(bProperties.c);
@@ -1525,19 +1525,19 @@ describe('Mock', () => {
       });
 
       it('should stub absented methods with spy', () => {
-        const E = new unitsnap.Mock(history).override(B, {x: f});
+        const E = new unitsnap._Mock(history).override(B, {x: f});
 
         expect(typeof E.prototype.x === 'function').toBeTruthy();
       });
 
       it('should stub absented static methods with spy', () => {
-        const E = new unitsnap.Mock(history).override(B, {x: unitsnap.StaticMethod(f)});
+        const E = new unitsnap._Mock(history).override(B, {x: unitsnap.StaticMethod(f)});
 
         expect(typeof E.x === 'function').toBeTruthy();
       });
 
       it('should override methods linked to fixture with spy', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: fixture});
+        const E = new unitsnap._Mock(history).override(B, {c: fixture});
 
         expect(E.prototype.a).toBe(bPrototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1545,7 +1545,7 @@ describe('Mock', () => {
       });
 
       it('should override static methods linked to fixture with spy', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: unitsnap.StaticMethod(fixture)});
+        const E = new unitsnap._Mock(history).override(B, {c: unitsnap.StaticMethod(fixture)});
 
         expect(E.a).toBe(bProperties.a);
         expect(stat(E.c).origin).toBe(bProperties.c);
@@ -1553,7 +1553,7 @@ describe('Mock', () => {
       });
 
       it('should override methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).override(B, {c: unitsnap._Fixture});
+        const E = new unitsnap._Mock(new unitsnap.History().link(observer)).override(B, {c: unitsnap._Fixture});
 
         expect(E.prototype.a).toBe(bPrototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1561,7 +1561,7 @@ describe('Mock', () => {
       });
 
       it('should override static methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).override(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
+        const E = new unitsnap._Mock(new unitsnap.History().link(observer)).override(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
 
         expect(E.a).toBe(bProperties.a);
         expect(stat(E.c).origin).toBe(bProperties.c);
@@ -1569,7 +1569,7 @@ describe('Mock', () => {
       });
 
       it('should throw exception on methods linked to fixture of unlinked observer by Fixture ref', () => {
-        const E = new unitsnap.Mock(history);
+        const E = new unitsnap._Mock(history);
 
         expect(() => E.override(B, {c: unitsnap._Fixture})).toThrow();
       });
@@ -1578,7 +1578,7 @@ describe('Mock', () => {
 
   describe('when uses mocked class (unitsnap.override)', () => {
     it('should spy on result of call', () => {
-      const e = new (new unitsnap.Mock(history).override(B, ['constructor', 'a', 'x']));
+      const e = new (new unitsnap._Mock(history).override(B, ['constructor', 'a', 'x']));
 
       history.begin('epoch', 'comment');
 
@@ -1738,7 +1738,7 @@ describe('Mock', () => {
     });
 
     it('should spy on exception of call', () => {
-      const E = new unitsnap.Mock(history).override(B, {
+      const E = new unitsnap._Mock(history).override(B, {
         constructor: unitsnap.Observe,
         a: unitsnap.StaticMethod(unitsnap.Observe),
         c: unitsnap.Observe,
@@ -2224,19 +2224,19 @@ describe('Mock', () => {
     });
 
     it('should return mocked this value', () => {
-      const e = new (new unitsnap.Mock(history.begin()).override(B, {c: unitsnap.This}))();
+      const e = new (new unitsnap._Mock(history.begin()).override(B, {c: unitsnap.This}))();
 
       expect(e.c()).toBe(e);
     });
 
     it('should return mocked primitive value', () => {
-      const E = new unitsnap.Mock(history.begin()).override(B, {c: 123});
+      const E = new unitsnap._Mock(history.begin()).override(B, {c: 123});
 
       expect(new E().c()).toBe(123);
     });
 
     it('should RESTORE overridden props by list of props', () => {
-      const E = new unitsnap.Mock(history).override(B, ['a', 'b', 'x']);
+      const E = new unitsnap._Mock(history).override(B, ['a', 'b', 'x']);
       E.RESTORE();
 
       expect(E.prototype.a).toBe(bPrototype.a);
@@ -2245,7 +2245,7 @@ describe('Mock', () => {
     });
 
     it('should RESTORE overridden props by dictionary of props', () => {
-      const E = new unitsnap.Mock(history).override(B, {
+      const E = new unitsnap._Mock(history).override(B, {
         a: unitsnap.Observe,
         b: unitsnap.StaticMethod(),
         d: unitsnap.Property(),
@@ -2264,7 +2264,7 @@ describe('Mock', () => {
     });
 
     it('should include valid "class.method" name on absented constructor in class prototype', () => {
-      const e = new (new unitsnap.Mock(history).override(D, ['a']));
+      const e = new (new unitsnap._Mock(history).override(D, ['a']));
 
       history.begin('epoch', 'comment');
 
@@ -2276,7 +2276,7 @@ describe('Mock', () => {
     });
 
     it('should include valid "class.method" name on presented constructor in class prototype', () => {
-      const e = new (new unitsnap.Mock(history).override(C, {'a': f}));
+      const e = new (new unitsnap._Mock(history).override(C, {'a': f}));
 
       history.begin('epoch', 'comment');
 
@@ -2289,7 +2289,7 @@ describe('Mock', () => {
   });
 
   it('should from mock creating stubs on absented selected props as list', () => {
-    const E = new unitsnap.Mock(history).from(['d', 'e', 'f']);
+    const E = new unitsnap._Mock(history).from(['d', 'e', 'f']);
 
     expect(typeof new E().d === 'function').toBeTruthy();
     expect(typeof new E().e === 'function').toBeTruthy();
@@ -2297,7 +2297,7 @@ describe('Mock', () => {
   });
 
   it('should from mock creating stubs on absented selected props as dictionary', () => {
-    const E = new unitsnap.Mock(history).from({d: f, e: f, f: f});
+    const E = new unitsnap._Mock(history).from({d: f, e: f, f: f});
 
     expect(typeof new E().d === 'function').toBeTruthy();
     expect(typeof new E().e === 'function').toBeTruthy();
@@ -2305,7 +2305,7 @@ describe('Mock', () => {
   });
 
   it('should spy on single callable result', () => {
-    const x = new unitsnap.Mock(history).spy(function x(a: number) { return a * 2; });
+    const x = new unitsnap._Mock(history).spy(function x(a: number) { return a * 2; });
 
     history.begin('epoch', 'comment');
 
@@ -2351,7 +2351,7 @@ describe('Mock', () => {
   });
 
   it('should spy on single callable exception', () => {
-    const x = new unitsnap.Mock(history).spy(function x(a) { throw 1; });
+    const x = new unitsnap._Mock(history).spy(function x(a) { throw 1; });
 
     history.begin('epoch', 'comment');
 
@@ -2399,7 +2399,7 @@ describe('Mock', () => {
   it('should spy on single async callable result', (done) => {
     history.begin('epoch', 'comment');
 
-    const x = new unitsnap.Mock(history).spy(function x(a) { return Promise.resolve(1); });
+    const x = new unitsnap._Mock(history).spy(function x(a) { return Promise.resolve(1); });
 
     const promise = x(5);
 
@@ -2468,7 +2468,7 @@ describe('Mock', () => {
   it('should spy on single async callable exception', (done) => {
     history.begin('epoch', 'comment');
 
-    const x = new unitsnap.Mock(history).spy(function x(a) { return Promise.reject(1); });
+    const x = new unitsnap._Mock(history).spy(function x(a) { return Promise.reject(1); });
 
     const promise = x(5);
 

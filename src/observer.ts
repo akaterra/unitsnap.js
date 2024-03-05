@@ -9,7 +9,7 @@ let observerId = 1000;
 export interface IObserverEnv {
   fixture: fixture._Fixture;
   history: history.History;
-  mock: mock.Mock;
+  mock: mock._Mock;
   snapshot: snapshot.Snapshot;
 }
 
@@ -37,7 +37,7 @@ export class _Observer {
     this._fixture = new fixture._Fixture();
     this._history = new history.History().link(this);
     this._id = observerId;
-    this._mock = new mock.Mock(this._history);
+    this._mock = new mock._Mock(this._history);
     this._snapshot = new snapshot.Snapshot([]).link(this);
 
     observerId += 1;
