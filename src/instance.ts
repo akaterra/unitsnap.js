@@ -133,7 +133,7 @@ export function getAncestors(cls) {
   while (true) {
     cls = Object.getPrototypeOf(cls);
 
-    if (cls && typeof cls === 'function') {
+    if (cls && cls instanceof Function) {
       ancestors.push(cls);
     } else {
       break;

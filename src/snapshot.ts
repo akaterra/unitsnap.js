@@ -29,7 +29,7 @@ export interface State {
 export interface ISnapshotEnv {
   mapper: (snapshot: Snapshot, entry: State) => State;
   observer: _Observer;
-  processors: { checker: Fn, serializer: Fn }[];
+  processors: { checker: Fn & { original?: Fn }, serializer: Fn & { original?: Fn } }[];
   provider: ISnapshotProvider;
 }
 

@@ -53,7 +53,7 @@ describe('Snapshot', () => {
     Object.defineProperties(Function.prototype, {
       'bind': {
         value: function () {
-          const func = bind.apply(this, arguments);
+          var func = bind.apply(this, arguments);
 
           func.original = this;
 
