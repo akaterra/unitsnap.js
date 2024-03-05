@@ -4,6 +4,7 @@ import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAnc
 import { History } from './history';
 import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5ClassDef, Es6Class, Es6ClassDef, Fn, NotNeverKeys, ObjectFromList } from './utils';
 import { _Observer } from './observer';
+import { Processor, ProcessorChecker, ProcessorSerializer } from './processor';
 
 export class Observe { private constructor() {} private __observe() {} };
 export const Initial = Observe;
@@ -195,8 +196,10 @@ if (0) {
 export class _Mock {
   explicitInstance: boolean;
 
+  private _callProcessor = new Processor()
   private _history: History;
   private _fixturePop: any;
+  private _returnValueProcessor = new Processor()
 
   get fixturePop() {
     if (!this._fixturePop) {
@@ -372,13 +375,65 @@ export function StaticProperty<T extends MockPropsTypes = typeof Observe>(get?: 
 
 export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Null> {
   _argsAnnotation: string[];
+  _callProcessor = new Processor();
   _epoch: string;
   _exclude: boolean;
+  _returnValueProcessor = new Processor();
+
+  private _currentProcessor = this._callProcessor;
+
+  get call() {
+    this._currentProcessor = this._callProcessor;
+
+    return this;
+  }
+
+  get returnValue() {
+    this._currentProcessor = this._returnValueProcessor;
+
+    return this;
+  }
 
   constructor(public readonly value: T = Null as T) {
     if (value instanceof _Custom) {
       this.value = value.value as unknown as T;
     }
+  }
+
+  addProcessor(checker: ProcessorChecker, serializer?: ProcessorSerializer) {
+    this._currentProcessor.add(checker, serializer);
+
+    return this;
+  }
+
+  addClassOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+    this._currentProcessor.addClassOf(cls, serializer);
+
+    return this;
+  }
+
+  addInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+    this._currentProcessor.addInstanceOf(cls, serializer);
+
+    return this;
+  }
+
+  addPathProcessor(path: string, serializer: ProcessorSerializer) {
+    this._currentProcessor.addPath(path, serializer);
+
+    return this;
+  }
+
+  addRegexPathProcessor(regex: string | RegExp, serializer: ProcessorSerializer) {
+    this._currentProcessor.addRegexPath(regex, serializer);
+
+    return this;
+  }
+
+  addUndefinedProcessor(serializer?: ProcessorSerializer) {
+    this._currentProcessor.addUndefined(serializer);
+
+    return this;
   }
 
   argsAnnotation(argsAnnotation: _Custom<T>['_argsAnnotation']): this {

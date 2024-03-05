@@ -1,7 +1,7 @@
 import * as filter from './filter';
 import { _Observer } from './observer';
-import * as typeHelpers from './type_helpers';
-import { Fn } from './utils';
+import { Processor, ProcessorChecker, ProcessorSerializer } from './processor';
+import { ClassDef, Fn } from './utils';
 
 export interface State {
   args?: {
@@ -35,20 +35,29 @@ export interface ISnapshotEnv {
 }
 
 export class Snapshot {
-  private _config: any;
+  private _config: any = {
+    args: true,
+    exception: true,
+    result: true,
+  };
   private _entries: any[];
-  private _mapper: ISnapshotEnv['mapper'];
-  private _name: string;
+  private _mapper: ISnapshotEnv['mapper'] = snapshotMapEntry;
+  private _name: string = null;
   private _observer: ISnapshotEnv['observer'] = null;
-  private _processors: ISnapshotEnv['processors'];
-  private _provider: ISnapshotEnv['provider'];
+  private _processor = new Processor();
+  private _provider: ISnapshotEnv['provider'] = null;
 
   get config() {
     return this._config;
   }
 
   get env(): ISnapshotEnv {
-    return { mapper: this._mapper, observer: this._observer, processors: this._processors, provider: this._provider };
+    return {
+      mapper: this._mapper,
+      observer: this._observer,
+      processors: this._processor.processors,
+      provider: this._provider,
+    };
   }
 
   get entries() {
@@ -64,15 +73,7 @@ export class Snapshot {
   }
 
   constructor(entries?) {
-    this._config = {
-      args: true,
-      exception: true,
-      result: true,
-    };
     this._entries = entries || [];
-    this._mapper = snapshotMapEntry;
-    this._name = this._provider = null;
-    this._processors = [];
 
     this.setMemoryProvider({});
   }
@@ -93,7 +94,7 @@ export class Snapshot {
     return this;
   }
 
-  setName(name) {
+  setName(name: Snapshot['_name']) {
     this._name = name;
 
     return this;
@@ -129,71 +130,44 @@ export class Snapshot {
     return this;
   }
 
-  addProcessor(checker?, serializer?) {
-    const [ ,basicTypeChecker ] = basicTypes.find((basicType) => {
-      return basicType[0] === checker;
-    }) ?? [];
-
-    const basicTypeCheckerFn = basicTypeChecker
-      ? basicTypeChecker.check.bind(basicTypeChecker[1])
-      : checker;
-
-    const [ ,basicTypeSerializer ] = basicTypes.find((basicType) => {
-      return basicType[0] === (serializer === undefined ? checker : serializer);
-    }) ?? [];
-
-    const basicTypeSerializerFn = basicTypeSerializer
-      ? basicTypeSerializer.serialize.bind(basicTypeSerializer[1])
-      : serializer;
-
-    this._processors.unshift({
-      checker: basicTypeCheckerFn,
-      serializer: basicTypeSerializerFn,
-    });
+  addProcessor(checker: ProcessorChecker, serializer?: ProcessorSerializer) {
+    this._processor.add(checker, serializer);
 
     return this;
   }
 
-  addClassOfProcessor(cls, serializer?) {
-    const usefulCls = new typeHelpers._ClassOf(cls);
+  addClassOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+    this._processor.addClassOf(cls, serializer);
 
-    return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
+    return this;
   }
 
-  addInstanceOfProcessor(cls, serializer?) {
-    const usefulCls = new typeHelpers._InstanceOf(cls);
+  addInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+    this._processor.addInstanceOf(cls, serializer);
 
-    return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
+    return this;
   }
 
-  addPathProcessor(path, serializer?) {
-    const usefulRegex = RegExp('^' + path
-      .replace(/[-[\]{}()+?.,\\^$|#\s]/g, '\\$&')
-      .replace(/\*/g, '.*')
-      .replace(/_/g, '.') + '$'
-    );
+  addPathProcessor(path: string, serializer: ProcessorSerializer) {
+    this._processor.addPath(path, serializer);
 
-    return this.addProcessor((value, path) => {
-      return usefulRegex.test(path);
-    }, serializer);
+    return this;
   }
 
-  addRegexPathProcessor(regex, serializer?) {
-    const usefulRegex = regex instanceof RegExp ? regex : RegExp(regex);
+  addRegexPathProcessor(regex: string | RegExp, serializer: ProcessorSerializer) {
+    this._processor.addRegexPath(regex, serializer);
 
-    return this.addProcessor((value, path) => {
-      return usefulRegex.test(path);
-    }, serializer);
+    return this;
   }
 
-  addUndefinedProcessor(serializer?) {
-    const usefulCls = new typeHelpers.UndefinedType();
+  addUndefinedProcessor(serializer?: ProcessorSerializer) {
+    this._processor.addUndefined(serializer);
 
-    return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
+    return this;
   }
 
   addProcessors(...processors: ISnapshotEnv['processors']) {
-    this._processors.unshift(...processors);
+    processors.forEach((processor) => this.addProcessor(processor.checker, processor.serializer));
 
     return this;
   }
@@ -277,7 +251,7 @@ export class Snapshot {
       .setConfig(Object.assign({}, this._config))
       .setName(this._name)
       .setProvider(this._provider)
-      .addProcessors(...this._processors)
+      .addProcessors(...this._processor.processors)
       .link(this._observer);
   }
 
@@ -294,13 +268,10 @@ export class Snapshot {
   }
 
   serialize() {
-    return this._entries.map((entry, ind) => {
-      return snapshotSerializeValue(
-        this,
-        this._mapper(this, entry),
-        '[' + ind + ']'
-      );
-    });
+    return this._entries.map((entry, ind) => this._processor.serialize(
+      this._mapper(this, entry),
+      `[${ind}]`,
+    ));
   }
 }
 
@@ -328,68 +299,6 @@ function snapshotAssert(source, target, path) {
   }
 
   return source === target ? true : path;
-}
-
-function snapshotSerializeValue(snapshot, value, path, primitiveOnly?, circular?) {
-  snapshot._processors.length && snapshot._processors.some(function (p) {
-    if (p.checker(value, path)) {
-      value = p.serializer(value);
-
-      if (! (value instanceof typeHelpers.Continue)) {
-        return true;
-      }
-
-      value = (value as any).value;
-    }
-  });
-
-  if (! circular) {
-    circular = [];
-  }
-
-  let serialized;
-
-  if (!primitiveOnly && Array.isArray(value)) {
-    if (circular.indexOf(value) !== - 1) {
-      return '[[ Circular ! ]]'
-    }
-
-    circular.push(value);
-
-    serialized = value.map(function (val, ind) {
-      return snapshotSerializeValue(snapshot, val, path + '[' + ind + ']', false, circular);
-    }).filter(function (val) {
-      return val !== typeHelpers.Ignore;
-    });
-
-    circular.pop();
-
-    return serialized;
-  }
-
-  if (!primitiveOnly && value && typeof value === 'object') {
-    if (circular.indexOf(value) !== - 1) {
-      return '[[ Circular ! ]]'
-    }
-
-    circular.push(value);
-
-    serialized = Object.keys(value).reduce(function (acc, key) {
-      const serialized = snapshotSerializeValue(snapshot, value[key], path + '.' + key, false, circular);
-
-      if (serialized !== typeHelpers.Ignore) {
-        acc[key] = serialized;
-      }
-
-      return acc;
-    }, {});
-
-    circular.pop();
-
-    return serialized;
-  }
-
-  return value;
 }
 
 function snapshotMapEntry(snapshot, entry: State): State {
@@ -536,19 +445,3 @@ export class SnapshotMemoryProvider implements ISnapshotProvider {
     return this;
   }
 }
-
-const basicTypes: [ any, typeHelpers.IType ][] = [
-  [ typeHelpers.AnyType, new typeHelpers.AnyType() ],
-  [ Boolean, new typeHelpers.BooleanType() ],
-  [ typeHelpers.BooleanType, new typeHelpers.BooleanType() ],
-  [ Date, new typeHelpers.DateType() ],
-  [ typeHelpers.Ignore, new typeHelpers.Ignore() ],
-  [ typeHelpers.DateType, new typeHelpers.DateType() ],
-  [ typeHelpers.DateValue, new typeHelpers.DateValue() ],
-  [ Number, new typeHelpers.NumberType() ],
-  [ typeHelpers.NumberType, new typeHelpers.NumberType() ],
-  [ String, new typeHelpers.StringType() ],
-  [ typeHelpers.StringType, new typeHelpers.StringType() ],
-  [ undefined, new typeHelpers.UndefinedType() ],
-  [ typeHelpers.UndefinedType, new typeHelpers.UndefinedType() ],
-];

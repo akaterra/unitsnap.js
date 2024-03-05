@@ -256,13 +256,13 @@ describe('Snapshot', () => {
   });
 
   it('should add processor of basic type Undefined as checker', () => {
-    const e = new unitsnap.Snapshot().addProcessor();
+    const e = new unitsnap.Snapshot().addProcessor(undefined);
 
     expect(e.env.processors[0].checker.original).toBe(unitsnap.UndefinedType.prototype.check);
   });
 
   it('should add processor of basic type Undefined as serializer', () => {
-    const e = new unitsnap.Snapshot().addProcessor();
+    const e = new unitsnap.Snapshot().addProcessor(undefined);
 
     expect(e.env.processors[0].serializer.original).toBe(unitsnap.UndefinedType.prototype.serialize);
   });
