@@ -172,6 +172,8 @@ export function spyOnFunction(callable, options?, asConstructor?) {
 
 export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?) {
   return {
+    reportType: 'call',
+
     args: callable.ARGS,
     callsCount: callable.CALLS_COUNT,
     context: context,
@@ -187,6 +189,8 @@ export function spyOnFunctionCreateArgsReport(callable, context?, originalCallab
 
 export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?) {
   return {
+    reportType: 'returnValue',
+
     callsCount: callable.CALLS_COUNT,
     context: context,
     exception: callable.EXCEPTION,

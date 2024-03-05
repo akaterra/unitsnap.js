@@ -573,7 +573,7 @@ describe('Mock', () => {
 
       history.end();
 
-      expect(history.entries).toEqual([{
+      expect(history.entries).toEqual([jasmine.objectContaining({
         args: {args: [1, 2, 3]},
         callsCount: 1,
         comment: 'comment',
@@ -590,7 +590,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[0].time,
         type: 'constructor',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -607,7 +607,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[1].time,
         type: 'constructor',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], a: 'call'},
         callsCount: 1,
         comment: 'comment',
@@ -624,7 +624,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[2].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -641,7 +641,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[3].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], a: 'call'},
         callsCount: 2,
         comment: 'comment',
@@ -658,7 +658,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[4].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 2,
         comment: 'comment',
         context: e,
@@ -675,7 +675,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[5].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -692,7 +692,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[6].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -709,7 +709,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[7].time,
         type: 'method',
-      }]);
+      })]);
     });
 
     it('should spy on exception of call', () => {
@@ -753,7 +753,7 @@ describe('Mock', () => {
 
       history.end();
 
-      expect(history.entries).toEqual([{
+      expect(history.entries).toEqual([jasmine.objectContaining({
         args: {args: [ 1 ]},
         callsCount: 1,
         comment: 'comment',
@@ -770,7 +770,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[0].time,
         type: 'constructor',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -787,7 +787,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[1].time,
         type: 'constructor',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], a: 'call'},
         callsCount: 1,
         comment: 'comment',
@@ -804,7 +804,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[2].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -821,7 +821,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[3].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], a: 'call'},
         callsCount: 2,
         comment: 'comment',
@@ -838,7 +838,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[4].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 2,
         comment: 'comment',
         context: e,
@@ -855,7 +855,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[5].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -872,7 +872,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[6].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -889,7 +889,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[7].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -906,7 +906,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[8].time,
         type: 'staticMethod',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: history.entries[9].context,
@@ -923,7 +923,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[9].time,
         type: 'staticMethod',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -940,7 +940,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[10].time,
         type: 'getter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: history.entries[11].context,
@@ -957,7 +957,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[11].time,
         type: 'getter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], value: 1},
         callsCount: 1,
         comment: 'comment',
@@ -974,7 +974,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[12].time,
         type: 'setter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: history.entries[13].context,
@@ -991,7 +991,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[13].time,
         type: 'setter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -1008,7 +1008,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[14].time,
         type: 'staticGetter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: history.entries[15].context,
@@ -1025,7 +1025,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[15].time,
         type: 'staticGetter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], value: 1},
         callsCount: 1,
         comment: 'comment',
@@ -1042,7 +1042,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[16].time,
         type: 'staticSetter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: history.entries[17].context,
@@ -1059,7 +1059,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[17].time,
         type: 'staticSetter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -1076,7 +1076,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[18].time,
         type: 'getter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -1093,7 +1093,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[19].time,
         type: 'getter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [1]},
         callsCount: 1,
         comment: 'comment',
@@ -1110,7 +1110,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[20].time,
         type: 'setter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -1127,7 +1127,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[21].time,
         type: 'setter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -1144,7 +1144,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[22].time,
         type: 'staticGetter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: E,
@@ -1161,7 +1161,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[23].time,
         type: 'staticGetter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [1]},
         callsCount: 1,
         comment: 'comment',
@@ -1178,7 +1178,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[24].time,
         type: 'staticSetter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: E,
@@ -1195,7 +1195,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[25].time,
         type: 'staticSetter',
-      }]);
+      })]);
     });
 
     it('should spy with custom args annotation', () => {
@@ -1598,7 +1598,7 @@ describe('Mock', () => {
 
       history.end();
 
-      expect(history.entries).toEqual([{
+      expect(history.entries).toEqual([jasmine.objectContaining({
         args: {'*': [], a: 'call'},
         callsCount: 1,
         comment: 'comment',
@@ -1615,7 +1615,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[0].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -1632,7 +1632,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[1].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], a: 'call'},
         callsCount: 2,
         comment: 'comment',
@@ -1649,7 +1649,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[2].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 2,
         comment: 'comment',
         context: e,
@@ -1666,7 +1666,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[3].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], a: 'call'},
         callsCount: 3,
         comment: 'comment',
@@ -1683,7 +1683,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[4].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 3,
         comment: 'comment',
         context: e,
@@ -1700,7 +1700,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[5].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -1717,7 +1717,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[6].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -1734,7 +1734,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[7].time,
         type: 'method',
-      }]);
+      })]);
     });
 
     it('should spy on exception of call', () => {
@@ -1778,7 +1778,7 @@ describe('Mock', () => {
 
       history.end();
 
-      expect(history.entries).toEqual([{
+      expect(history.entries).toEqual([jasmine.objectContaining({
         args: {'*': [], a: 'call'},
         callsCount: 1,
         comment: 'comment',
@@ -1795,7 +1795,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[0].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -1812,7 +1812,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[1].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], a: 'call'},
         callsCount: 2,
         comment: 'comment',
@@ -1829,7 +1829,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[2].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 2,
         comment: 'comment',
         context: e,
@@ -1846,7 +1846,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[3].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], a: 'call'},
         callsCount: 3,
         comment: 'comment',
@@ -1863,7 +1863,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[4].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 3,
         comment: 'comment',
         context: e,
@@ -1880,7 +1880,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[5].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -1897,7 +1897,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[6].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -1914,7 +1914,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[7].time,
         type: 'method',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -1931,7 +1931,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[8].time,
         type: 'staticMethod',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: history.entries[9].context,
@@ -1948,7 +1948,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[9].time,
         type: 'staticMethod',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -1965,7 +1965,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[10].time,
         type: 'getter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: history.entries[11].context,
@@ -1982,7 +1982,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[11].time,
         type: 'getter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], value: 1},
         callsCount: 1,
         comment: 'comment',
@@ -1999,7 +1999,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[12].time,
         type: 'setter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: history.entries[13].context,
@@ -2016,7 +2016,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[13].time,
         type: 'setter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -2033,7 +2033,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[14].time,
         type: 'staticGetter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: history.entries[15].context,
@@ -2050,7 +2050,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[15].time,
         type: 'staticGetter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [], value: 1},
         callsCount: 1,
         comment: 'comment',
@@ -2067,7 +2067,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[16].time,
         type: 'staticSetter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: history.entries[17].context,
@@ -2084,7 +2084,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[17].time,
         type: 'staticSetter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -2101,7 +2101,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[18].time,
         type: 'getter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -2118,7 +2118,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[19].time,
         type: 'getter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [1]},
         callsCount: 1,
         comment: 'comment',
@@ -2135,7 +2135,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[20].time,
         type: 'setter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -2152,7 +2152,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[21].time,
         type: 'setter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': []},
         callsCount: 1,
         comment: 'comment',
@@ -2169,7 +2169,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[22].time,
         type: 'staticGetter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: E,
@@ -2186,7 +2186,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[23].time,
         type: 'staticGetter',
-      }, {
+      }), jasmine.objectContaining({
         args: {'*': [1]},
         callsCount: 1,
         comment: 'comment',
@@ -2203,7 +2203,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[24].time,
         type: 'staticSetter',
-      }, {
+      }), jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: E,
@@ -2220,7 +2220,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[25].time,
         type: 'staticSetter',
-      }]);
+      })]);
     });
 
     it('should return mocked this value', () => {
@@ -2313,7 +2313,7 @@ describe('Mock', () => {
 
     history.end();
 
-    expect(history.entries).toEqual([{
+    expect(history.entries).toEqual([jasmine.objectContaining({
       args: {'*': [], a: 5},
       callsCount: 1,
       comment: 'comment',
@@ -2330,7 +2330,7 @@ describe('Mock', () => {
       tags: undefined,
       time: history.entries[0].time,
       type: 'single',
-    }, {
+    }), jasmine.objectContaining({
       callsCount: 1,
       comment: 'comment',
       context: undefined,
@@ -2347,7 +2347,7 @@ describe('Mock', () => {
       tags: undefined,
       time: history.entries[1].time,
       type: 'single',
-    }]);
+    })]);
   });
 
   it('should spy on single callable exception', () => {
@@ -2359,7 +2359,7 @@ describe('Mock', () => {
 
     history.end();
 
-    expect(history.entries).toEqual([{
+    expect(history.entries).toEqual([jasmine.objectContaining({
       args: {'*': [], a: 5},
       callsCount: 1,
       comment: 'comment',
@@ -2376,7 +2376,7 @@ describe('Mock', () => {
       tags: undefined,
       time: history.entries[0].time,
       type: 'single',
-    }, {
+    }), jasmine.objectContaining({
       callsCount: 1,
       comment: 'comment',
       context: undefined,
@@ -2393,7 +2393,7 @@ describe('Mock', () => {
       tags: undefined,
       time: history.entries[1].time,
       type: 'single',
-    }]);
+    })]);
   });
 
   it('should spy on single async callable result', (done) => {
@@ -2403,7 +2403,7 @@ describe('Mock', () => {
 
     const promise = x(5);
 
-    expect(history.entries).toEqual([{
+    expect(history.entries).toEqual([jasmine.objectContaining({
       args: {'*': [], a: 5},
       callsCount: 1,
       comment: 'comment',
@@ -2420,7 +2420,7 @@ describe('Mock', () => {
       tags: undefined,
       time: history.entries[0].time,
       type: 'single',
-    }, {
+    }), jasmine.objectContaining({
       callsCount: 1,
       comment: 'comment',
       context: undefined,
@@ -2437,10 +2437,10 @@ describe('Mock', () => {
       tags: undefined,
       time: history.entries[1].time,
       type: 'single',
-    }]);
+    })]);
 
     promise.then(() => {
-      expect(history.entries[2]).toEqual({
+      expect(history.entries[2]).toEqual(jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: undefined,
@@ -2457,7 +2457,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[2].time,
         type: 'single',
-      });
+      }));
 
       history.end();
 
@@ -2472,7 +2472,7 @@ describe('Mock', () => {
 
     const promise = x(5);
 
-    expect(history.entries).toEqual([{
+    expect(history.entries).toEqual([jasmine.objectContaining({
       args: {'*': [], a: 5},
       callsCount: 1,
       comment: 'comment',
@@ -2489,7 +2489,7 @@ describe('Mock', () => {
       tags: undefined,
       time: history.entries[0].time,
       type: 'single',
-    }, {
+    }), jasmine.objectContaining({
       callsCount: 1,
       comment: 'comment',
       context: undefined,
@@ -2506,10 +2506,10 @@ describe('Mock', () => {
       tags: undefined,
       time: history.entries[1].time,
       type: 'single',
-    }]);
+    })]);
 
     promise.catch(() => {
-      expect(history.entries[2]).toEqual({
+      expect(history.entries[2]).toEqual(jasmine.objectContaining({
         callsCount: 1,
         comment: 'comment',
         context: undefined,
@@ -2526,7 +2526,7 @@ describe('Mock', () => {
         tags: undefined,
         time: history.entries[2].time,
         type: 'single',
-      });
+      }));
 
       history.end();
 

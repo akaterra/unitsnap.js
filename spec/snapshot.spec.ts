@@ -541,7 +541,7 @@ describe('Snapshot', () => {
       }]);
 
       expect(e.serialize()).toEqual([{
-        args: undefined, result: {a:['[[ Circular ! ]]']},
+        result: {a:['[[ Circular ! ]]']},
       }]);
     });
 
@@ -559,7 +559,7 @@ describe('Snapshot', () => {
       }]);
 
       expect(e.serialize()).toEqual([{
-        args: undefined, result: {a:{result: '[[ Circular ! ]]'}},
+        result: {a:{result: '[[ Circular ! ]]'}},
       }]);
     });
   });
@@ -682,7 +682,7 @@ describe('Snapshot', () => {
   });
 
   it('should assert mismatch primitive', () => {
-    const e = new unitsnap.Snapshot([{}]);
+    const e = new unitsnap.Snapshot([{result: 1}]);
 
     expect(e.assert(new unitsnap.Snapshot([{result: null}]))).toBe('[0].result');
   });
@@ -774,7 +774,7 @@ describe('SnapshotMemoryProvider', () => {
 
     e.save('test', new unitsnap.Snapshot([{}]));
 
-    expect(e.load('test')).toEqual([{args: undefined, result: undefined}]);
+    expect(e.load('test')).toEqual([{}]);
   });
 
   it('should save/load arbitrary object', () => {

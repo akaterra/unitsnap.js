@@ -39,19 +39,19 @@ export function extendJasmine() {
             if (typeof process !== 'undefined') {
               saveSnapshot = 'SAVE_SNAPSHOT' in process.env && process.env.SAVE_SNAPSHOT !== '0';
 
-              if (! saveSnapshot) {
+              if (!saveSnapshot) {
                 saveSnapshot = !!process.argv.find(function (argv) {
                   return argv === '--saveSnapshot';
                 });
               }
             }
 
-            if (typeof window !== 'undefined' && ! saveSnapshot) {
+            if (typeof window !== 'undefined' && !saveSnapshot) {
               saveSnapshot = typeof window !== 'undefined' && (window as any).SAVE_SNAPSHOT === true;
             }
 
-            if (! saveSnapshot) {
-              saveSnapshot = ! actual.exists(typeof expected === 'string' ? expected : void 0);
+            if (!saveSnapshot) {
+              saveSnapshot = !actual.exists(typeof expected === 'string' ? expected : void 0);
             }
 
             if (saveSnapshot) {

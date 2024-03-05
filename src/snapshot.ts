@@ -20,6 +20,7 @@ export interface State {
   name?: string;
   origin?: (...args: any[]) => any;
   replacement?: (...args: any[]) => any;
+  reportType?: 'call'|'returnValue';
   result?: any;
   tags?: string[];
   time?: Date;
@@ -293,35 +294,35 @@ export class Snapshot {
   }
 
   serialize() {
-    return this._entries.map(function (entry, ind) {
+    return this._entries.map((entry, ind) => {
       return snapshotSerializeValue(
         this,
         this._mapper(this, entry),
         '[' + ind + ']'
       );
-    }.bind(this));
+    });
   }
 }
 
 function snapshotAssert(source, target, path) {
   if (Array.isArray(source)) {
-    if (! Array.isArray(target) || source.length !== target.length) {
+    if (!Array.isArray(target) || source.length !== target.length) {
       return path;
     }
 
-    return every(source, function (val, ind) {
+    return every(source, (val, ind) => {
       return snapshotAssert(source[ind], target[ind], path + '[' + ind + ']');
     });
   }
 
-  if (source !== null && typeof source === 'object') {
+  if (source && typeof source === 'object') {
     const keys = Object.keys(source);
 
-    if (! (target !== null && typeof target === 'object') || keys.length !== Object.keys(target).length) {
+    if (!(target && typeof target === 'object') || keys.length !== Object.keys(target).length) {
       return path;
     }
 
-    return every(keys, function (key) {
+    return every(keys, (key) => {
       return snapshotAssert(source[key], target[key], path + '.' + key);
     });
   }
@@ -428,6 +429,19 @@ function snapshotMapEntry(snapshot, entry: State): State {
 
   if (snapshot.isEnabled('isAsync')) {
     mappedEntry.isAsync = entry.isAsync;
+  }
+
+  for (const key of Object.keys(mappedEntry)) {
+    if (mappedEntry[key] === undefined) {
+      if (
+        (key === 'args' && mappedEntry.reportType === 'call') ||
+        (key === 'result' && mappedEntry.reportType === 'returnValue')
+      ) {
+        continue;
+      }
+
+      delete mappedEntry[key];
+    }
   }
 
   return mappedEntry;
