@@ -25,7 +25,7 @@ export class BooleanType implements IType {
   }
 }
 
-export class ClassOf implements IType {
+export class _ClassOf implements IType {
   constructor(private _cls: ClassDef<unknown>) {
 
   }
@@ -37,6 +37,10 @@ export class ClassOf implements IType {
   serialize() {
     return { $$data: this._cls.prototype.constructor.name, $$type: 'classOf' };
   }
+}
+
+export function ClassOf(cls: ClassDef<unknown>) {
+  return new _ClassOf(cls);
 }
 
 export class Continue implements IType {
@@ -79,7 +83,7 @@ export class Ignore implements IType {
   }
 }
 
-export class InstanceOf implements IType {
+export class _InstanceOf implements IType {
   constructor(private _cls: ClassDef<unknown>) {
 
   }
@@ -93,6 +97,10 @@ export class InstanceOf implements IType {
   }
 }
 
+export function InstanceOf(cls: ClassDef<unknown>) {
+  return new _ClassOf(cls);
+}
+
 export class NumberType implements IType {
   check(value?) {
     return typeof value === 'number';
@@ -103,7 +111,7 @@ export class NumberType implements IType {
   }
 }
 
-export class NumberIsCloseTo implements IType {
+export class _NumberIsCloseTo implements IType {
   constructor(private _value: number, private _diff: number) {
 
   }
@@ -133,7 +141,11 @@ export class NumberIsCloseTo implements IType {
   }
 }
 
-export class NumberIsPreciseTo implements IType {
+export function NumberIsCloseTo(value: number, diff: number) {
+  return new _NumberIsPreciseTo(value, diff);
+}
+
+export class _NumberIsPreciseTo implements IType {
   constructor(private _value: number, private _precision: number) {
 
   }
@@ -163,7 +175,11 @@ export class NumberIsPreciseTo implements IType {
   }
 }
 
-export class Range implements IType {
+export function NumberIsPreciseTo(value: number, precision: number) {
+  return new _NumberIsPreciseTo(value, precision);
+}
+
+export class _Range implements IType {
   constructor(_min: number, _max: number);
 
   constructor(_min: string, _max: string);
@@ -205,6 +221,16 @@ export class Range implements IType {
 
     return value;
   }
+}
+
+export function Range(min: number, max: number);
+
+export function Range(min: string, max: string);
+
+export function Range(min: Date, max: Date);
+
+export function Range(min, max) {
+  return new _Range(min, max);
 }
 
 export class StringType implements IType {

@@ -294,7 +294,7 @@ describe('Snapshot', () => {
   it('should add processor of class of', () => {
     const e = new unitsnap.Snapshot().addClassOfProcessor(Date);
 
-    expect(e.env.processors[0].checker.original).toBe(unitsnap.ClassOf.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(unitsnap._ClassOf.prototype.check);
   });
 
   it('should add processor of class of with custom serializer', () => {
@@ -306,7 +306,7 @@ describe('Snapshot', () => {
   it('should add processor of instance of', () => {
     const e = new unitsnap.Snapshot().addInstanceOfProcessor(Date);
 
-    expect(e.env.processors[0].checker.original).toBe(unitsnap.InstanceOf.prototype.check);
+    expect(e.env.processors[0].checker.original).toBe(unitsnap._InstanceOf.prototype.check);
   });
 
   it('should add processor of instance of with custom serializer', () => {

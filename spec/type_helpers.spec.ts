@@ -43,7 +43,7 @@ describe('Type helpers', () => {
 
   describe('ClassOf', () => {
     it('should check and resolve class of value', () => {
-      const t = new unitsnap.ClassOf(Date);
+      const t = new unitsnap._ClassOf(Date);
 
       for (const v of [new Date()]) {
         expect(t.check(v)).toBeTruthy();
@@ -51,7 +51,7 @@ describe('Type helpers', () => {
     });
 
     it('should check and reject not class of value', () => {
-      const t = new unitsnap.ClassOf(Date);
+      const t = new unitsnap._ClassOf(Date);
 
       class D extends Date {
 
@@ -63,7 +63,7 @@ describe('Type helpers', () => {
     });
 
     it('should serialize value', () => {
-      const t = new unitsnap.ClassOf(Date);
+      const t = new unitsnap._ClassOf(Date);
 
       expect(t.serialize()).toEqual({$$data: 'Date', $$type: 'classOf'});
     });
@@ -135,7 +135,7 @@ describe('Type helpers', () => {
 
   describe('InstanceOf', () => {
     it('should check and resolve instance of value', () => {
-      const t = new unitsnap.InstanceOf(Date);
+      const t = new unitsnap._InstanceOf(Date);
 
       class D extends Date {
 
@@ -147,7 +147,7 @@ describe('Type helpers', () => {
     });
 
     it('should check and reject not instance of value', () => {
-      const t = new unitsnap.InstanceOf(Date);
+      const t = new unitsnap._InstanceOf(Date);
 
       for (const v of [new Function()]) {
         expect(t.check(v)).toBeFalsy();
@@ -155,7 +155,7 @@ describe('Type helpers', () => {
     });
 
     it('should serialize value', () => {
-      const t = new unitsnap.InstanceOf(Date);
+      const t = new unitsnap._InstanceOf(Date);
 
       expect(t.serialize(new Date('2018-01-01'))).toEqual({$$data: 'Date', $$type: 'instanceOf'});
     });
@@ -163,7 +163,7 @@ describe('Type helpers', () => {
 
   describe('NumberIsCloseTo', () => {
     it('should check and resolve number close to', () => {
-      const t = new unitsnap.NumberIsCloseTo(5, 0.01);
+      const t = new unitsnap._NumberIsCloseTo(5, 0.01);
 
       for (const v of [4.99, 5, 5.01]) {
         expect(t.check(v)).toBeTruthy();
@@ -171,7 +171,7 @@ describe('Type helpers', () => {
     });
 
     it('should check and reject number not close to', () => {
-      const t = new unitsnap.NumberIsCloseTo(5, 0.01);
+      const t = new unitsnap._NumberIsCloseTo(5, 0.01);
 
       for (const v of [4.98, 5.02]) {
         expect(t.check(v)).toBeFalsy();
@@ -179,7 +179,7 @@ describe('Type helpers', () => {
     });
 
     it('should serialize value', () => {
-      const t = new unitsnap.NumberIsCloseTo(5, 0.01);
+      const t = new unitsnap._NumberIsCloseTo(5, 0.01);
 
       expect(t.serialize()).toEqual({$$data: `5 ±0.01`, $$type: 'numberIsCloseTo'});
     });
@@ -187,7 +187,7 @@ describe('Type helpers', () => {
 
   describe('NumberIsPreciseTo', () => {
     it('should check and resolve number precise to', () => {
-      const t = new unitsnap.NumberIsPreciseTo(5, 2);
+      const t = new unitsnap._NumberIsPreciseTo(5, 2);
 
       for (const v of [4.99, 5, 5.01]) {
         expect(t.check(v)).toBeTruthy();
@@ -195,7 +195,7 @@ describe('Type helpers', () => {
     });
 
     it('should check and reject number not precise to', () => {
-      const t = new unitsnap.NumberIsPreciseTo(5, 2);
+      const t = new unitsnap._NumberIsPreciseTo(5, 2);
 
       for (const v of [4.98, 5.02]) {
         expect(t.check(v)).toBeFalsy();
@@ -203,7 +203,7 @@ describe('Type helpers', () => {
     });
 
     it('should serialize value', () => {
-      const t = new unitsnap.NumberIsPreciseTo(5, 2);
+      const t = new unitsnap._NumberIsPreciseTo(5, 2);
 
       expect(t.serialize()).toEqual({$$data: `5 ±0.01`, $$type: 'numberIsPreciseTo'});
     });
@@ -240,7 +240,7 @@ describe('Type helpers', () => {
         [ 'a', 'abc', 'aa' ],
         [ new Date('2020-01-01'), new Date('2020-02-01'), new Date('2020-01-15') ],
       ]) {
-        const t = new unitsnap.Range(min as any, max as any);
+        const t = new unitsnap._Range(min as any, max as any);
 
         expect(t.check(v)).toBeTruthy();
       }
@@ -252,20 +252,20 @@ describe('Type helpers', () => {
         [ 'a', 'abc', '' ], [ 'a', 'abc', 'b' ], [ 0, 5, '3' ],
         [ new Date('2020-01-01'), new Date('2020-02-01'), new Date('2021-02-02') ], [ new Date('2020-01-01'), new Date('2020-02-01'), new Date('2019-12-31') ],
       ]) {
-        const t = new unitsnap.Range(min as any, max as any);
+        const t = new unitsnap._Range(min as any, max as any);
 
         expect(t.check(v)).toBeFalsy();
       }
     });
 
     it('should serialize value', () => {
-      const t = new unitsnap.Range(1, 5);
+      const t = new unitsnap._Range(1, 5);
 
       expect(t.serialize()).toEqual({$$data: `1 .. 5`, $$type: 'range'});
     });
 
     it('should serialize value (Date instance)', () => {
-      const t = new unitsnap.Range(new Date('2020-01-01'), new Date('2020-01-02'));
+      const t = new unitsnap._Range(new Date('2020-01-01'), new Date('2020-01-02'));
 
       expect(t.serialize()).toEqual({$$data: `2020-01-01T00:00:00.000Z .. 2020-01-02T00:00:00.000Z`, $$type: 'range'});
     });
