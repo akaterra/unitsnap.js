@@ -375,12 +375,12 @@ export function StaticProperty<T extends MockPropsTypes = typeof Observe>(get?: 
 
 export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Null> {
   _argsAnnotation: string[];
-  _callProcessor = new Processor();
   _epoch: string;
   _exclude: boolean;
-  _returnValueProcessor = new Processor();
 
-  private _currentProcessor = this._callProcessor;
+  _callProcessor = new Processor();
+  _currentProcessor: Processor = null;
+  _returnValueProcessor = new Processor();
 
   get call() {
     this._currentProcessor = this._callProcessor;
@@ -398,6 +398,8 @@ export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Nu
     if (value instanceof _Custom) {
       this.value = value.value as unknown as T;
     }
+
+    this._callProcessor = this._callProcessor;
   }
 
   addProcessor(checker: ProcessorChecker, serializer?: ProcessorSerializer) {
