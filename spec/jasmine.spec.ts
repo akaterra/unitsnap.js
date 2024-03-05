@@ -23,11 +23,11 @@ describe('some suite 1', () => {
 
     process.env.SAVE_SNAPSHOT = '1';
 
-    // expect(observer).toMatchSnapshot('some spec 1'); // saves the snapshot <__dirname>/some_spec.snapshot.json
+    expect(observer).toMatchSnapshot('some spec 1'); // saves the snapshot <__dirname>/some_spec.snapshot.json
 
     process.env.SAVE_SNAPSHOT = '0';
 
-    // expect(observer).toMatchSnapshot('some spec 1'); // asserts the snapshot <__dirname>/some_spec.snapshot.json
+    expect(observer).toMatchSnapshot('some spec 1'); // asserts the snapshot <__dirname>/some_spec.snapshot.json
   });
 });
 
@@ -55,8 +55,8 @@ describe('some suite 2', () => {
 
     mock.c(222);
 
-    // expect(observer).toMatchSnapshot('some spec 2'); // auto saves the snapshot __dirname/some_spec.snapshot.json
+    expect(observer).toMatchSnapshot('some spec 2'); // auto saves the snapshot __dirname/some_spec.snapshot.json
 
-    // expect(observer).toMatchSnapshot('some spec 2'); // asserts the snapshot __dirname/some_spec.snapshot.json
+    expect(observer).toMatchSnapshot('some spec 2'); // asserts the snapshot __dirname/some_spec.snapshot.json
   });
 });

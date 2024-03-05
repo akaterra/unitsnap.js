@@ -1,6 +1,8 @@
-export declare module jasmine {
-  interface Matchers<T> {
-    toMatchSnapshot(expected: any, expectationFailOutput?: any): boolean;
+declare global {
+  export module jasmine {
+    interface Matchers<T> {
+      toMatchSnapshot(expected: any, expectationFailOutput?: any): boolean;
+    }
   }
 }
 
@@ -14,7 +16,9 @@ export * from './src/snapshot';
 export * from './src/spy';
 export * from './src/type_helpers';
 
-import observer from './src/observer';
+import { Filter } from './src/filter';
+import observer, { _Observer } from './src/observer';
+import { Snapshot } from './src/snapshot';
 
 export function extendJasmine() {
   jasmine.addMatchers({
@@ -23,13 +27,13 @@ export function extendJasmine() {
 
       return {
         compare: function (actual, expected) {
-          if (actual instanceof module.exports.Filter) {
+          if (actual instanceof Filter) {
             actual = actual.snapshot();
-          } else if (actual instanceof module.exports.Observer) {
+          } else if (actual instanceof _Observer) {
             actual = actual.snapshot();
           }
 
-          if (actual instanceof module.exports.Snapshot) {
+          if (actual instanceof Snapshot) {
             let saveSnapshot = false;
 
             if (typeof process !== 'undefined') {
