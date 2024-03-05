@@ -2,7 +2,7 @@ import * as unitsnap from '..';
 
 describe('Filter', () => {
   const f = () => {};
-  const observer = new unitsnap.Observer();
+  const observer = new unitsnap._Observer();
 
   it('should be constructed with entries', () => {
     const e = new unitsnap.Filter([{}, {}, {}]);
@@ -185,7 +185,7 @@ describe('Filter', () => {
   });
 
   it('should create snapshot linked to observer and configured by linked observer', () => {
-    const observer = new unitsnap.Observer();
+    const observer = new unitsnap._Observer();
 
     const e = new unitsnap.Filter([ {}, {}, {} ]).link(observer);
 

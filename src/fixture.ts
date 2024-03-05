@@ -1,10 +1,10 @@
-import { PositiveInteger } from "./utils";
+import { PositiveInteger as PositiveInt } from './utils';
 
 export interface IFixtureEnv {
   strategy: IFixtureStrategy;
 }
 
-export class Fixture {
+export class _Fixture {
   private _name: string;
   private _strategy: IFixtureEnv['strategy'];
   private _throwOn: any;
@@ -64,7 +64,7 @@ export class Fixture {
   }
 
   pop() {
-    let value = this._strategy.pop();
+    const value = this._strategy.pop();
 
     if (this._throwOn && this._throwOn(value)) {
       throw value;
@@ -74,7 +74,7 @@ export class Fixture {
   }
 
   push(...args: any[]) {
-    this._strategy.push.apply(this._strategy, args);
+    this._strategy.push(...args);
 
     return this;
   }
@@ -96,6 +96,10 @@ export class Fixture {
       return value instanceof cls;
     });
   }
+}
+
+export function Fixture(...args: any[]) {
+  return new _Fixture().push(...args);
 }
 
 export interface IFixtureProvider {
@@ -169,7 +173,7 @@ export class FixtureFsProvider implements IFixtureProvider {
 export interface IFixtureStrategy {
   loadFromProvider(provider: IFixtureProvider, sourceName?: string): this;
   pop(): any;
-  pop<T extends number>(count: PositiveInteger<T>): any[];
+  pop<T extends number>(count?: PositiveInt<T>): any[];
   push(...args: any[]): this;
 }
 
@@ -194,7 +198,7 @@ export class FixtureCallbackStrategy implements IFixtureStrategy {
     throw new Error('Loading from provider is not supported for callback strategy');
   }
 
-  pop(count?: number) {
+  pop<T extends number>(count?: PositiveInt<T>) {
     if (count) {
       return Array(count).fill(null).map(() => this._cb());
     }
@@ -232,7 +236,7 @@ export class FixtureQueueStrategy implements IFixtureStrategy {
     return this;
   }
 
-  pop(count?: number) {
+  pop<T extends number>(count?: PositiveInt<T>) {
     if (count) {
       return this._values.splice(0, count);
     }

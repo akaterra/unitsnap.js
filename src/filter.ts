@@ -1,4 +1,4 @@
-import { Observer } from './observer';
+import { _Observer } from './observer';
 import * as snapshot from './snapshot';
 
 export type Check = (entry) => boolean;
@@ -8,7 +8,7 @@ export class Filter {
   private _entries: any[];
   private _filters: [Check, IsNot][] = [];
   private _not: boolean = false;
-  private _observer: Observer = null;
+  private _observer: _Observer = null;
 
   get entries() {
     return this._entries;
@@ -23,7 +23,7 @@ export class Filter {
     this._not = false;
   }
 
-  link(observer: Observer) {
+  link(observer: _Observer) {
     this._observer = observer;
 
     return this;
@@ -36,13 +36,13 @@ export class Filter {
   }
 
   context(context) {
-    this._filters.push([(entry) => entry.context === context, this.notGetAndReset()]);
+    this._filters.push([ (entry) => entry.context === context, this.notGetAndReset() ]);
 
     return this;
   }
 
   ctx(ctx) {
-    this._filters.push([(entry) => entry.context === ctx, this.notGetAndReset()]);
+    this._filters.push([ (entry) => entry.context === ctx, this.notGetAndReset() ]);
 
     return this;
   }
@@ -52,31 +52,31 @@ export class Filter {
       throw new Error('Filter "custom" must be callable');
     }
 
-    this._filters.push([fn, this.notGetAndReset()]);
+    this._filters.push([ fn, this.notGetAndReset() ]);
 
     return this;
   }
 
   epoch(epoch: snapshot.State['epoch']) {
-    this._filters.push([(entry) => entry.epoch === epoch, this.notGetAndReset()]);
+    this._filters.push([ (entry) => entry.epoch === epoch, this.notGetAndReset() ]);
 
     return this;
   }
 
   fn(fn: (...args: any[]) => any) {
-    this._filters.push([(entry) => entry.origin === fn || entry.replacement === fn, this.notGetAndReset()]);
+    this._filters.push([ (entry) => entry.origin === fn || entry.replacement === fn, this.notGetAndReset() ]);
 
     return this;
   }
 
   notPromiseResult() {
-    this._filters.push([(entry) => !(entry.result instanceof Promise), this.notGetAndReset()]);
+    this._filters.push([ (entry) => !(entry.result instanceof Promise), this.notGetAndReset() ]);
 
     return this;
   }
 
   tags(...tags: string[]) {
-    this._filters.push([(entry) => {
+    this._filters.push([ (entry) => {
       for (const tag of tags) {
         if (entry.tags.indexOf(tag) === - 1) {
           return false;
@@ -84,7 +84,7 @@ export class Filter {
       }
 
       return true;
-    }, this.notGetAndReset()]);
+    }, this.notGetAndReset() ]);
 
     return this;
   }
@@ -111,7 +111,7 @@ export class Filter {
         .setConfig(this._observer.env.snapshot.config)
         .setMapper(this._observer.env.snapshot.env.mapper)
         .setProvider(this._observer.env.snapshot.env.provider)
-        .addProcessors(this._observer.env.snapshot.env.processors)
+        .addProcessors(...this._observer.env.snapshot.env.processors)
         .link(this._observer);
     }
 

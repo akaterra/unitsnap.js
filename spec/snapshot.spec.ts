@@ -3,7 +3,7 @@ import * as unitsnap from '..';
 describe('Snapshot', () => {
   const f = () => {};
   const g = () => {};
-  const observer = new unitsnap.Observer();
+  const observer = new unitsnap._Observer();
 
   class A {
 

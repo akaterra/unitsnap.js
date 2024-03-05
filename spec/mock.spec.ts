@@ -7,7 +7,7 @@ describe('Property', () => {
 
   it('should be constructed by call as factory', () => {
     expect(unitsnap.Property(get, set) instanceof unitsnap._Property).toBeTruthy();
-    expect(unitsnap.Property().descriptor).toEqual({ get, set });
+    expect(unitsnap.Property(get, set).descriptor).toEqual({ get, set });
   });
 });
 
@@ -17,7 +17,7 @@ describe('StaticProperty', () => {
 
   it('should be constructed by call as factory', () => {
     expect(unitsnap.StaticProperty(get, set) instanceof unitsnap._StaticProperty).toBeTruthy();
-    expect(unitsnap.StaticProperty().descriptor).toEqual({ get, set });
+    expect(unitsnap.StaticProperty(get, set).descriptor).toEqual({ get, set });
   });
 });
 
@@ -61,12 +61,12 @@ describe('Custom', () => {
 
 describe('Mock', () => {
   const f = () => {};
-  const fixture = new unitsnap.Fixture();
+  const fixture = new unitsnap._Fixture();
   const history = new unitsnap.History();
-  const observer = new unitsnap.Observer();
+  const observer = new unitsnap._Observer();
 
   class A {
-    constructor(p?, ...args: any[]) {
+    constructor(...args: any[]) {
 
     }
 
@@ -476,7 +476,7 @@ describe('Mock', () => {
       });
 
       it('should set methods marked as class prototype methods', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: B});
+        const E = new unitsnap.Mock(history).by(B, {c: () => {}});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -492,7 +492,7 @@ describe('Mock', () => {
       });
 
       it('should set static methods marked as initial static methods', () => {
-        const E = new unitsnap.Mock(history).by(B, {c: unitsnap.StaticMethod(B)});
+        const E = new unitsnap.Mock(history).by(B, {c: unitsnap.StaticMethod(() => {})});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(B.c);
@@ -528,7 +528,7 @@ describe('Mock', () => {
       });
 
       it('should override methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).by(B, {c: unitsnap.Fixture});
+        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).by(B, {c: unitsnap._Fixture});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -536,7 +536,7 @@ describe('Mock', () => {
       });
 
       it('should override static methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).by(B, {c: unitsnap.StaticMethod(unitsnap.Fixture)});
+        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).by(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(B.c);
@@ -546,7 +546,7 @@ describe('Mock', () => {
       it('should throw exception on methods linked to fixture of unlinked observer by Fixture ref', () => {
         const E = new unitsnap.Mock(history);
 
-        expect(() => E.by(B, {c: unitsnap.Fixture})).toThrow();
+        expect(() => E.by(B, {c: unitsnap._Fixture})).toThrow();
       });
     });
   });
@@ -574,7 +574,7 @@ describe('Mock', () => {
       history.end();
 
       expect(history.entries).toEqual([{
-        args: {'*': [2, 3], p: 1},
+        args: {args: [1, 2, 3]},
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -716,14 +716,14 @@ describe('Mock', () => {
       history.begin('epoch', 'comment');
 
       const E = new unitsnap.Mock(history).by(B, {
-        constructor: Function,
-        a: unitsnap.StaticMethod(Function),
-        c: B,
-        d: unitsnap.Property().get(1).set(Function),
-        e: unitsnap.StaticProperty().get(1).set(Function),
-        x: Function,
-        y: unitsnap.Property().get(1).set(Function),
-        z: unitsnap.StaticProperty().get(1).set(Function),
+        constructor: unitsnap.Observe,
+        a: unitsnap.StaticMethod(unitsnap.Observe),
+        c: unitsnap.Observe,
+        d: unitsnap.Property().get(1).set(unitsnap.Observe),
+        e: unitsnap.StaticProperty().get(1).set(unitsnap.Observe),
+        x: unitsnap.Undefined,
+        y: unitsnap.Property().get(1).set(unitsnap.Observe),
+        z: unitsnap.StaticProperty().get(1).set(unitsnap.Observe),
       });
 
       const e = new E(1);
@@ -754,7 +754,7 @@ describe('Mock', () => {
       history.end();
 
       expect(history.entries).toEqual([{
-        args: {'*': [], p: 1},
+        args: {args: [ 1 ]},
         callsCount: 1,
         comment: 'comment',
         context: e,
@@ -1501,7 +1501,7 @@ describe('Mock', () => {
       });
 
       it('should set methods marked as class prototype props', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: B});
+        const E = new unitsnap.Mock(history).override(B, {c: () => {}});
 
         expect(E.prototype.a).toBe(bPrototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1517,7 +1517,7 @@ describe('Mock', () => {
       });
 
       it('should set static methods marked as class prototype props', () => {
-        const E = new unitsnap.Mock(history).override(B, {c: unitsnap.StaticMethod(B)});
+        const E = new unitsnap.Mock(history).override(B, {c: unitsnap.StaticMethod(() => {})});
 
         expect(E.a).toBe(bProperties.a);
         expect(stat(E.c).origin).toBe(bProperties.c);
@@ -1553,7 +1553,7 @@ describe('Mock', () => {
       });
 
       it('should override methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).override(B, {c: unitsnap.Fixture});
+        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).override(B, {c: unitsnap._Fixture});
 
         expect(E.prototype.a).toBe(bPrototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1561,7 +1561,7 @@ describe('Mock', () => {
       });
 
       it('should override static methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).override(B, {c: unitsnap.StaticMethod(unitsnap.Fixture)});
+        const E = new unitsnap.Mock(new unitsnap.History().link(observer)).override(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
 
         expect(E.a).toBe(bProperties.a);
         expect(stat(E.c).origin).toBe(bProperties.c);
@@ -1571,7 +1571,7 @@ describe('Mock', () => {
       it('should throw exception on methods linked to fixture of unlinked observer by Fixture ref', () => {
         const E = new unitsnap.Mock(history);
 
-        expect(() => E.override(B, {c: unitsnap.Fixture})).toThrow();
+        expect(() => E.override(B, {c: unitsnap._Fixture})).toThrow();
       });
     });
   });
@@ -1739,14 +1739,14 @@ describe('Mock', () => {
 
     it('should spy on exception of call', () => {
       const E = new unitsnap.Mock(history).override(B, {
-        constructor: Function,
-        a: unitsnap.StaticMethod(Function),
-        c: B,
-        d: unitsnap.Property().get(1).set(Function),
-        e: unitsnap.StaticProperty().get(1).set(Function),
-        x: Function,
-        y: unitsnap.Property().get(1).set(Function),
-        z: unitsnap.StaticProperty().get(1).set(Function),
+        constructor: unitsnap.Observe,
+        a: unitsnap.StaticMethod(unitsnap.Observe),
+        c: unitsnap.Observe,
+        d: unitsnap.Property().get(1).set(unitsnap.Observe),
+        e: unitsnap.StaticProperty().get(1).set(unitsnap.Observe),
+        x: unitsnap.Undefined,
+        y: unitsnap.Property().get(1).set(unitsnap.Observe),
+        z: unitsnap.StaticProperty().get(1).set(unitsnap.Observe),
       });
 
       const e = new E(1);
@@ -2246,12 +2246,12 @@ describe('Mock', () => {
 
     it('should RESTORE overridden props by dictionary of props', () => {
       const E = new unitsnap.Mock(history).override(B, {
-        a: B,
-        b: unitsnap.StaticMethod(B),
+        a: unitsnap.Observe,
+        b: unitsnap.StaticMethod(),
         d: unitsnap.Property(),
         e: unitsnap.StaticProperty(),
         m: f,
-        x: f
+        x: f,
       });
       E.RESTORE();
 

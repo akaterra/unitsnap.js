@@ -1,4 +1,4 @@
-import {ClassDef} from './utils';
+import { ClassDef } from './utils';
 
 export interface IType {
   check(value?: any): boolean;
@@ -6,12 +6,12 @@ export interface IType {
 }
 
 export class AnyType implements IType {
-  check(value?) {
+  check() {
     return true;
   }
 
-  serialize(value?) {
-    return {$$data: null, $$type: 'any'};
+  serialize() {
+    return { $$data: null, $$type: 'any' };
   }
 }
 
@@ -20,8 +20,8 @@ export class BooleanType implements IType {
     return typeof value === 'boolean';
   }
 
-  serialize(value?) {
-    return {$$data: null, $$type: 'boolean'};
+  serialize() {
+    return { $$data: null, $$type: 'boolean' };
   }
 }
 
@@ -34,17 +34,17 @@ export class ClassOfType implements IType {
     return value !== undefined && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls;
   }
 
-  serialize(value?) {
-    return {$$data: this._cls.prototype.constructor.name, $$type: 'classOf'};
+  serialize() {
+    return { $$data: this._cls.prototype.constructor.name, $$type: 'classOf' };
   }
 }
 
 export class Continue implements IType {
-  check(value?) {
+  check() {
     return true;
   }
 
-  serialize(value?) {
+  serialize() {
     return Continue;
   }
 }
@@ -54,8 +54,8 @@ export class DateType implements IType {
     return value instanceof Date;
   }
 
-  serialize(value?) {
-    return {$$data: null, $$type: 'date'};
+  serialize() {
+    return { $$data: null, $$type: 'date' };
   }
 }
 
@@ -70,11 +70,11 @@ export class DateValue implements IType {
 }
 
 export class Ignore implements IType {
-  check(value?) {
+  check() {
     return true;
   }
 
-  serialize(value?) {
+  serialize() {
     return Ignore;
   }
 }
@@ -89,7 +89,7 @@ export class InstanceOfType implements IType {
   }
 
   serialize(value?) {
-    return {$$data: Object.getPrototypeOf(value).constructor.name, $$type: 'instanceOf'};
+    return { $$data: Object.getPrototypeOf(value).constructor.name, $$type: 'instanceOf' };
   }
 }
 
@@ -98,8 +98,8 @@ export class NumberType implements IType {
     return typeof value === 'number';
   }
 
-  serialize(value?) {
-    return {$$data: null, $$type: 'number'};
+  serialize() {
+    return { $$data: null, $$type: 'number' };
   }
 }
 
@@ -124,8 +124,8 @@ export class NumberIsCloseToType implements IType {
     return Math.abs(this._value - value) < Math.pow(10, -this._precision) / 2;
   }
 
-  serialize(value?) {
-    return {$$data: this._precision, $$type: 'numberIsPricise'};
+  serialize() {
+    return { $$data: this._precision, $$type: 'numberIsPricise' };
   }
 }
 
@@ -148,8 +148,8 @@ export class RangeType implements IType {
     return this._min <= value && value <= this._max;
   }
 
-  serialize(value?) {
-    return {$$data: [ this.primitive(this._min), this.primitive(this._max) ], $$type: 'range'};
+  serialize() {
+    return { $$data: [ this.primitive(this._min), this.primitive(this._max) ], $$type: 'range' };
   }
 
   private isSameType(val1, val2): boolean {
@@ -178,27 +178,17 @@ export class StringType implements IType {
     return typeof value === 'string';
   }
 
-  serialize(value?) {
-    return {$$data: null, $$type: 'string'};
+  serialize() {
+    return { $$data: null, $$type: 'string' };
   }
 }
-
-// export class This implements IType {
-//   check(value?) {
-//     return true;
-//   }
-
-//   serialize(value?) {
-//     return this;
-//   }
-// }
 
 export class UndefinedType implements IType {
   check(value?) {
     return value === undefined;
   }
 
-  serialize(value?) {
-    return {$$data: null, $$type: 'undefined'};
+  serialize() {
+    return { $$data: null, $$type: 'undefined' };
   }
 }

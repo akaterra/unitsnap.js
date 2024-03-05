@@ -1,10 +1,11 @@
 import * as filter from './filter';
-import { Observer } from './observer';
+import { _Observer } from './observer';
 import * as typeHelpers from './type_helpers';
+import { Fn } from './utils';
 
 export interface State {
   args?: {
-      '*': any[];
+      '*'?: any[];
       [key: string]: any;
   };
   callsCount?: number;
@@ -27,8 +28,8 @@ export interface State {
 
 export interface ISnapshotEnv {
   mapper: (snapshot: Snapshot, entry: State) => State;
-  observer: Observer;
-  processors: any[];
+  observer: _Observer;
+  processors: { checker: Fn, serializer: Fn }[];
   provider: ISnapshotProvider;
 }
 
@@ -115,7 +116,7 @@ export class Snapshot {
     return this;
   }
 
-  link(observer: Observer) {
+  link(observer: _Observer) {
     this._observer = observer;
 
     return this;
@@ -153,19 +154,19 @@ export class Snapshot {
   }
 
   addClassOfProcessor(cls, serializer?) {
-    let usefulCls = new typeHelpers.ClassOfType(cls);
+    const usefulCls = new typeHelpers.ClassOfType(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   }
 
   addInstanceOfProcessor(cls, serializer?) {
-    let usefulCls = new typeHelpers.InstanceOfType(cls);
+    const usefulCls = new typeHelpers.InstanceOfType(cls);
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   }
 
   addPathProcessor(path, serializer?) {
-    let usefulRegex = RegExp('^' + path
+    const usefulRegex = RegExp('^' + path
       .replace(/[-[\]{}()+?.,\\^$|#\s]/g, '\\$&')
       .replace(/\*/g, '.*')
       .replace(/_/g, '.') + '$'
@@ -177,7 +178,7 @@ export class Snapshot {
   }
 
   addRegexPathProcessor(regex, serializer?) {
-    let usefulRegex = regex instanceof RegExp ? regex : RegExp(regex);
+    const usefulRegex = regex instanceof RegExp ? regex : RegExp(regex);
 
     return this.addProcessor((value, path) => {
       return usefulRegex.test(path);
@@ -185,13 +186,13 @@ export class Snapshot {
   }
 
   addUndefinedProcessor(serializer?) {
-    let usefulCls = new typeHelpers.UndefinedType();
+    const usefulCls = new typeHelpers.UndefinedType();
 
     return this.addProcessor(usefulCls.check.bind(usefulCls), serializer || usefulCls.serialize.bind(usefulCls));
   }
 
-  addProcessors(processors) {
-    this._processors.unshift.apply(this._processors, processors);
+  addProcessors(...processors: ISnapshotEnv['processors']) {
+    this._processors.unshift(...processors);
 
     return this;
   }
@@ -275,7 +276,7 @@ export class Snapshot {
       .setConfig(Object.assign({}, this._config))
       .setName(this._name)
       .setProvider(this._provider)
-      .addProcessors([].concat(this._processors))
+      .addProcessors(...this._processors)
       .link(this._observer);
   }
 
@@ -314,7 +315,7 @@ function snapshotAssert(source, target, path) {
   }
 
   if (source !== null && typeof source === 'object') {
-    let keys = Object.keys(source);
+    const keys = Object.keys(source);
 
     if (! (target !== null && typeof target === 'object') || keys.length !== Object.keys(target).length) {
       return path;
@@ -373,7 +374,7 @@ function snapshotSerializeValue(snapshot, value, path, primitiveOnly?, circular?
     circular.push(value);
 
     serialized = Object.keys(value).reduce(function (acc, key) {
-      let serialized = snapshotSerializeValue(snapshot, value[key], path + '.' + key, false, circular);
+      const serialized = snapshotSerializeValue(snapshot, value[key], path + '.' + key, false, circular);
 
       if (serialized !== typeHelpers.Ignore) {
         acc[key] = serialized;
@@ -434,7 +435,7 @@ function snapshotMapEntry(snapshot, entry: State): State {
 
 function every(arr, fn) {
   for (let i = 0, l = arr.length; i < l; i ++) {
-    let check = fn(arr[i], i);
+    const check = fn(arr[i], i);
 
     if (check !== true) {
       return check;
@@ -523,17 +524,17 @@ export class SnapshotMemoryProvider implements ISnapshotProvider {
 }
 
 const basicTypes: [ any, typeHelpers.IType ][] = [
-  [typeHelpers.AnyType, new typeHelpers.AnyType()],
-  [Boolean, new typeHelpers.BooleanType()],
-  [typeHelpers.BooleanType, new typeHelpers.BooleanType()],
-  [Date, new typeHelpers.DateType()],
-  [typeHelpers.Ignore, new typeHelpers.Ignore()],
-  [typeHelpers.DateType, new typeHelpers.DateType()],
-  [typeHelpers.DateValue, new typeHelpers.DateValue()],
-  [Number, new typeHelpers.NumberType()],
-  [typeHelpers.NumberType, new typeHelpers.NumberType()],
-  [String, new typeHelpers.StringType()],
-  [typeHelpers.StringType, new typeHelpers.StringType()],
-  [undefined, new typeHelpers.UndefinedType()],
-  [typeHelpers.UndefinedType, new typeHelpers.UndefinedType()],
+  [ typeHelpers.AnyType, new typeHelpers.AnyType() ],
+  [ Boolean, new typeHelpers.BooleanType() ],
+  [ typeHelpers.BooleanType, new typeHelpers.BooleanType() ],
+  [ Date, new typeHelpers.DateType() ],
+  [ typeHelpers.Ignore, new typeHelpers.Ignore() ],
+  [ typeHelpers.DateType, new typeHelpers.DateType() ],
+  [ typeHelpers.DateValue, new typeHelpers.DateValue() ],
+  [ Number, new typeHelpers.NumberType() ],
+  [ typeHelpers.NumberType, new typeHelpers.NumberType() ],
+  [ String, new typeHelpers.StringType() ],
+  [ typeHelpers.StringType, new typeHelpers.StringType() ],
+  [ undefined, new typeHelpers.UndefinedType() ],
+  [ typeHelpers.UndefinedType, new typeHelpers.UndefinedType() ],
 ];

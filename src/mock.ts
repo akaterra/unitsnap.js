@@ -2,8 +2,8 @@ import * as fixture from './fixture';
 import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod } from './spy';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { History } from './history';
-import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5Class, Es6Class, Fn, NotNeverKeys, ObjectFromList } from './utils';
-import { Observer } from './observer';
+import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5ClassDef, Es6Class, Es6ClassDef, Fn, NotNeverKeys, ObjectFromList } from './utils';
+import { _Observer } from './observer';
 
 export class Observe { private constructor() {} private __observe() {} };
 export const Initial = Observe;
@@ -11,7 +11,19 @@ export class This { private constructor() {} private __this() {} };
 export class Null { private constructor() {} private __null() {} };
 export class Undefined { private constructor() {} private __undefined() {} };
 
-export type CustomValue<T> = T extends _Custom<any> ? T['value'] : T;
+export type CustomType<T> = T extends _Custom<any> ? T['value'] : T;
+
+export type PropertyType<T> = T extends _Property<any>
+  ? T['descriptor']['value'] extends Fn<any>
+    ? ReturnType<T['descriptor']['value']>
+    : T['descriptor']['value']
+  : T;
+
+export type StaticPropertyType<T> = T extends _StaticProperty<any>
+  ? T['descriptor']['value'] extends Fn<any>
+    ? ReturnType<T['descriptor']['value']>
+    : T['descriptor']['value']
+  : T;
 
 export type Placeholder<T, TSelf = never> = T extends typeof Observe | typeof Initial
   ? never
@@ -39,19 +51,24 @@ export type AllPlaceholders = typeof Initial | typeof Observe | typeof This | ty
 
 export type StubPlaceholders = typeof This | typeof Null | typeof Undefined;
 
-export type MockProps<T, U = never, TSelf = never> = CustomValue<T> extends Integrated | StubPlaceholders
-  ? PlaceholderFn<CustomValue<T>, TSelf>
+export type MockProps<T, U = never, TSelf = never> = CustomType<T> extends Integrated | StubPlaceholders
+  ? PlaceholderFn<CustomType<T>, TSelf>
   : T extends _Property<any>
-    ? Placeholder<CustomValue<T['descriptor']['value']>, TSelf>
+    ? Placeholder<CustomType<PropertyType<T>>, TSelf>
     : U;
 
-export type MockPropsStatic<T, U = never, TSelf = never> = T extends _StaticProperty<any>
-  ? Placeholder<CustomValue<T['descriptor']['value']>, TSelf>
+export type MockStaticProps<T, U = never, TSelf = never> = T extends _StaticProperty<any>
+  ? Placeholder<CustomType<StaticPropertyType<T>>, TSelf>
   : T extends _StaticMethod<any>
-    ? PlaceholderFn<CustomValue<T['fn']>, TSelf>
+    ? PlaceholderFn<CustomType<T['fn']>, TSelf>
     : U;
 
-export type MockPropsTypes<T = any> = Integrated<T> | AllPlaceholders | fixture.Fixture | typeof fixture.Fixture | _Custom<any>;
+export type MockPropsTypes<T = any> = Integrated<T> |
+  AllPlaceholders |
+  fixture._Fixture |
+  typeof fixture._Fixture |
+  typeof fixture.Fixture |
+  _Custom<any>;
 
 export type MockPropsMap = Record<
   string,
@@ -59,7 +76,7 @@ export type MockPropsMap = Record<
 >;
 
 export type MockClassMixin<T> = {
-  OBSERVER?: Observer;
+  OBSERVER?: _Observer;
   RESTORE?: () => T;
 }
 
@@ -78,15 +95,15 @@ export type MockClass<
     >;
   },
   TStaticProps extends Record<string, any> = {
-    [K in keyof TMockProps]?: MockPropsStatic<
+    [K in keyof TMockProps]?: MockStaticProps<
       TMockProps[K],
       never,
       T
     >;
   },
-  TConstructable = T extends Es5Class
-    ? ReturnType<T> extends void ? any : ReturnType<T>
-    : T extends Es6Class
+  TConstructable = T extends Es5ClassDef<any>
+    ? { new (...args: ConstructorParameters<T>): T }
+    : T extends Es6ClassDef<any>
       ? InstanceType<T>
       : never
 > = Es6Class<
@@ -114,16 +131,22 @@ if (0) {
     static set P(p: string) {}
   }
   
-  function Y(y: string) {
+  function Y(y: number) {
   }
 
   Y.prototype = {
     a(a?: string) { return 'a' },
     b(b?: string) { return 'b' },
     c(c?: string) { return 'c' },
+    get p(): string { return 'c' },
+    set p(p: string) {},
   }
 
-  // type YR = ConstructorReturnType<typeof Y['constructor']>;
+  Y.A = (a?: string) => { return 'a' };
+  Y.B = (b?: string) => { return 'b' };
+  Y.C = (c?: string) => { return 'c' };
+  // static get P(): string { return 'c' }
+  // static set P(p: string) {}
 
   const m: Mock = null;
   const E = m.override(X, {
@@ -201,7 +224,7 @@ export class Mock {
     return this;
   }
 
-  by<T extends Es5Class | Es6Class, P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[]>(
+  by<T extends ClassDef<any>, P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[]>(
     cls: T,
     props?: P,
     bypassOnBehalfOfInstanceReplacement?,
@@ -212,14 +235,14 @@ export class Mock {
     return clazz;
   }
 
-  from<P extends ReadonlyArray<string | number | symbol> | MockPropsMap>(props: P, bypassOnBehalfOfInstanceReplacement?): MockClass<() => {}, P> {
+  from<P extends ReadonlyArray<string | number | symbol> | MockPropsMap>(props: P, bypassOnBehalfOfInstanceReplacement?): MockClass<{ new (): any }, P> {
     const maker = new ClassMaker(this, function () {}, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(maker.makeConstructor(maker.cls, true, this.explicitInstance), true);
 
     return clazz;
   }
 
-  override<T extends Es5Class | Es6Class, P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[]>(
+  override<T extends ClassDef<any>, P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[]>(
     cls: T,
     props?: P,
     bypassOnBehalfOfInstanceReplacement?,
@@ -292,10 +315,10 @@ export class _Property<T extends MockPropsTypes = typeof Observe> {
     return this as unknown as _Property<U>;
   }
 
-  set<U extends MockPropsTypes = _Property<T>['descriptor']['value']>(set: U): _Property<U> {
+  set(set: MockPropsTypes): _Property<T> {
     this.descriptor.set = set;
 
-    return this as unknown as _Property<U>;
+    return this;
   }
 
   private __property() {}
@@ -315,7 +338,7 @@ export class _StaticMethod<T extends MockPropsTypes = typeof Observe> {
 
 export function StaticMethod<T extends MockPropsTypes = typeof Observe>(fn?: _StaticMethod<T>['fn']) {
   return new _StaticMethod<T>(fn);
-}
+};
 
 export class _StaticProperty<T extends MockPropsTypes = typeof Observe> {
   readonly descriptor: PropertyDescriptor<T>;
@@ -330,10 +353,10 @@ export class _StaticProperty<T extends MockPropsTypes = typeof Observe> {
     return this as unknown as _StaticProperty<U>;
   }
 
-  set<U extends MockPropsTypes = _StaticProperty<T>['descriptor']['value']>(set: U): _StaticProperty<U> {
+  set(set: MockPropsTypes): _StaticProperty<T> {
     this.descriptor.set = set;
 
-    return this as unknown as _StaticProperty<U>;
+    return this;
   }
 
   private __staticProperty() {}
@@ -391,7 +414,7 @@ export function Exclude<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof
   return new _Custom<T>(value).exclude();
 }
 
-const CLASS_NATIVE_PROPS = ['arguments', 'callee', 'caller', 'length', 'name', 'prototype'];
+const CLASS_NATIVE_PROPS = [ 'arguments', 'callee', 'caller', 'length', 'name', 'prototype' ];
 
 export class ClassMaker {
   private _bypassOnBehalfOfInstanceReplacement: boolean;
@@ -433,7 +456,7 @@ export class ClassMaker {
     this._bypassOnBehalfOfInstanceReplacement = bypassOnBehalfOfInstanceReplacement;
     this._cls = cls;
     this._clsConstructorName = cls.prototype.hasOwnProperty('constructor') ? cls.prototype.constructor.name : cls.name;
-    this._clsProps = copyScope(cls, {enumerable: true}, 1);
+    this._clsProps = copyScope(cls, { enumerable: true }, 1);
     this._clsProps = Object.keys(this._clsProps).filter((key) => {
       return CLASS_NATIVE_PROPS.indexOf(key) === - 1;
     }).reduce((acc, key) => {
@@ -455,16 +478,16 @@ export class ClassMaker {
     this._props = Array.isArray(props)
       ? props.reduce((acc, key) => {
         if (key in this._clsProtoPropsDescriptors) {
-          let descriptor = this._clsProtoPropsDescriptors[key];
+          const descriptor = this._clsProtoPropsDescriptors[key];
 
           switch (descriptor.type) {
-            case 'function':
-              acc[key] = cls;
+          case 'function':
+            acc[key] = cls;
 
-              break;
+            break;
 
-            default:
-              acc[key] = Property(descriptor.descriptor);
+          default:
+            acc[key] = Property(descriptor.descriptor.get, descriptor.descriptor.set);
           }
         } else {
           acc[key] = cls;
@@ -486,12 +509,10 @@ export class ClassMaker {
     let rep;
 
     if (this._props.hasOwnProperty('constructor')) {
-      if (this._props.constructor instanceof Custom) {
-        custom = this._props.constructor;
-      }
+      custom = maybeCustom(this._props.constructor);
 
       rep = classMakerGetReplacement(
-        custom ? custom.value : this._props.constructor,
+        maybeCustomValueOrInitial(this._props.constructor),
         'constructor',
         this._cls,
         this._clsProtoScope,
@@ -520,7 +541,7 @@ export class ClassMaker {
       Object.defineProperty(cls, key, this._clsPropsDescriptors[key].descriptor);
     });
 
-    Object.defineProperty(cls, 'name', {value: this._cls.name, writable: false});
+    Object.defineProperty(cls, 'name', { value: this._cls.name, writable: false });
 
     if (!useOriginPrototype) {
       cls.prototype = copyPrototype(this._cls);
@@ -538,7 +559,7 @@ export class ClassMaker {
       throw new Error('Class constructor must be function');
     }
 
-    Object.defineProperty(cls, 'name', {value: this._cls.name, writable: false});
+    Object.defineProperty(cls, 'name', { value: this._cls.name, writable: false });
 
     if (!useOriginPrototype) {
       cls.prototype = copyPrototype(this._cls);
@@ -557,16 +578,14 @@ export class ClassMaker {
       let rep = null;
       let repDescriptor = null;
 
-      if (this._props[key] instanceof StaticProperty) {
+      if (this._props[key] instanceof _StaticProperty) {
+        customGet = maybeCustom(this._props[key].descriptor.get);
+        customSet = maybeCustom(this._props[key].descriptor.set);
         repDescriptor = {};
 
         if (this._props[key].descriptor.get) {
-          if (this._props[key].descriptor.get instanceof Custom) {
-            customGet = this._props[key].descriptor.get;
-          }
-
           repDescriptor.get = classMakerGetReplacement(
-            customGet ? customGet.value : this._props[key].descriptor.get,
+            maybeCustomValueOrInitial(this._props[key].descriptor.get),
             key,
             this._cls,
             this._clsProps,
@@ -577,18 +596,14 @@ export class ClassMaker {
             repDescriptor.get = this._clsPropsDescriptors[key].descriptor.get;
           }
 
-          if (repDescriptor.get === fixture.Fixture) {
+          if (repDescriptor.get === fixture._Fixture) {
             repDescriptor.get = this._mock.fixturePop;
           }
         }
 
         if (this._props[key].descriptor.set) {
-          if (this._props[key].descriptor.set instanceof Custom) {
-            customSet = this._props[key].descriptor.set;
-          }
-
           repDescriptor.set = classMakerGetReplacement(
-            customSet ? customSet.value : this._props[key].descriptor.set,
+            maybeCustomValueOrInitial(this._props[key].descriptor.set),
             key,
             this._cls,
             this._clsProps,
@@ -599,7 +614,7 @@ export class ClassMaker {
             repDescriptor.set = this._clsPropsDescriptors[key].descriptor.set;
           }
 
-          if (repDescriptor.set === fixture.Fixture) {
+          if (repDescriptor.set === fixture._Fixture) {
             repDescriptor.set = this._mock.fixturePop;
           }
         }
@@ -613,7 +628,7 @@ export class ClassMaker {
             },
             origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.get,
             replacement: this._props[key].descriptor.get,
-          }, customGet || {}),
+          }, customGet ?? {}),
           set: Object.assign({
             extra: {
               name: this._clsConstructorName + '.' + key,
@@ -621,23 +636,21 @@ export class ClassMaker {
             },
             origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.set,
             replacement: this._props[key].descriptor.set,
-          }, customSet || {}),
+          }, customSet ?? {}),
           onCall: (context, state) => {
             if (this._mock._history) {
               this._mock._history.push(state);
             }
           },
         });
-      } else if (this._props[key] instanceof Property) {
+      } else if (this._props[key] instanceof _Property) {
+        customGet = maybeCustom(this._props[key].descriptor.get);
+        customSet = maybeCustom(this._props[key].descriptor.set);
         repDescriptor = {};
 
         if (this._props[key].descriptor.get) {
-          if (this._props[key].descriptor.get instanceof Custom) {
-            customGet = this._props[key].descriptor.get;
-          }
-
           repDescriptor.get = classMakerGetReplacement(
-            customGet ? customGet.value : this._props[key].descriptor.get,
+            maybeCustomValueOrInitial(this._props[key].descriptor.get),
             key,
             this._cls,
             this._clsProtoScope,
@@ -648,18 +661,14 @@ export class ClassMaker {
             repDescriptor.get = this._clsProtoPropsDescriptors[key].descriptor.get;
           }
 
-          if (repDescriptor.get === fixture.Fixture) {
+          if (repDescriptor.get === fixture._Fixture) {
             repDescriptor.get = this._mock.fixturePop;
           }
         }
 
         if (this._props[key].descriptor.set) {
-          if (this._props[key].descriptor.set instanceof Custom) {
-            customSet = this._props[key].descriptor.set;
-          }
-
           repDescriptor.set = classMakerGetReplacement(
-            customSet ? customSet.value : this._props[key].descriptor.set,
+            maybeCustomValueOrInitial(this._props[key].descriptor.set),
             key,
             this._cls,
             this._clsProtoScope,
@@ -670,7 +679,7 @@ export class ClassMaker {
             repDescriptor.set = this._clsProtoPropsDescriptors[key].descriptor.set;
           }
 
-          if (repDescriptor.set === fixture.Fixture) {
+          if (repDescriptor.set === fixture._Fixture) {
             repDescriptor.set = this._mock.fixturePop;
           }
         }
@@ -684,7 +693,7 @@ export class ClassMaker {
             },
             origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.get,
             replacement: this._props[key].descriptor.get,
-          }, customGet || {}),
+          }, customGet ?? {}),
           set: Object.assign({
             extra: {
               name: this._clsConstructorName + '.' + key,
@@ -692,20 +701,18 @@ export class ClassMaker {
             },
             origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.set,
             replacement: this._props[key].descriptor.set,
-          }, customSet || {}),
+          }, customSet ?? {}),
           onCall: (context, state) => {
             if (this._mock._history) {
               this._mock._history.push(state);
             }
           },
         });
-      } else if (this._props[key] instanceof StaticMethod) {
-        if (this._props[key].value instanceof Custom) {
-          custom = this._props[key].value;
-        }
+      } else if (this._props[key] instanceof _StaticMethod) {
+        custom = maybeCustom(this._props[key].fn);
 
         rep = classMakerGetReplacement(
-          custom ? custom.value : this._props[key].value,
+          maybeCustomValueOrInitial(this._props[key].fn),
           key,
           this._cls,
           this._clsProps,
@@ -716,11 +723,11 @@ export class ClassMaker {
           rep = this._clsPropsDescriptors[key].descriptor.value;
         }
 
-        if (rep === fixture.Fixture) {
+        if (rep === fixture._Fixture) {
           rep = this._mock.fixturePop;
         }
 
-        Object.defineProperty(rep, 'name', {value: key, writable: false});
+        Object.defineProperty(rep, 'name', { value: key, writable: false });
 
         spyOnStaticMethod(cls, key, rep, Object.assign({
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
@@ -735,14 +742,12 @@ export class ClassMaker {
               this._mock._history.push(state);
             }
           },
-        }, custom || {}));
+        }, custom ?? {}));
       } else {
-        if (this._props[key] instanceof Custom) {
-          custom = this._props[key];
-        }
+        custom = maybeCustom(this._props[key]);
 
         rep = classMakerGetReplacement(
-          custom ? custom.value : this._props[key],
+          maybeCustomValueOrInitial(this._props[key]),
           key,
           this._cls,
           this._clsProtoScope,
@@ -753,11 +758,11 @@ export class ClassMaker {
           rep = this._clsProtoPropsDescriptors[key].descriptor.value;
         }
 
-        if (rep === fixture.Fixture) {
+        if (rep === fixture._Fixture) {
           rep = this._mock.fixturePop;
         }
 
-        Object.defineProperty(rep, 'name', {value: key, writable: false});
+        Object.defineProperty(rep, 'name', { value: key, writable: false });
 
         spyOnMethod(cls, key, rep, Object.assign({
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
@@ -772,7 +777,7 @@ export class ClassMaker {
               this._mock._history.push(state);
             }
           },
-        }, custom || {}));
+        }, custom ?? {}));
       }
     });
 
@@ -781,9 +786,14 @@ export class ClassMaker {
 }
 
 function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
-  if (prop === Initial || getAncestors(obj).indexOf(prop) !== - 1 || getAncestors(obj.COPY_OF).indexOf(prop) !== - 1) {
+  if (
+    prop === Initial ||
+    prop === Observe ||
+    getAncestors(obj).indexOf(prop) !== - 1 ||
+    getAncestors(obj.COPY_OF).indexOf(prop) !== - 1
+  ) {
     if (!(key in objProps)) {
-      prop = Function;
+      prop = Undefined;
     } else {
       return obj; // as reference to object self-defined property
     }
@@ -793,15 +803,19 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
     extraProps.push(key);
   }
 
-  if (prop === Function) {
+  if (prop === Null) {
+    return function () { return null; };
+  }
+
+  if (prop === Undefined) {
     return function () {};
   }
 
-  if (prop === fixture.Fixture) {
-    return fixture.Fixture;
+  if (prop === fixture._Fixture) {
+    return fixture._Fixture;
   }
 
-  if (prop instanceof fixture.Fixture) {
+  if (prop instanceof fixture._Fixture) {
     return prop.pop.bind(prop);
   }
 
@@ -818,4 +832,17 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
 
 function hasOwnProperty(obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key);
+}
+
+
+function maybeCustom(ref: unknown) {
+  return ref instanceof _Custom
+    ? ref
+    : null;
+}
+
+function maybeCustomValueOrInitial(ref: unknown) {
+  return ref instanceof _Custom
+    ? ref.value
+    : ref;
 }

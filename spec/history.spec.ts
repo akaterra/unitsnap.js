@@ -3,7 +3,7 @@ import * as unitsnap from '..';
 describe('History', () => {
   const callback = jasmine.createSpy();
   const f = () => {};
-  const observer = new unitsnap.Observer();
+  const observer = new unitsnap._Observer();
 
   it('should link observer', () => {
     const e = new unitsnap.History();

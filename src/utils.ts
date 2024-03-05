@@ -1,4 +1,4 @@
-export type Es5ClassDef<T> = (...args: unknown[]) => void; // & { prototype?: T };
+export type Es5ClassDef<T> = ((...args: unknown[]) => void) & { prototype: T };
 
 export type Es6ClassDef<T> = new (...args: unknown[]) => T;
 
@@ -15,25 +15,25 @@ export type NotNeverKeys<T> = {
 export type Es5Class<
   T = any,
   TParameters extends unknown[] = T extends ClassDef<T> ? ConstructorParameters<T> : unknown[],
-  TProps extends Record<string, unknown> = {},
-  TStaticProps extends Record<string, unknown> = {}
-> = (...args: TParameters) => Omit<T, NotNeverKeys<TProps>> & Pick<TProps, NotNeverKeys<TProps>>;
+  // TProps extends Record<string, unknown> = Record<string, unknown>,
+  // TStaticProps extends Record<string, unknown> = Record<string, unknown>
+> = (...args: TParameters) => void; // Omit<T, NotNeverKeys<TProps>> & Pick<TProps, NotNeverKeys<TProps>>;
 
 export type Es6Class<
   T = any,
   TParameters extends unknown[] = T extends ClassDef<T> ? ConstructorParameters<T> : unknown[],
-  TProps extends Record<string, unknown> = {},
-  TStaticProps extends Record<string, unknown> = {}
-> = new (...args: TParameters) => Omit<T, NotNeverKeys<TProps>> & Pick<TProps, NotNeverKeys<TProps>>;
+  TProps extends Record<string, unknown> = Record<string, unknown>,
+  // TStaticProps extends Record<string, unknown> = Record<string, unknown>
+> = new (...args: TParameters) => Required<Omit<T, NotNeverKeys<TProps>> & Pick<TProps, NotNeverKeys<TProps>>>;
 
 export type Fn<T = any, P extends unknown[] = unknown[]> = (...args: P) => T;
 
-export type IsAny<T> = unknown extends T ? T extends {} ? T : never : never;
+export type IsAny<T> = unknown extends T ? T extends unknown ? T : never : never;
 
 export type FuncKeyNotAny<T, K> =  T extends IsAny<T> ? never : K;
 
 export type FuncKeys<T> = {
-  [K in keyof T]: T[K] extends Function ? FuncKeyNotAny<T[K], K> : never;
+  [K in keyof T]: T[K] extends Fn ? FuncKeyNotAny<T[K], K> : never;
 }[keyof T]
 
 export type OnlyFuncs<T> = Pick<T, FuncKeys<T>>; 

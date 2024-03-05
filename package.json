@@ -5,6 +5,7 @@
   "types": "index.d.ts",
   "scripts": {
     "coveralls": "node ./node_modules/.bin/istanbul cover --root src ./node_modules/.bin/jasmine JASMINE_CONFIG_PATH=jasmine.json",
+    "lint": "npx eslint ./src/* --ext=.tsx,.ts --fix",
     "test": "npx ts-node node_modules/jasmine/bin/jasmine JASMINE_CONFIG_PATH=jasmine.json"
   },
   "author": "akaterra",
@@ -21,6 +22,9 @@
   "devDependencies": {
     "@types/jasmine": "^5.1.4",
     "@types/node": "^20.11.20",
+    "@typescript-eslint/eslint-plugin": "^6.5.0",
+    "eslint": "^8.48.0",
+    "eslint-plugin-unused-imports": "^3.0.0",
     "istanbul": "0.4.5",
     "jasmine": "^5.1.0",
     "ts-node": "^10.9.2",

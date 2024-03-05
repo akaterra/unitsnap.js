@@ -1,5 +1,5 @@
 import * as filter from './filter';
-import { Observer } from './observer';
+import { _Observer } from './observer';
 import { State } from './snapshot';
 
 export interface IHistoryEpoch {
@@ -11,7 +11,7 @@ export interface IHistoryEpoch {
 export class History {
   private _entries: State[];
   private _epochs: IHistoryEpoch[];
-  private _observer: Observer = null;
+  private _observer: _Observer = null;
 
   get entries() {
     return this._entries;
@@ -35,7 +35,7 @@ export class History {
       : null;
   }
 
-  link(observer: Observer) {
+  link(observer: _Observer) {
     this._observer = observer;
 
     return this;
@@ -52,7 +52,7 @@ export class History {
       this._entries = [];
     }
 
-    this._epochs.push({callbacks: callbacks || [], comment: comment, epoch: epoch});
+    this._epochs.push({ callbacks: callbacks || [], comment: comment, epoch: epoch });
 
     return this;
   }
@@ -68,7 +68,7 @@ export class History {
   }
 
   addOnEndCallback(cb: () => void) {
-    let epoch = this.getCurrentEpoch();
+    const epoch = this.getCurrentEpoch();
 
     if (epoch) {
       epoch.callbacks.push(cb);

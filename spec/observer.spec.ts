@@ -17,16 +17,17 @@ describe('Observer', () => {
     value: jasmine.createSpy(),
   });
 
-  let bySpy;
-  let fromSpy;
-  let overrideSpy;
-  let spySpy;
+  let bySpy: jasmine.Spy;
+  let fromSpy: jasmine.Spy;
+  let overrideSpy: jasmine.Spy;
+  let spySpy: jasmine.Spy;
 
   beforeEach(() => {
-    bySpy = unitsnap.Mock.prototype.by = spyOn(unitsnap.Mock.prototype, 'by').and.callThrough().and.returnValue(f);
-    fromSpy = unitsnap.Mock.prototype.from = spyOn(unitsnap.Mock.prototype, 'from').and.callThrough().and.returnValue(f);
-    overrideSpy = unitsnap.Mock.prototype.override = spyOn(unitsnap.Mock.prototype, 'override').and.callThrough().and.returnValue(B);
-    spySpy = unitsnap.Mock.prototype.spy = spyOn(unitsnap.Mock.prototype, 'spy').and.callThrough().and.returnValue(f);
+    // TODO fix
+    bySpy = unitsnap.Mock.prototype.by = spyOn(unitsnap.Mock.prototype, 'by').and.callThrough().and.returnValue(f as any) as any;
+    fromSpy = unitsnap.Mock.prototype.from = spyOn(unitsnap.Mock.prototype, 'from').and.callThrough().and.returnValue(f as any) as any;
+    overrideSpy = unitsnap.Mock.prototype.override = spyOn(unitsnap.Mock.prototype, 'override').and.callThrough().and.returnValue(B) as any;
+    spySpy = unitsnap.Mock.prototype.spy = spyOn(unitsnap.Mock.prototype, 'spy').and.callThrough().and.returnValue(f as any) as any;
   });
 
   afterEach(() => {
@@ -41,9 +42,9 @@ describe('Observer', () => {
   });
 
   it('should be constructed with entities linked to observer', () => {
-    const e = new unitsnap.Observer();
+    const e = new unitsnap._Observer();
 
-    expect(e.env.fixture instanceof unitsnap.Fixture);
+    expect(e.env.fixture instanceof unitsnap._Fixture);
     expect(e.env.history instanceof unitsnap.History);
     expect(e.env.history.observer).toBe(e);
     expect(e.env.mock instanceof unitsnap.Mock);
@@ -53,11 +54,11 @@ describe('Observer', () => {
   });
 
   it('should be constructed by "create"', () => {
-    expect(unitsnap.create() instanceof unitsnap.Observer).toBeTruthy();
+    expect(unitsnap.Observer() instanceof unitsnap._Observer).toBeTruthy();
   });
 
   it('should set name', () => {
-    const e = new unitsnap.Observer().setName('test');
+    const e = new unitsnap._Observer().setName('test');
 
     expect(e.env.fixture.name).toBe('test');
     expect(e.name).toBe('test');
@@ -65,19 +66,19 @@ describe('Observer', () => {
   });
 
   it('should begin historical epoch', () => {
-    const e = new unitsnap.Observer();
+    const e = new unitsnap._Observer();
 
     expect(e.begin('epoch', 'comment').env.history.epochs).toEqual([{callbacks: [], comment: 'comment', epoch: 'epoch'}]);
   });
 
   it('should end historical epoch', () => {
-    const e = new unitsnap.Observer().begin('epoch', 'comment');
+    const e = new unitsnap._Observer().begin('epoch', 'comment');
 
     expect(e.end().env.history.epochs).toEqual([]);
   });
 
   it('should build mock with from', () => {
-    const e = new unitsnap.Observer();
+    const e = new unitsnap._Observer();
     const E = e.from({a: f});
 
     expect(fromSpy.calls.first().args).toEqual([{a: f}, undefined]);
@@ -85,7 +86,7 @@ describe('Observer', () => {
   });
 
   it('should build mock with by', () => {
-    const e = new unitsnap.Observer();
+    const e = new unitsnap._Observer();
     const E = e.by(A, ['a']);
 
     expect(bySpy.calls.first().args).toEqual([A, ['a'], undefined]);
@@ -93,7 +94,7 @@ describe('Observer', () => {
   });
 
   it('should build mock with override', () => {
-    const e = new unitsnap.Observer();
+    const e = new unitsnap._Observer();
     const E = e.override(A, ['a']);
 
     expect(overrideSpy.calls.first().args).toEqual([A, ['a'], undefined]);
@@ -101,7 +102,7 @@ describe('Observer', () => {
   });
 
   it('should spy', () => {
-    const e = new unitsnap.Observer();
+    const e = new unitsnap._Observer();
     const E = e.spy(f);
 
     expect(spySpy.calls.first().args).toEqual([f]);
@@ -109,7 +110,7 @@ describe('Observer', () => {
   });
 
   it('should RESTORE overridden mocks on history end', () => {
-    const e = new unitsnap.Observer().begin('epoch', 'comment');
+    const e = new unitsnap._Observer().begin('epoch', 'comment');
 
     e.override(B);
 
@@ -119,19 +120,19 @@ describe('Observer', () => {
   });
 
   it('should push fixture value', () => {
-    const e = new unitsnap.Observer();
+    const e = new unitsnap._Observer();
 
     expect(e.push(1, 2, 3).env.fixture.env.strategy.pop(3)).toEqual([1, 2, 3]);
   });
 
   it('should create filter', () => {
-    const e = new unitsnap.Observer();
+    const e = new unitsnap._Observer();
 
     expect(e.filter() instanceof unitsnap.Filter).toBeTruthy();
   });
 
   it('should create snapshot', () => {
-    const e = new unitsnap.Observer();
+    const e = new unitsnap._Observer();
 
     expect(e.snapshot() instanceof unitsnap.Snapshot).toBeTruthy();
   });

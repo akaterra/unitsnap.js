@@ -2,18 +2,18 @@ import * as fixture from './fixture';
 import * as history from './history';
 import * as mock from './mock';
 import * as snapshot from './snapshot';
-import { Es5Class, Es6Class, Fn } from './utils';
+import { ClassDef, Fn } from './utils';
 
 let observerId = 1000;
 
 export interface IObserverEnv {
-  fixture: fixture.Fixture;
+  fixture: fixture._Fixture;
   history: history.History;
   mock: mock.Mock;
   snapshot: snapshot.Snapshot;
 }
 
-export class Observer {
+export class _Observer {
   private _fixture: IObserverEnv['fixture'];
   private _history: IObserverEnv['history'];
   private _id: number;
@@ -34,7 +34,7 @@ export class Observer {
   }
 
   constructor() {
-    this._fixture = new fixture.Fixture();
+    this._fixture = new fixture._Fixture();
     this._history = new history.History().link(this);
     this._id = observerId;
     this._mock = new mock.Mock(this._history);
@@ -43,7 +43,7 @@ export class Observer {
     observerId += 1;
   }
 
-  setName(name: Observer['_name']): this {
+  setName(name: _Observer['_name']): this {
     this._fixture.setName(name);
     this._name = name;
     this._snapshot.setName(name);
@@ -63,7 +63,7 @@ export class Observer {
     return this;
   }
 
-  by<T extends Es5Class | Es6Class, P extends ReadonlyArray<string | number | symbol> | mock.MockPropsMap = (keyof T)[]>(
+  by<T extends ClassDef<any>, P extends ReadonlyArray<string | number | symbol> | mock.MockPropsMap = (keyof T)[]>(
     cls: T,
     props?: P,
     bypassOnBehalfOfInstanceReplacement?,
@@ -81,7 +81,7 @@ export class Observer {
     return clazz;
   }
 
-  override<T extends Es5Class | Es6Class, P extends ReadonlyArray<string | number | symbol> | mock.MockPropsMap = (keyof T)[]>(
+  override<T extends ClassDef<any>, P extends ReadonlyArray<string | number | symbol> | mock.MockPropsMap = (keyof T)[]>(
     cls: T,
     props?: P,
     bypassOnBehalfOfInstanceReplacement?,
@@ -115,8 +115,8 @@ export class Observer {
   }
 }
 
-export function create() {
-  return new Observer();
+export function Observer() {
+  return new _Observer();
 }
 
 export type SpiedFn<T> = (((...args: any[]) => T) | { new (...args: any[]): T }) & Partial<{
@@ -149,4 +149,4 @@ export function getSpyStats<T>(fn: SpiedFn<T>) {
 
 export const stat = getSpyStats;
 
-export default new Observer();
+export default new _Observer();

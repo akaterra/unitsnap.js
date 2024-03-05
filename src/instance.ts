@@ -32,10 +32,10 @@ export function parseFunctionAnnotation(func) {
       fnArgStr = matches[2];
       fnName = null;
     }
-  } else if (fnStr.substr(0, 5) === 'class') {
+  } else if (fnStr.slice(0, 5) === 'class') {
 
     // es6 class, search for constructor
-    while (fnStr.substr(0, 5) === 'class') {
+    while (fnStr.slice(0, 5) === 'class') {
       matches = regexExecAll(FN_ES6_CLASS_CONSTRUCTOR_DECLARATION, fnStr);
 
       if (matches.length) {
@@ -58,10 +58,10 @@ export function parseFunctionAnnotation(func) {
   }
 
   if (fnArgStr === null) {
-    return {args: [], argsDeclaration: '', name: fnName};
+    return { args: [], argsDeclaration: '', name: fnName };
   }
 
-  let annotations = {
+  const annotations = {
     args: [],
     argsDeclaration: (fnArgStr.match(FN_ARGUMENT_NAMES) || []).join(','),
     name: fnName || null,
@@ -75,9 +75,9 @@ export function parseFunctionAnnotation(func) {
 }
 
 export function parseFunctionAnnotationCreateArgDescriptor(arg) {
-  if (arg.substr(0, 3) === '...') {
-    return {alias: null, default: undefined, name: arg.substr(3), type: 'rest'};
-  } else if (arg.substr(0, 1) === '{') {
+  if (arg.slice(0, 3) === '...') {
+    return { alias: null, default: undefined, name: arg.slice(3), type: 'rest' };
+  } else if (arg.slice(0, 1) === '{') {
     return {
       alias: null,
       default: undefined,
@@ -87,19 +87,19 @@ export function parseFunctionAnnotationCreateArgDescriptor(arg) {
   }
 
   let argDefault = undefined;
-  let argDefaultIndex = arg.indexOf('=');
+  const argDefaultIndex = arg.indexOf('=');
 
   if (argDefaultIndex !== - 1) {
-    argDefault = arg.substr(argDefaultIndex + 1).trim();
-    arg = arg.substr(0, argDefaultIndex).trim();
+    argDefault = arg.slice(argDefaultIndex + 1).trim();
+    arg = arg.slice(0, argDefaultIndex).trim();
   }
 
   let argAlias = null;
-  let argAliasIndex = arg.indexOf(':');
+  const argAliasIndex = arg.indexOf(':');
 
   if (argAliasIndex !== - 1) {
-    argAlias = arg.substr(argAliasIndex + 1).trim();
-    arg = arg.substr(0, argAliasIndex).trim();
+    argAlias = arg.slice(argAliasIndex + 1).trim();
+    arg = arg.slice(0, argAliasIndex).trim();
   }
 
   return {
@@ -128,7 +128,7 @@ export function getAncestors(cls) {
     return [];
   }
 
-  let ancestors = [cls];
+  const ancestors = [ cls ];
 
   while (true) {
     cls = Object.getPrototypeOf(cls);
@@ -144,7 +144,7 @@ export function getAncestors(cls) {
 }
 
 export function getDescriptorAndType(obj, key) {
-  let name = typeof obj === 'function'
+  const name = typeof obj === 'function'
     ? obj.prototype.constructor.name
     : Object.getPrototypeOf(obj) && Object.getPrototypeOf(obj).constructor.name || null;
 
@@ -186,52 +186,52 @@ export function callConstructor(cls, context, args) {
   let instance;
 
   switch (args.length) {
-    case 0:
-      instance = new cls();
+  case 0:
+    instance = new cls();
 
-      break;
-    case 1:
-      instance = new cls(args[0]);
+    break;
+  case 1:
+    instance = new cls(args[0]);
 
-      break;
-    case 2:
-      instance = new cls(args[0], args[1]);
+    break;
+  case 2:
+    instance = new cls(args[0], args[1]);
 
-      break;
-    case 3:
-      instance = new cls(args[0], args[1], args[2]);
+    break;
+  case 3:
+    instance = new cls(args[0], args[1], args[2]);
 
-      break;
-    case 4:
-      instance = new cls(args[0], args[1], args[2], args[3]);
+    break;
+  case 4:
+    instance = new cls(args[0], args[1], args[2], args[3]);
 
-      break;
-    case 5:
-      instance = new cls(args[0], args[1], args[2], args[3], args[4]);
+    break;
+  case 5:
+    instance = new cls(args[0], args[1], args[2], args[3], args[4]);
 
-      break;
-    case 6:
-      instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5]);
+    break;
+  case 6:
+    instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5]);
 
-      break;
-    case 7:
-      instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+    break;
+  case 7:
+    instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
 
-      break;
-    case 8:
-      instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+    break;
+  case 8:
+    instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
 
-      break;
-    case 9:
-      instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]);
+    break;
+  case 9:
+    instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]);
 
-      break;
-    case 10:
-      instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]);
+    break;
+  case 10:
+    instance = new cls(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]);
 
-      break;
-    default:
-      throw new Error('Constructor has too many arguments');
+    break;
+  default:
+    throw new Error('Constructor has too many arguments');
   }
 
   Object.getOwnPropertyNames(instance).forEach(function (key) {
@@ -269,7 +269,7 @@ export function copyPrototype(cls, options?) {
 
 export function copyScope(cls, options?, maxDepth?): Record<string, unknown> {
   let level = 0;
-  let scope = {};
+  const scope = {};
 
   while (true) {
     if (maxDepth !== undefined) {
@@ -283,7 +283,7 @@ export function copyScope(cls, options?, maxDepth?): Record<string, unknown> {
     if (cls) {
       Object.getOwnPropertyNames(cls).forEach(function (key) {
         if (! Object.prototype.hasOwnProperty.call(scope, key)) {
-          let descriptor = getDescriptorAndType(cls, key);
+          const descriptor = getDescriptorAndType(cls, key);
 
           descriptor.level = level;
 
@@ -307,7 +307,7 @@ export function copyScope(cls, options?, maxDepth?): Record<string, unknown> {
 
 export function copyScopeDescriptors(cls, options?, maxDepth?) {
   let level = 0;
-  let scope = {};
+  const scope = {};
 
   while (true) {
     if (maxDepth !== undefined) {
@@ -321,7 +321,7 @@ export function copyScopeDescriptors(cls, options?, maxDepth?) {
     if (cls) {
       Object.getOwnPropertyNames(cls).forEach(function (key) {
         if (! Object.prototype.hasOwnProperty.call(scope, key)) {
-          let descriptor = getDescriptorAndType(cls, key);
+          const descriptor = getDescriptorAndType(cls, key);
 
           descriptor.level = level;
 
