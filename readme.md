@@ -962,45 +962,15 @@ snapshot.load('test');
 
 The special Jasmine matcher **toMatchSnapshot** can be used in specs for snapshots saving and assertion.
 
-Enable the matcher and configure default snapshot, for example, to use the file system provider:
+Example (see full example /spec/jasmine.spec.ts):
 
 ```typescript
-var unitsnap = require('@akaterra/unitsnap');
-
-unitsnap.extendJasmine();
-
-unitsnap.config().snapshot.setFsProvider(__dirname);
-```
-
-Use the matcher in some **it**:
-
-```typescript
-it('should do something', function () {
-    ...
-
-    expect(observer.snapshot()).toMatchSnapshot('test');
-});
-```
-
-Run Jasmine with the env variable **SAVE_SNAPSHOT**=1 telling to the matcher to save snapshots.
-The snapshot will be saved into the "__dirname/test.snapshot.json" file.
-
-Be sure that the saved snapshot represents valid state of the execution flow.
-
-Run Jasmine usually now to assert the saved snapshot (not existing snapshot will be auto saved instead).
-It will throw standard Jasmine **toEqual** error on mismatch.
-
-Example (see full example /spec/jasmine.spec.js):
-
-```typescript
-const unitsnap = require('@akaterra/unitsnap');
+import observer, { extendJasmine } from '@akaterra/unitsnap';
 
 describe('some suite', () => {
-    const observer = unitsnap.default;
+    observer.env.snapshot.setFsProvider(__dirname);
 
-    observer.config().snapshot.setFsProvider(__dirname);
-
-    beforeAll(() => unitsnap.extendJasmine());
+    beforeAll(() => extendJasmine()); // adds matcher to jasmine, this line is important
     beforeEach(() => observer.begin());
     afterEach(() => observer.end());
     
@@ -1021,12 +991,20 @@ describe('some suite', () => {
 });
 ```
 
+Run Jasmine with the env variable **SAVE_SNAPSHOT**=1 telling to the matcher to save snapshots.
+The snapshot will be saved into the `__dirname/some_spec.snapshot.json` file.
+
+Be sure that the saved snapshot represents valid state of the execution flow.
+
+Run Jasmine usually now to assert the saved snapshot (not existing snapshot will be auto saved instead).
+It will throw standard Jasmine **toEqual** error on mismatch.
+
 ### Using with typescript-ioc
 
 Next bootstrap code can be useful:
 
 ```typescript
-import {Container, Scope} from 'typescript-ioc';
+import { Container, Scope } from 'typescript-ioc';
 
 export const unitsnapIoC = (observer) => {
     const ioc = {
@@ -1068,14 +1046,4 @@ export const unitsnapIoC = (observer) => {
 
     return ioc;
 };
-```
-
-Create "jasmine.d.ts" file in the spec directory that adds jasmine matcher declaration:
-
-```typescript
-declare module jasmine {
-    interface Matchers<T> {
-        toMatchSnapshot(expected: any, expectationFailOutput?: any): boolean;
-    }
-}
 ```
