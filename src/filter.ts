@@ -1,5 +1,6 @@
 import { _Observer } from './observer';
-import * as snapshot from './snapshot';
+import { _Snapshot } from './snapshot';
+import { State } from './spy';
 import { Fn } from './utils';
 
 export type Check = (entry) => boolean;
@@ -58,7 +59,7 @@ export class _Filter {
     return this;
   }
 
-  epoch(epoch: snapshot.State['epoch']) {
+  epoch(epoch: State['epoch']) {
     this._filters.push([ (entry) => entry.epoch === epoch, this.isNot() ]);
 
     return this;
@@ -96,8 +97,8 @@ export class _Filter {
     return this;
   }
 
-  snapshot(): snapshot._Snapshot {
-    const newSnapshot = new snapshot._Snapshot(this._entries.filter((entry) => {
+  snapshot(): _Snapshot {
+    const newSnapshot = new _Snapshot(this._entries.filter((entry) => {
       for (const [ check, isNot ] of this._filters) {
         if (!assert(check(entry), isNot)) {
           return false;

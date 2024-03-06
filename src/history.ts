@@ -1,6 +1,6 @@
-import * as filter from './filter';
+import { _Filter } from './filter';
 import { _Observer } from './observer';
-import { State } from './snapshot';
+import { State } from './spy';
 
 export interface IHistoryEpoch {
   callbacks: (() => void)[];
@@ -84,8 +84,8 @@ export class _History {
     return this;
   }
 
-  filter(): filter._Filter {
-    return new filter._Filter(this._entries.slice()).link(this._observer);
+  filter(): _Filter {
+    return new _Filter(this._entries.slice()).link(this._observer);
   }
 
   push(state: State, tags?: State['tags']) {

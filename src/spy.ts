@@ -8,7 +8,36 @@ export type SpyOnFunctionOptions = {
   extra?: Record<string, any>;
   origin?: Fn;
   replacement?: Fn;
-  onCall?: Fn;
+  onCall?: (context: unknown, state: State) => void;
+}
+
+export enum StateReportType {
+  CALL_ARGS = 'callArgs',
+  RETURN_VALUE = 'returnValue',
+}
+
+export interface State {
+  args?: {
+      '*'?: any[];
+      [key: string]: any;
+  };
+  callsCount?: number;
+  comment?: string;
+  context?: any;
+  epoch?: string;
+  exception?: any | Error;
+  exceptionsCount?: number;
+  isAsync?: boolean;
+  isAsyncPending?: boolean;
+  isException?: boolean;
+  name?: string;
+  origin?: (...args: any[]) => any;
+  replacement?: (...args: any[]) => any;
+  reportType?: StateReportType;
+  result?: any;
+  tags?: string[];
+  time?: Date;
+  type?: 'constructor'|'method'|'getter'|'setter'|'single'|'staticMethod'|'staticGetter'|'staticSetter';
 }
 
 export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstructor?: boolean) {
@@ -33,7 +62,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
     originalCallableAnnotation = instance.parseFunctionAnnotation(options && options.origin || callable);
   }
 
-  if (options && options.onCall !== undefined) {
+  if (options && options.onCall) {
     if (typeof options.onCall !== 'function') {
       throw new Error('Spy on call must be function');
     }
@@ -181,7 +210,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
 
 export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?) {
   return {
-    reportType: 'call',
+    reportType: StateReportType.CALL_ARGS,
 
     args: callable.ARGS,
     callsCount: callable.CALLS_COUNT,
@@ -198,7 +227,7 @@ export function spyOnFunctionCreateArgsReport(callable, context?, originalCallab
 
 export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?) {
   return {
-    reportType: 'returnValue',
+    reportType: StateReportType.RETURN_VALUE,
 
     callsCount: callable.CALLS_COUNT,
     context: context,

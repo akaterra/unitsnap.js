@@ -1,31 +1,8 @@
-import * as filter from './filter';
+import { _Filter } from './filter';
 import { _Observer } from './observer';
 import { _Processor, ProcessorChecker, ProcessorSerializer } from './processor';
+import { State, StateReportType } from './spy';
 import { ClassDef, Fn } from './utils';
-
-export interface State {
-  args?: {
-      '*'?: any[];
-      [key: string]: any;
-  };
-  callsCount?: number;
-  comment?: string;
-  context?: any;
-  epoch?: string;
-  exception?: any | Error;
-  exceptionsCount?: number;
-  isAsync?: boolean;
-  isAsyncPending?: boolean;
-  isException?: boolean;
-  name?: string;
-  origin?: (...args: any[]) => any;
-  replacement?: (...args: any[]) => any;
-  reportType?: 'call'|'returnValue';
-  result?: any;
-  tags?: string[];
-  time?: Date;
-  type?: 'constructor'|'method'|'getter'|'setter'|'single'|'staticMethod'|'staticGetter'|'staticSetter';
-}
 
 export interface ISnapshotEnv {
   mapper: (snapshot: _Snapshot, entry: State) => State;
@@ -185,7 +162,7 @@ export class _Snapshot {
   }
 
   filter() {
-    return new filter._Filter(this._entries).link(this._observer);
+    return new _Filter(this._entries).link(this._observer);
   }
 
   includeArgs(flag?: boolean) {
@@ -347,8 +324,8 @@ function snapshotMapEntry(snapshot, entry: State): State {
   for (const key of Object.keys(mappedEntry)) {
     if (mappedEntry[key] === undefined) {
       if (
-        (key === 'args' && mappedEntry.reportType === 'call') ||
-        (key === 'result' && mappedEntry.reportType === 'returnValue')
+        (key === 'args' && mappedEntry.reportType === StateReportType.CALL_ARGS) ||
+        (key === 'result' && mappedEntry.reportType === StateReportType.RETURN_VALUE)
       ) {
         continue;
       }

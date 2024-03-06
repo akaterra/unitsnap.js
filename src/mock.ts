@@ -1,5 +1,5 @@
 import * as fixture from './fixture';
-import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod } from './spy';
+import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod, State, StateReportType } from './spy';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { _History } from './history';
 import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5ClassDef, Es6Class, Es6ClassDef, Fn, NotNeverKeys, ObjectFromList } from './utils';
@@ -89,7 +89,7 @@ export type MockClassMixin<T> = {
   RESTORE?: () => T;
 }
 
-export type MockClass<
+export type MockClassBase<
   T extends ClassDef<any> = Es6Class<any>,
   P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[],
   TConstructorReturnType = ConstructorReturnType<T>,
@@ -121,8 +121,12 @@ export type MockClass<
   TProps
 > &
   Omit<T, NotNeverKeys<TStaticProps>> &
-  Pick<TStaticProps, NotNeverKeys<TStaticProps>> &
-  MockClassMixin<TConstructable>;
+  Pick<TStaticProps, NotNeverKeys<TStaticProps>>;
+
+export type MockClass<
+  T extends ClassDef<any> = Es6Class<any>,
+  P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[],
+> = MockClassBase<T, P> & MockClassMixin<MockClassBase<T, P>>;
 
 // type check, never runs
 if (0) {
@@ -212,6 +216,8 @@ if (0) {
   assert(e.x(), null);
   assert(e.y(), new X(1));
   assert(e.z(), undefined);
+
+  assert(E.RESTORE(), E);
   /* eslint-enable */
 }
 
@@ -688,9 +694,9 @@ export class ClassMaker {
         return;
       }
 
-      let custom = null;
-      let customGet = null;
-      let customSet = null;
+      let custom: _Custom = null;
+      let customGet: _Custom = null;
+      let customSet: _Custom = null;
       let rep = null;
       let repDescriptor = null;
 
@@ -726,8 +732,8 @@ export class ClassMaker {
         spyOnStaticDescriptor(cls, key, repDescriptor, {
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           get: {
-            argsAnnotation: customGet?._argsAnnotation,
-            exclude: customGet?._exclude,
+            argsAnnotation: customGet?.env?.argsAnnotation,
+            exclude: customGet?.env?.exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
               type: 'staticGetter',
@@ -736,8 +742,8 @@ export class ClassMaker {
             replacement: this._props[key].descriptor.get,
           },
           set: {
-            argsAnnotation: customSet?._argsAnnotation,
-            exclude: customSet?._exclude,
+            argsAnnotation: customSet?.env?.argsAnnotation,
+            exclude: customSet?.env?.exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
               type: 'staticSetter',
@@ -747,7 +753,11 @@ export class ClassMaker {
           },
           onCall: (context, state) => {
             if (this._mock._history) {
-              this._mock._history.push(state);
+              this._mock._history.push(classMakerProcessState(
+                state,
+                (state.type === 'getter' ? customGet : customSet)?.env?.callArgsProcessor,
+                (state.type === 'getter' ? customGet : customSet)?.env?.returnValueProcessor,
+              ));
             }
           },
         });
@@ -783,8 +793,8 @@ export class ClassMaker {
         spyOnDescriptor(cls, key, repDescriptor, {
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           get: {
-            argsAnnotation: customGet?._argsAnnotation,
-            exclude: customGet?._exclude,
+            argsAnnotation: customGet?.env?.argsAnnotation,
+            exclude: customGet?.env?.exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
               type: 'getter',
@@ -793,8 +803,8 @@ export class ClassMaker {
             replacement: this._props[key].descriptor.get,
           },
           set: {
-            argsAnnotation: customSet?._argsAnnotation,
-            exclude: customSet?._exclude,
+            argsAnnotation: customSet?.env.argsAnnotation,
+            exclude: customSet?.env.exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
               type: 'setter',
@@ -804,7 +814,11 @@ export class ClassMaker {
           },
           onCall: (context, state) => {
             if (this._mock._history) {
-              this._mock._history.push(state);
+              this._mock._history.push(classMakerProcessState(
+                state,
+                (state.type === 'getter' ? customGet : customSet)?.env?.callArgsProcessor,
+                (state.type === 'getter' ? customGet : customSet)?.env?.returnValueProcessor,
+              ));
             }
           },
         });
@@ -822,8 +836,8 @@ export class ClassMaker {
         rep = this.getFinalReplacementForValue(rep, key);
 
         spyOnStaticMethod(cls, key, rep, {
-          argsAnnotation: custom?._argsAnnotation,
-          exclude: custom?._exclude,
+          argsAnnotation: custom?.env?.argsAnnotation,
+          exclude: custom?.env?.exclude,
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           extra: {
             name: this._clsConstructorName + '.' + key,
@@ -833,7 +847,11 @@ export class ClassMaker {
           replacement: rep,
           onCall: (context, state) => {
             if (this._mock._history) {
-              this._mock._history.push(state);
+              this._mock._history.push(classMakerProcessState(
+                state,
+                custom?.env?.callArgsProcessor,
+                custom?.env?.returnValueProcessor,
+              ));
             }
           },
         });
@@ -851,8 +869,8 @@ export class ClassMaker {
         rep = this.getFinalReplacementForProtoValue(rep, key);
 
         spyOnMethod(cls, key, rep, {
-          argsAnnotation: custom?._argsAnnotation,
-          exclude: custom?._exclude,
+          argsAnnotation: custom?.env?.argsAnnotation,
+          exclude: custom?.env?.exclude,
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           extra: {
             name: this._clsConstructorName + '.' + key,
@@ -862,7 +880,11 @@ export class ClassMaker {
           replacement: rep,
           onCall: (context, state) => {
             if (this._mock._history) {
-              this._mock._history.push(state);
+              this._mock._history.push(classMakerProcessState(
+                state,
+                custom?.env?.callArgsProcessor,
+                custom?.env?.returnValueProcessor,
+              ));
             }
           },
         });
@@ -988,6 +1010,20 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
   }
 
   return function () { return prop; };
+}
+
+function classMakerProcessState(
+  state: State,
+  callArgsProcessor: _Processor,
+  returnValueProcessor: _Processor,
+): State {
+  if (callArgsProcessor && state.reportType === StateReportType.CALL_ARGS) {
+    state.args = callArgsProcessor.serialize(state.args);
+  } else if (returnValueProcessor) {
+    state.result = returnValueProcessor.serialize(state.result);
+  }
+
+  return state;
 }
 
 function hasOwnProperty(obj, key) {
