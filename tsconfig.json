@@ -14,7 +14,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowJs": true,
-    "types": ["node", "jasmine", "./jasmine.d"],
+    "types": ["node", "jasmine"],
     "useDefineForClassFields": false
   },
   "exclude": [

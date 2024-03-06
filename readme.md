@@ -1,7 +1,7 @@
 # UnitSnap
 
-The library allows to use the taken or saved snapshot of the units observed during an execution flow as an assertion in unit tests.
-The principle of this stands on the concept of the pure function which always has the same result of execution (may be partially for individual purposes).
+The library allows to use a captured or saved snapshot of the units observed during an execution flow as an assertion in unit tests.
+The principle of this stands on the concept of the pure function which always has the same execution result and execution order (may be partially for individual purposes).
 Then this result can be saved as a snapshot and compared with a snapshot of the same execution flow.
 
 ### Contents
@@ -36,7 +36,7 @@ npm install @akaterra.co/unitsnap
 ### Example of snapshot generation
 
 ```typescript
-import observer from ('@akaterra.co/unitsnap'); // default pre-created UnitSnap observer
+import observer from '@akaterra.co/unitsnap'; // default pre-created UnitSnap observer
 
 class A {
     a(a, b, c) {
@@ -78,13 +78,13 @@ Serialized snapshot (snapshot.serialize()):
 Save taken snapshot:
 
 ```typescript
-snapshot.setFsProvider(__dirname).save('snapshot');
+snapshot.setFsProvider(__dirname).save('snapshot'); // saved as snapshot.snapshot.json in current directory
 ```
 
 ### Example of snapshot assertion
 
 ```typescript
-import observer from ('@akaterra.co/unitsnap'); // default pre-created UnitSnap observer
+import observer from '@akaterra.co/unitsnap'; // default pre-created UnitSnap observer
 
 class A {
     a(a, b, c) {
@@ -132,7 +132,9 @@ const checkResult = snapshot.setFsProvider(__dirname).assertSaved('snapshot'); /
 ### Observer
 
 ```typescript
-const Observer = require('@akaterra/unitsnap').Observer;
+import { Observer } from '@akaterra/unitsnap';
+
+const observer = Observer();
 ```
 
 Observer provides a isolated context within which the History, Mock, Fixture and Snapshot (see description below) modules will be created and within which their intercommunication will be organized.
@@ -174,6 +176,8 @@ For ease of use, Observer also implements a set of methods that are proxy method
 
 ```typescript
 import { History } from '@akaterra/unitsnap';
+
+const history = History();
 ```
 
 History chronologically collects the entries with results of execution of each single observed function of the execution flow.
@@ -266,7 +270,7 @@ generates entries containing the next fields:
 
 Asynchronous functions returning a Promise will additionally generate an entry with the result of the promise resolving (as "result") or with the error of the promise rejection (as "exception").
 
-Collected entries can be assigned to an epochs and will be filtered after by the necessary epoch. 
+Collected entries can be assigned to an epochs and can be filtered then by the necessary epoch.
 Epochs can be nested.
 
 * **getCurrentEpoch()** - returns the current epoch descriptor or null if the history is not yet begun.
@@ -291,7 +295,7 @@ Epochs can be nested.
 import { Mock } from '@akaterra/unitsnap';
 ```
 
-The Mock builds a mock that commonly is a fake representation of the initial entity and can be used instead of original entity.
+Mock builds a mock that commonly is a fake representation of the initial entity and can be used instead of original entity.
 Static methods, instance properties and static properties of the initial entity can be mocked with the special modifiers **StaticMethod**, **Property** and **StaticProperty**.
 Besides, this mock can optionally be linked to the history so that the state of the call observed by the mock will be stored in the history.
 
@@ -315,7 +319,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         a: function () { return 1; }, // custom function
         b: Undefined, // stub function
         c: 123, // function returning 123
-        d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
+        d: Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // exception - can be linked to observer Fixture only in context of observer
         f: StaticMethod(Undefined), // custom static method
         g: Property().get(1).set(Undefined), // custom property returning "1" on get and does nothing on set
@@ -356,7 +360,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         a: function () { return 1; }, // custom function
         b: Undefined, // stub function
         c: 123, // function returning 123
-        d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
+        d: Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // linked to observer.Fixture.pop
         f: StaticMethod(2), // custom static method returning "2"
         g: Property().get(1).set(Undefined), // custom property returning "1" on get and does nothing on set
@@ -443,7 +447,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         a: function () { return 1; }, // custom function
         b: A, // A.prototype.b
         c: 123, // function returning 123
-        d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
+        d: Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // exception - can be linked to observer Fixture only in context of observer
         f: StaticMethod(2), // custom static method returning "2"
         g: Property().get(1).set(Undefined), // custom property returning "1" on get and does nothing on set
@@ -485,7 +489,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         a: function () { return 1; }, // custom function
         b: A, // A.prototype.b
         c: 123, // function returning "123"
-        d: new Fixture().push(1, 2, 3), // linked to provided Fixture.pop
+        d: Fixture().push(1, 2, 3), // linked to provided Fixture.pop
         e: Fixture, // linked to observer.Fixture.pop
         f: StaticMethod(2), // custom static method returning "2"
         g: Property().get(1).set(Undefined), // custom property returning "1" on get and does nothing on set
@@ -531,7 +535,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
 * **spy(function)** - spies on a single function
 
 Note, that the mocked method will be dynamically replaced by its copy on the first call of this method.
-This make for the ability to collect call statistic on behalf of the instance but not its prototype.
+This made for the ability to collect call statistic on behalf of the instance but not its prototype.
 ```typescript
 import { Mock } from '@akaterra/unitsnap';
 
@@ -565,7 +569,7 @@ Same is for the "from" and the "override".
 
 ##### Customization
 
-Properties can be customized with the **Custom** entity.
+Mock properties can be customized with the **Custom** entity.
 
 ```typescript
 import {
@@ -590,9 +594,11 @@ const Mocked = mock.by(A, {
 
 ```typescript
 import { Fixture } from '@akaterra/unitsnap';
+
+const fixture = Fixture();
 ```
 
-Fixture provides a fake data to be used as a result of the function call.
+Fixture provides a channel with fake data to be used as a result of the function call.
 
 * **pop** - pops a value from the container.
 
@@ -609,11 +615,12 @@ Fixture provides a fake data to be used as a result of the function call.
 Callback strategy allows to use a custom callback as a generator for the popped value.
 
 ```typescript
-fixture.setCallbackStrategy(() => 1);
+fixture.setCallbackStrategy((...args: number[]) => 1);
 
-fixture.push(1, 2, 3); // calls the callback with 1, 2, 3
+fixture.push(1, 2, 3); // calls the callback with fake entries 1, 2, 3
 
 fixture.pop(); // 1
+fixture.pop(2); // [1, 1]
 ```
 
 ##### FixtureQueueStrategy
@@ -623,9 +630,10 @@ Queue strategy allows to use a queued values.
 ```typescript
 fixture.setQueueStrategy();
 
-fixture.push(1, 2, 3); // [1, 2, 3]
+fixture.push(1, 2, 3); // pushes fake entries 1, 2, 3
 
 fixture.pop(); // 1 - popped from the beginning of the queue; [2, 3] is a rest
+fixture.pop(2); // [2, 3]
 ```
 
 ##### FixtureFsProvider (for Queue strategy)
@@ -642,7 +650,7 @@ fixture.setFsProvider(__dirname); // values from the __dirname/test.fixture.json
 
 ##### FixtureMemoryProvider (for Queue strategy)
 
-Filesystem provider allows to load values from the memory.
+Memory provider allows to load values from the memory.
 
 ```typescript
 fixture.setName('test'); // set fixture name that will be a key in the dictionary of values
@@ -653,6 +661,12 @@ fixture.setMemoryProvider({test: [1, 2, 3]}); // values by dictionary key "test"
 ```
 
 ### Filter
+
+```typescript
+import { Filter } from '@akaterra/unitsnap';
+
+const filter = Filter();
+```
 
 Filter allows to filter the collected historical entries and create a new snapshot over them.
 
@@ -680,9 +694,15 @@ Then the snapshot over this subset of the historical entries can be created.
 
 ### Snapshot
 
+```typescript
+import { Snapshot } from '@akaterra/unitsnap';
+
+const snapshot = Snapshot();
+```
+
 Snapshot contains the entire or the filtered subset of the historical entries.
 These entries can be serialized and asserted with the some other snapshot.
-Also it is possible to create a new Filter over the entries of the snapshot, then filter and create an additional snapshot over them.
+Snapshot entries in their turn could be filtered and then create an additional snapshot over them.
 
 * **assert(snapshot)** - asserts other snapshot.
 
