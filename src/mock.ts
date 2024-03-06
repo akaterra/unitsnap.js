@@ -1,10 +1,10 @@
 import * as fixture from './fixture';
 import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod } from './spy';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
-import { History } from './history';
+import { _History } from './history';
 import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5ClassDef, Es6Class, Es6ClassDef, Fn, NotNeverKeys, ObjectFromList } from './utils';
 import { _Observer } from './observer';
-import { Processor, ProcessorChecker, ProcessorSerializer } from './processor';
+import { _Processor, ProcessorChecker, ProcessorSerializer } from './processor';
 
 export class Observe { private constructor() {} private __observe() {} };
 export const Initial = Observe;
@@ -198,10 +198,10 @@ if (0) {
 export class _Mock {
   explicitInstance: boolean;
 
-  private _callProcessor = new Processor()
-  private _history: History;
+  private _callProcessor = new _Processor()
+  private _history: _History;
   private _fixturePop: any;
-  private _returnValueProcessor = new Processor()
+  private _returnValueProcessor = new _Processor()
 
   get fixturePop() {
     if (!this._fixturePop) {
@@ -215,7 +215,7 @@ export class _Mock {
     return this._history;
   }
 
-  constructor(history?: History) {
+  constructor(history?: _History) {
     this._history = history;
 
     if (history && history.observer) {
@@ -301,7 +301,7 @@ export class _Mock {
   }
 }
 
-export function Mock(history?: History) {
+export function Mock(history?: _History) {
   return new _Mock(history);
 }
 
@@ -380,9 +380,9 @@ export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Nu
   _epoch: string;
   _exclude: boolean;
 
-  _callProcessor = new Processor();
-  _currentProcessor: Processor = null;
-  _returnValueProcessor = new Processor();
+  _callProcessor = new _Processor();
+  _currentProcessor: _Processor = null;
+  _returnValueProcessor = new _Processor();
 
   get call() {
     this._currentProcessor = this._callProcessor;

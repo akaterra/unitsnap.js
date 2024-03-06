@@ -67,7 +67,7 @@ export function parseFunctionAnnotation(func) {
     name: fnName || null,
   };
 
-  (fnArgStr.match(FN_ARGUMENT_NAMES) || []).forEach(function (arg) {
+  (fnArgStr.match(FN_ARGUMENT_NAMES) || []).forEach((arg) => {
     annotations.args.push(parseFunctionAnnotationCreateArgDescriptor(arg));
   });
 
@@ -234,7 +234,7 @@ export function callConstructor(cls, context, args) {
     throw new Error('Constructor has too many arguments');
   }
 
-  Object.getOwnPropertyNames(instance).forEach(function (key) {
+  Object.getOwnPropertyNames(instance).forEach((key) => {
     context[key] = instance[key];
   });
 
@@ -281,7 +281,7 @@ export function copyScope(cls, options?, maxDepth?): Record<string, unknown> {
     }
 
     if (cls) {
-      Object.getOwnPropertyNames(cls).forEach(function (key) {
+      Object.getOwnPropertyNames(cls).forEach((key) => {
         if (! Object.prototype.hasOwnProperty.call(scope, key)) {
           const descriptor = getDescriptorAndType(cls, key);
 
@@ -319,7 +319,7 @@ export function copyScopeDescriptors(cls, options?, maxDepth?) {
     }
 
     if (cls) {
-      Object.getOwnPropertyNames(cls).forEach(function (key) {
+      Object.getOwnPropertyNames(cls).forEach((key) => {
         if (! Object.prototype.hasOwnProperty.call(scope, key)) {
           const descriptor = getDescriptorAndType(cls, key);
 

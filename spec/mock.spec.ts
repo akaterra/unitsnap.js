@@ -62,7 +62,7 @@ describe('Custom', () => {
 describe('Mock', () => {
   const f = () => {};
   const fixture = new unitsnap._Fixture();
-  const history = new unitsnap.History();
+  const history = new unitsnap._History();
   const observer = new unitsnap._Observer();
 
   class A {
@@ -528,7 +528,7 @@ describe('Mock', () => {
       });
 
       it('should override methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap._Mock(new unitsnap.History().link(observer)).by(B, {c: unitsnap._Fixture});
+        const E = new unitsnap._Mock(new unitsnap._History().link(observer)).by(B, {c: unitsnap._Fixture});
 
         expect(E.prototype.a).toBe(B.prototype.a);
         expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
@@ -536,7 +536,7 @@ describe('Mock', () => {
       });
 
       it('should override static methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap._Mock(new unitsnap.History().link(observer)).by(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
+        const E = new unitsnap._Mock(new unitsnap._History().link(observer)).by(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
 
         expect(E.a).toBe(B.a);
         expect(stat(E.c).origin).toBe(B.c);
@@ -1553,7 +1553,7 @@ describe('Mock', () => {
       });
 
       it('should override methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap._Mock(new unitsnap.History().link(observer)).override(B, {c: unitsnap._Fixture});
+        const E = new unitsnap._Mock(new unitsnap._History().link(observer)).override(B, {c: unitsnap._Fixture});
 
         expect(E.prototype.a).toBe(bPrototype.a);
         expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
@@ -1561,7 +1561,7 @@ describe('Mock', () => {
       });
 
       it('should override static methods linked to fixture of observer by Fixture ref with spy', () => {
-        const E = new unitsnap._Mock(new unitsnap.History().link(observer)).override(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
+        const E = new unitsnap._Mock(new unitsnap._History().link(observer)).override(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
 
         expect(E.a).toBe(bProperties.a);
         expect(stat(E.c).origin).toBe(bProperties.c);

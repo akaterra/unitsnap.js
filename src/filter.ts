@@ -5,7 +5,7 @@ import { Fn } from './utils';
 export type Check = (entry) => boolean;
 export type IsNot = boolean;
 
-export class Filter {
+export class _Filter {
   private _entries: any[];
   private _filters: [Check, IsNot][] = [];
   private _not: boolean = false;
@@ -96,8 +96,8 @@ export class Filter {
     return this;
   }
 
-  snapshot(): snapshot.Snapshot {
-    const newSnapshot = new snapshot.Snapshot(this._entries.filter((entry) => {
+  snapshot(): snapshot._Snapshot {
+    const newSnapshot = new snapshot._Snapshot(this._entries.filter((entry) => {
       for (const [ check, isNot ] of this._filters) {
         if (!assert(check(entry), isNot)) {
           return false;
@@ -125,6 +125,10 @@ export class Filter {
   
     return not;
   }
+}
+
+export function Filter(entries?: _Filter['_entries']) {
+  return new _Filter(entries);
 }
 
 function assert(result, not) {

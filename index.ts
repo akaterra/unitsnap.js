@@ -16,9 +16,9 @@ export * from './src/snapshot';
 export * from './src/spy';
 export * from './src/type_helpers';
 
-import { Filter } from './src/filter';
-import observer, { _Observer } from './src/observer';
-import { Snapshot } from './src/snapshot';
+import { _Filter } from './src/filter';
+import { _Observer } from './src/observer';
+import { _Snapshot } from './src/snapshot';
 
 export function extendJasmine() {
   jasmine.addMatchers({
@@ -27,13 +27,13 @@ export function extendJasmine() {
 
       return {
         compare: function (actual, expected) {
-          if (actual instanceof Filter) {
+          if (actual instanceof _Filter) {
             actual = actual.snapshot();
           } else if (actual instanceof _Observer) {
             actual = actual.snapshot();
           }
 
-          if (actual instanceof Snapshot) {
+          if (actual instanceof _Snapshot) {
             let saveSnapshot = false;
 
             if (typeof process !== 'undefined') {
@@ -70,7 +70,7 @@ export function extendJasmine() {
             actual = actual.serialize();
           }
 
-          if (expected instanceof module.exports.Snapshot) {
+          if (expected instanceof _Snapshot) {
             expected = expected.serialize();
           }
 
@@ -81,4 +81,4 @@ export function extendJasmine() {
   });
 };
 
-export default observer;
+export default new _Observer();

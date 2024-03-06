@@ -1,6 +1,6 @@
 import * as filter from './filter';
 import { _Observer } from './observer';
-import { Processor, ProcessorChecker, ProcessorSerializer } from './processor';
+import { _Processor, ProcessorChecker, ProcessorSerializer } from './processor';
 import { ClassDef, Fn } from './utils';
 
 export interface State {
@@ -28,13 +28,13 @@ export interface State {
 }
 
 export interface ISnapshotEnv {
-  mapper: (snapshot: Snapshot, entry: State) => State;
+  mapper: (snapshot: _Snapshot, entry: State) => State;
   observer: _Observer;
   processors: { checker: Fn & { original?: Fn }, serializer: Fn & { original?: Fn } }[];
   provider: ISnapshotProvider;
 }
 
-export class Snapshot {
+export class _Snapshot {
   private _config: any = {
     args: true,
     exception: true,
@@ -44,7 +44,7 @@ export class Snapshot {
   private _mapper: ISnapshotEnv['mapper'] = snapshotMapEntry;
   private _name: string = null;
   private _observer: ISnapshotEnv['observer'] = null;
-  private _processor = new Processor();
+  private _processor = new _Processor();
   private _provider: ISnapshotEnv['provider'] = null;
 
   get config() {
@@ -94,7 +94,7 @@ export class Snapshot {
     return this;
   }
 
-  setName(name: Snapshot['_name']) {
+  setName(name: _Snapshot['_name']) {
     this._name = name;
 
     return this;
@@ -173,7 +173,7 @@ export class Snapshot {
   }
 
   assert(snapshot) {
-    return snapshotAssert(this.serialize(), snapshot instanceof Snapshot ? snapshot.serialize() : snapshot, '');
+    return snapshotAssert(this.serialize(), snapshot instanceof _Snapshot ? snapshot.serialize() : snapshot, '');
   }
 
   assertSaved(name?) {
@@ -185,7 +185,7 @@ export class Snapshot {
   }
 
   filter() {
-    return new filter.Filter(this._entries).link(this._observer);
+    return new filter._Filter(this._entries).link(this._observer);
   }
 
   includeArgs(flag?: boolean) {
@@ -236,7 +236,7 @@ export class Snapshot {
     return this;
   }
 
-  isEnabled(flag?: keyof typeof Snapshot.prototype._config): boolean {
+  isEnabled(flag?: keyof typeof _Snapshot.prototype._config): boolean {
     return this._config[flag] === true;
   }
 
@@ -247,7 +247,7 @@ export class Snapshot {
   }
 
   loadCopy(name?: string) {
-    return new Snapshot(this._provider.load(name || this._name))
+    return new _Snapshot(this._provider.load(name || this._name))
       .setConfig({ ...this._config })
       .setName(this._name)
       .setProvider(this._provider)
@@ -273,6 +273,10 @@ export class Snapshot {
       `[${ind}]`,
     ));
   }
+}
+
+export function Snapshot(entries?: _Snapshot['_entries']) {
+  return new _Snapshot(entries);
 }
 
 function snapshotAssert(source, target, path) {
@@ -404,7 +408,7 @@ export class SnapshotFsProvider implements ISnapshotProvider {
     require('fs').writeFileSync(
       this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json',
       JSON.stringify(
-        snapshot instanceof Snapshot ? snapshot.serialize() : snapshot,
+        snapshot instanceof _Snapshot ? snapshot.serialize() : snapshot,
         undefined,
         4
       )
@@ -440,7 +444,7 @@ export class SnapshotMemoryProvider implements ISnapshotProvider {
   }
 
   save(name, snapshot) {
-    this._dictionary[name] = snapshot instanceof Snapshot ? snapshot.serialize() : snapshot;
+    this._dictionary[name] = snapshot instanceof _Snapshot ? snapshot.serialize() : snapshot;
 
     return this;
   }

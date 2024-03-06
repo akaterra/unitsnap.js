@@ -56,7 +56,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
 
         delete callable.ARGS['*'];
       } else if (originalCallableAnnotation.args[ind].type === 'unpack') {
-        originalCallableAnnotation.args[ind].props.forEach(function (annotation) {
+        originalCallableAnnotation.args[ind].props.forEach((annotation) => {
           callable.ARGS[annotation.alias || annotation.name] = val[annotation.name];
         });
 

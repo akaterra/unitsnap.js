@@ -1,16 +1,23 @@
 import {
   _ClassOf,
   _InstanceOf,
-  AnyType,
-  BooleanType,
+  _AnyType,
+  _BooleanType,
   Continue,
-  DateType,
-  DateValue,
+  _DateType,
+  _DateValue,
   Ignore,
   IType,
-  NumberType,
+  _NumberType,
+  _StringType,
+  _UndefinedType,
+  AnyType,
+  BooleanType,
+  DateType,
+  DateValue,
   StringType,
-  UndefinedType
+  UndefinedType,
+  NumberType
 } from './type_helpers';
 import { ClassDef, Fn } from './utils';
 
@@ -20,18 +27,18 @@ export type ProcessorBaseTypes = typeof Boolean |
   typeof String |
   typeof undefined |
   IType |
-  typeof AnyType |
-  typeof BooleanType |
-  typeof DateType |
-  typeof DateValue |
+  typeof _AnyType |
+  typeof _BooleanType |
+  typeof _DateType |
+  typeof _DateValue |
   typeof Ignore |
-  typeof NumberType |
-  typeof StringType |
-  typeof UndefinedType;
+  typeof _NumberType |
+  typeof _StringType |
+  typeof _UndefinedType;
 export type ProcessorChecker = ((value?: unknown, path?: string) => boolean | void) | ProcessorBaseTypes;
 export type ProcessorSerializer = ((value?: unknown) => unknown) | ProcessorBaseTypes;
 
-export class Processor {
+export class _Processor {
   private _processors: { checker: Fn, serializer: Fn }[] = [];
 
   get processors() {
@@ -86,7 +93,7 @@ export class Processor {
   }
 
   addNull(serializer?: ProcessorSerializer) {
-    const helper = new UndefinedType();
+    const helper = new _UndefinedType();
 
     return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
   }
@@ -98,7 +105,7 @@ export class Processor {
   }
 
   addUndefined(serializer?: ProcessorSerializer) {
-    const helper = new UndefinedType();
+    const helper = new _UndefinedType();
 
     return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
   }
@@ -170,18 +177,29 @@ export class Processor {
   }
 }
 
+export function Processor() {
+  return new _Processor();
+}
+
 const basicTypes: [ any, IType ][] = [
-  [ AnyType, new AnyType() ],
-  [ Boolean, new BooleanType() ],
-  [ BooleanType, new BooleanType() ],
-  [ Date, new DateType() ],
+  [ AnyType, new _AnyType() ],
+  [ _AnyType, new _AnyType() ],
+  [ Boolean, new _BooleanType() ],
+  [ BooleanType, new _AnyType() ],
+  [ _BooleanType, new _BooleanType() ],
+  [ Date, new _DateType() ],
   [ Ignore, new Ignore() ],
-  [ DateType, new DateType() ],
-  [ DateValue, new DateValue() ],
-  [ Number, new NumberType() ],
-  [ NumberType, new NumberType() ],
-  [ String, new StringType() ],
-  [ StringType, new StringType() ],
-  [ undefined, new UndefinedType() ],
-  [ UndefinedType, new UndefinedType() ],
+  [ DateType, new _DateType() ],
+  [ _DateType, new _DateType() ],
+  [ DateValue, new _DateValue() ],
+  [ _DateValue, new _DateValue() ],
+  [ Number, new _NumberType() ],
+  [ NumberType, new _NumberType() ],
+  [ _NumberType, new _NumberType() ],
+  [ String, new _StringType() ],
+  [ StringType, new _StringType() ],
+  [ _StringType, new _StringType() ],
+  [ undefined, new _UndefinedType() ],
+  [ UndefinedType, new _UndefinedType() ],
+  [ _UndefinedType, new _UndefinedType() ],
 ];

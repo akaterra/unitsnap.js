@@ -5,37 +5,37 @@ describe('Filter', () => {
   const observer = new unitsnap._Observer();
 
   it('should be constructed with entries', () => {
-    const e = new unitsnap.Filter([{}, {}, {}]);
+    const e = new unitsnap._Filter([{}, {}, {}]);
 
     expect(e.entries).toEqual([{}, {}, {}]);
   });
 
   it('should link observer', () => {
-    const e = new unitsnap.Filter();
+    const e = new unitsnap._Filter();
 
     expect(e.link(observer).observer).toBe(observer);
   });
 
   it('should unlink observer', () => {
-    const e = new unitsnap.Filter();
+    const e = new unitsnap._Filter();
 
     expect(e.link(observer).unlink().observer).toBeNull();
   });
 
   it('should throw exception on non callable custom', () => {
-    const e = new unitsnap.Filter();
+    const e = new unitsnap._Filter();
 
     expect(() => e.custom(null)).toThrow();
   });
 
   it('should create snapshot', () => {
-    const e = new unitsnap.Filter([{}, {}, {}]);
+    const e = new unitsnap._Filter([{}, {}, {}]);
 
-    expect(e.snapshot() instanceof unitsnap.Snapshot);
+    expect(e.snapshot() instanceof unitsnap._Snapshot);
   });
 
   it('should create snapshot with same entries on absent expectations', () => {
-    const e = new unitsnap.Filter([{}, {}, {}]);
+    const e = new unitsnap._Filter([{}, {}, {}]);
 
     expect(e.snapshot().entries).toEqual([{}, {}, {}]);
   });
@@ -44,7 +44,7 @@ describe('Filter', () => {
     const custom = (entry) => entry.a === 1;
     const promise = Promise.resolve();
 
-    const e = new unitsnap.Filter([{
+    const e = new unitsnap._Filter([{
       a: 1,
       context: null,
       epoch: '3',
@@ -116,7 +116,7 @@ describe('Filter', () => {
     const custom = (entry) => entry.a === 1;
     const promise = Promise.resolve();
 
-    const e = new unitsnap.Filter([{
+    const e = new unitsnap._Filter([{
       a: 1,
       context: null,
       epoch: '3',
@@ -187,7 +187,7 @@ describe('Filter', () => {
   it('should create snapshot linked to observer and configured by linked observer', () => {
     const observer = new unitsnap._Observer();
 
-    const e = new unitsnap.Filter([ {}, {}, {} ]).link(observer);
+    const e = new unitsnap._Filter([ {}, {}, {} ]).link(observer);
 
     expect(e.snapshot().config).toBe(observer.env.snapshot.config);
     expect(e.snapshot().env.mapper).toBe(observer.env.snapshot.env.mapper);

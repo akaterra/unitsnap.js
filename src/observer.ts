@@ -8,9 +8,9 @@ let observerId = 1000;
 
 export interface IObserverEnv {
   fixture: fixture._Fixture;
-  history: history.History;
+  history: history._History;
   mock: mock._Mock;
-  snapshot: snapshot.Snapshot;
+  snapshot: snapshot._Snapshot;
 }
 
 export class _Observer {
@@ -35,10 +35,10 @@ export class _Observer {
 
   constructor() {
     this._fixture = new fixture._Fixture();
-    this._history = new history.History().link(this);
+    this._history = new history._History().link(this);
     this._id = observerId;
     this._mock = new mock._Mock(this._history);
-    this._snapshot = new snapshot.Snapshot([]).link(this);
+    this._snapshot = new snapshot._Snapshot([]).link(this);
 
     observerId += 1;
   }
@@ -89,7 +89,7 @@ export class _Observer {
     const clazz = this._mock.override<T, P>(cls, props, bypassOnBehalfOfInstanceReplacement);
     clazz.OBSERVER = this;
 
-    this._history.addOnEndCallback(function () {
+    this._history.addOnEndCallback(() => {
       clazz.RESTORE();
     });
 
@@ -148,5 +148,3 @@ export function getSpyStats<T>(fn: SpiedFn<T>) {
 }
 
 export const stat = getSpyStats;
-
-export default new _Observer();

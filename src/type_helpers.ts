@@ -5,7 +5,7 @@ export interface IType {
   serialize(value?: any): any;
 }
 
-export class AnyType implements IType {
+export class _AnyType implements IType {
   check(value?) { // eslint-disable-line unused-imports/no-unused-vars
     return true;
   }
@@ -15,7 +15,11 @@ export class AnyType implements IType {
   }
 }
 
-export class BooleanType implements IType {
+export function AnyType() {
+  return new _AnyType();
+}
+
+export class _BooleanType implements IType {
   check(value?) {
     return typeof value === 'boolean';
   }
@@ -25,6 +29,10 @@ export class BooleanType implements IType {
 
     return { $$data: pref ? value : null, $$type: `${pref}boolean` };
   }
+}
+
+export function BooleanType() {
+  return new _BooleanType();
 }
 
 export class _ClassOf implements IType {
@@ -59,7 +67,7 @@ export class Continue implements IType {
   }
 }
 
-export class DateType implements IType {
+export class _DateType implements IType {
   check(value?) {
     return value instanceof Date;
   }
@@ -71,7 +79,11 @@ export class DateType implements IType {
   }
 }
 
-export class DateValue implements IType {
+export function DateType() {
+  return new _DateType();
+}
+
+export class _DateValue implements IType {
   check(value?) {
     return value instanceof Date;
   }
@@ -83,6 +95,10 @@ export class DateValue implements IType {
 
     return value.toISOString();
   }
+}
+
+export function DateValue() {
+  return new _DateValue();
 }
 
 export class Ignore implements IType {
@@ -137,7 +153,7 @@ export function InstanceOf(cls: ClassDef<unknown>) {
   return new _ClassOf(cls);
 }
 
-export class NumberType implements IType {
+export class _NumberType implements IType {
   check(value?) {
     return typeof value === 'number';
   }
@@ -147,6 +163,10 @@ export class NumberType implements IType {
 
     return { $$data: pref ? value : null, $$type: `${pref}number` };
   }
+}
+
+export function NumberType() {
+  return new _NumberType();
 }
 
 export class _NumberIsCloseTo implements IType {
@@ -280,7 +300,7 @@ export function Range(min, max) {
   return new _Range(min, max);
 }
 
-export class StringType implements IType {
+export class _StringType implements IType {
   check(value?) {
     return typeof value === 'string';
   }
@@ -292,7 +312,11 @@ export class StringType implements IType {
   }
 }
 
-export class UndefinedType implements IType {
+export function StringType() {
+  return new _StringType();
+}
+
+export class _UndefinedType implements IType {
   check(value?) {
     return value === undefined;
   }
@@ -302,4 +326,8 @@ export class UndefinedType implements IType {
 
     return { $$data: pref ? value : null, $$type: `${pref}undefined` };
   }
+}
+
+export function UndefinedType() {
+  return new _UndefinedType();
 }

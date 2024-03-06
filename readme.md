@@ -841,16 +841,20 @@ Available helpers:
 
 * **In** - checks the value is contained in provided enum:
   ```typescript
-  import { In } from '@akaterra/unitsnap';
+  const value = In(1, 2, 3).serialize(1);
 
-  const in = In(1, 2, 3).serialize(1);
-  ```
-
-  Serialized as:
-  ```json
   {
     "$$data": "1,2,3",
     "$$type": "in"
+  }
+  ```
+
+  ```typescript
+  const value = In(1, 2, 3).serialize(4);
+
+  {
+    "$$data": "4 ∉ 1,2,3",
+    "$$type": "not:in"
   }
   ```
 

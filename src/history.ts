@@ -8,7 +8,7 @@ export interface IHistoryEpoch {
   epoch: string;
 }
 
-export class History {
+export class _History {
   private _entries: State[];
   private _epochs: IHistoryEpoch[];
   private _observer: _Observer = null;
@@ -84,8 +84,8 @@ export class History {
     return this;
   }
 
-  filter(): filter.Filter {
-    return new filter.Filter(this._entries.slice()).link(this._observer);
+  filter(): filter._Filter {
+    return new filter._Filter(this._entries.slice()).link(this._observer);
   }
 
   push(state: State, tags?: State['tags']) {
@@ -105,4 +105,8 @@ export class History {
 
     return this;
   }
+}
+
+export function History() {
+  return new _History();
 }

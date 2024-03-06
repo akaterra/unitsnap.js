@@ -45,11 +45,11 @@ describe('Observer', () => {
     const e = new unitsnap._Observer();
 
     expect(e.env.fixture instanceof unitsnap._Fixture);
-    expect(e.env.history instanceof unitsnap.History);
+    expect(e.env.history instanceof unitsnap._History);
     expect(e.env.history.observer).toBe(e);
     expect(e.env.mock instanceof unitsnap._Mock);
     expect(e.env.mock.history).toBe(e.env.history);
-    expect(e.env.snapshot instanceof unitsnap.Snapshot);
+    expect(e.env.snapshot instanceof unitsnap._Snapshot);
     expect(e.env.snapshot.observer).toBe(e);
   });
 
@@ -128,12 +128,12 @@ describe('Observer', () => {
   it('should create filter', () => {
     const e = new unitsnap._Observer();
 
-    expect(e.filter() instanceof unitsnap.Filter).toBeTruthy();
+    expect(e.filter() instanceof unitsnap._Filter).toBeTruthy();
   });
 
   it('should create snapshot', () => {
     const e = new unitsnap._Observer();
 
-    expect(e.snapshot() instanceof unitsnap.Snapshot).toBeTruthy();
+    expect(e.snapshot() instanceof unitsnap._Snapshot).toBeTruthy();
   });
 });
