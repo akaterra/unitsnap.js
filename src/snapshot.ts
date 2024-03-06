@@ -320,7 +320,7 @@ function snapshotMapEntry(snapshot, entry: State): State {
     mappedEntry.exception = entry.exception;
   }
 
-  if (snapshot.isEnabled('result') && ! entry.isException) {
+  if (snapshot.isEnabled('result') && !entry.isException) {
     mappedEntry.result = entry.result;
   }
 

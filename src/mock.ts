@@ -12,7 +12,15 @@ export class This { private constructor() {} private __this() {} };
 export class Null { private constructor() {} private __null() {} };
 export class Undefined { private constructor() {} private __undefined() {} };
 
-export type CustomType<T> = T extends _Custom<any> ? T['value'] : T;
+export type Extract<T, TSelf = never> = ExtractCustom<ExtractFixture<T, TSelf>>
+
+export type ExtractCustom<T> = T extends _Custom<any>
+  ? T['value']
+  : T;
+
+export type ExtractFixture<T, TSelf = never> = T extends fixture._Fixture<any>
+  ? ReturnType<T['pop']>
+  : T extends typeof fixture.Fixture | typeof fixture._Fixture ? TSelf : T;
 
 export type PropertyType<T> = T extends _Property<any>
   ? T['descriptor']['value'] extends Fn<any>
@@ -52,16 +60,16 @@ export type AllPlaceholders = typeof Initial | typeof Observe | typeof This | ty
 
 export type StubPlaceholders = typeof This | typeof Null | typeof Undefined;
 
-export type MockProps<T, U = never, TSelf = never> = CustomType<T> extends Integrated | StubPlaceholders
-  ? PlaceholderFn<CustomType<T>, TSelf>
+export type MockProps<T, U = never, TSelf = never> = Extract<T> extends Integrated | StubPlaceholders
+  ? PlaceholderFn<Extract<T>, TSelf>
   : T extends _Property<any>
-    ? Placeholder<CustomType<PropertyType<T>>, TSelf>
+    ? Placeholder<Extract<PropertyType<T>>, TSelf>
     : U;
 
 export type MockStaticProps<T, U = never, TSelf = never> = T extends _StaticProperty<any>
-  ? Placeholder<CustomType<StaticPropertyType<T>>, TSelf>
+  ? Placeholder<Extract<StaticPropertyType<T>>, TSelf>
   : T extends _StaticMethod<any>
-    ? PlaceholderFn<CustomType<T['fn']>, TSelf>
+    ? PlaceholderFn<Extract<T['fn']>, TSelf>
     : U;
 
 export type MockPropsTypes<T = any> = Integrated<T> |
@@ -118,6 +126,10 @@ export type MockClass<
 
 // type check, never runs
 if (0) {
+  function assert<A, B extends A>(a: A, b: B) {
+
+  }
+
   /* eslint-disable unused-imports/no-unused-vars */
   class X {
     constructor(x: number) {}
@@ -151,57 +163,66 @@ if (0) {
   // static set P(p: string) {}
 
   const m: _Mock = null;
-  const E = m.override(X, {
+  const E = m.by(X, {
     B: StaticMethod(() => 1),
     C: StaticMethod(Observe),
+    F: StaticMethod(fixture.Fixture(1)),
     P: StaticProperty().get(2),
     Q: StaticProperty().get(3),
     R: StaticProperty().get(Custom(4)),
+    S: StaticMethod(Custom(() => 1)),
+    T: StaticProperty().get(fixture.Fixture(1)),
     X: StaticMethod(Null),
     Y: StaticMethod(This),
     Z: StaticMethod(Undefined),
-    S: StaticMethod(Custom(() => 1)),
     b: 1,
     c: Observe,
+    f: fixture.Fixture(1),
     p: Property().get(2),
     q: Property().get(3),
     r: Property().get(Custom(4)),
+    s: Custom(() => 1),
+    t: Property().get(fixture.Fixture(1)),
     x: Null,
     y: This,
     z: Undefined,
-    s: Custom(() => 1),
   });
-  E.A() === 'a';
-  E.B() === 1;
-  E.C() === 'c';
-  E.P === 2;
-  E.Q === 3;
-  E.R === 4;
-  E.X() === null;
-  E.Y();
-  E.Z() === undefined;
-  E.S();
+  assert(E.A(), 'a');
+  assert(E.B(), 1);
+  assert(E.C(), 'c');
+  assert(E.F(), 1);
+  assert(E.P, 2);
+  assert(E.Q, 3);
+  assert(E.R, 4);
+  assert(E.S(), 1);
+  assert(E.T, 1);
+  assert(E.X(), null);
+  assert(E.Y(), X);
+  assert(E.Z(), undefined);
   const e = new E(1);
-  e.a() === 'a';
-  e.b() === 1;
-  e.c() === 'c';
-  e.p === 2;
-  e.q === 3;
-  e.r === 4;
-  e.x() === null;
-  e.y();
-  e.z() === undefined;
-  e.s();
+  assert(e.a(), 'a');
+  assert(e.b(), 1);
+  assert(e.c(), 'c');
+  assert(e.f(), 1);
+  assert(e.p, 2);
+  assert(e.q, 3);
+  assert(e.r, 4);
+  assert(e.s(), 1);
+  assert(e.t, 1);
+  assert(e.x(), null);
+  assert(e.y(), new X(1));
+  assert(e.z(), undefined);
   /* eslint-enable */
 }
 
 export class _Mock {
   explicitInstance: boolean;
 
-  private _callProcessor = new _Processor()
+  private _callArgsProcessor = new _Processor();
+  private _currentProcessor = null;
   private _history: _History;
   private _fixturePop: any;
-  private _returnValueProcessor = new _Processor()
+  private _returnValueProcessor = new _Processor();
 
   get fixturePop() {
     if (!this._fixturePop) {
@@ -215,7 +236,20 @@ export class _Mock {
     return this._history;
   }
 
+  get onCallArgs() {
+    this._currentProcessor = this._callArgsProcessor;
+
+    return this;
+  }
+
+  get onReturnValue() {
+    this._currentProcessor = this._returnValueProcessor;
+
+    return this;
+  }
+
   constructor(history?: _History) {
+    this._currentProcessor = this._callArgsProcessor;
     this._history = history;
 
     if (history && history.observer) {
@@ -375,22 +409,40 @@ export function StaticProperty<T extends MockPropsTypes = typeof Observe>(get?: 
   return new _StaticProperty<T>(get, set);
 }
 
+export interface ICustomEnv {
+  argsAnnotation: string[] | Fn;
+  callArgsProcessor: _Processor;
+  epoch: string;
+  exclude: boolean;
+  returnValueProcessor: _Processor;
+}
+
 export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Null> {
-  _argsAnnotation: string[] | Fn;
-  _epoch: string;
-  _exclude: boolean;
+  private _argsAnnotation: ICustomEnv['argsAnnotation'];
+  private _epoch: ICustomEnv['epoch'];
+  private _exclude: ICustomEnv['exclude'];
 
-  _callProcessor = new _Processor();
-  _currentProcessor: _Processor = null;
-  _returnValueProcessor = new _Processor();
+  private _callArgsProcessor = new _Processor();
+  private _currentProcessor: _Processor = null;
+  private _returnValueProcessor = new _Processor();
 
-  get call() {
-    this._currentProcessor = this._callProcessor;
+  get env(): ICustomEnv {
+    return {
+      argsAnnotation: this._argsAnnotation,
+      callArgsProcessor: this._callArgsProcessor,
+      epoch: this._epoch,
+      exclude: this._exclude,
+      returnValueProcessor: this._returnValueProcessor,
+    };
+  }
+
+  get onCallArgs() {
+    this._currentProcessor = this._callArgsProcessor;
 
     return this;
   }
 
-  get returnValue() {
+  get onReturnValue() {
     this._currentProcessor = this._returnValueProcessor;
 
     return this;
@@ -401,7 +453,7 @@ export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Nu
       this.value = value.value as unknown as T;
     }
 
-    this._callProcessor = this._callProcessor;
+    this._callArgsProcessor = this._callArgsProcessor;
   }
 
   addProcessor(checker: ProcessorChecker, serializer?: ProcessorSerializer) {
@@ -484,9 +536,9 @@ export class ClassMaker {
   private _cls: any;
   private _clsConstructorName: string;
   private _clsProps: any;
+  private _clsProtoProps: any;
   private _clsPropsDescriptors: any;
   private _clsProtoPropsDescriptors: any;
-  private _clsProtoScope: any;
   private _mock: any;
   private _props: any;
   private _propsMetadata: any;
@@ -529,7 +581,7 @@ export class ClassMaker {
     }, {});
     this._clsPropsDescriptors = copyScopeDescriptors(cls);
     this._clsProtoPropsDescriptors = copyScopeDescriptors(cls.prototype);
-    this._clsProtoScope = copyScope(cls.prototype);
+    this._clsProtoProps = copyScope(cls.prototype);
     this._mock = mock;
 
     if (!props) {
@@ -578,7 +630,7 @@ export class ClassMaker {
         maybeCustomValueOrInitial(this._props.constructor),
         'constructor',
         this._cls,
-        this._clsProtoScope,
+        this._clsProtoProps,
         this._propsMetadata
       );
 
@@ -656,13 +708,7 @@ export class ClassMaker {
             this._propsMetadata.extraStaticProps
           );
 
-          if (repDescriptor.get === this._cls) {
-            repDescriptor.get = this._clsPropsDescriptors[key].descriptor.get;
-          }
-
-          if (repDescriptor.get === fixture._Fixture) {
-            repDescriptor.get = this._mock.fixturePop;
-          }
+          repDescriptor.get = this.getFinalReplacementForGet(repDescriptor.get, key);
         }
 
         if (this._props[key].descriptor.set) {
@@ -674,13 +720,7 @@ export class ClassMaker {
             this._propsMetadata.extraStaticProps
           );
 
-          if (repDescriptor.set === this._cls) {
-            repDescriptor.set = this._clsPropsDescriptors[key].descriptor.set;
-          }
-
-          if (repDescriptor.set === fixture._Fixture) {
-            repDescriptor.set = this._mock.fixturePop;
-          }
+          repDescriptor.set = this.getFinalReplacementForSet(repDescriptor.set, key);
         }
 
         spyOnStaticDescriptor(cls, key, repDescriptor, {
@@ -721,17 +761,11 @@ export class ClassMaker {
             maybeCustomValueOrInitial(this._props[key].descriptor.get),
             key,
             this._cls,
-            this._clsProtoScope,
+            this._clsProtoProps,
             this._propsMetadata.extraProps
           );
 
-          if (repDescriptor.get === this._cls) {
-            repDescriptor.get = this._clsProtoPropsDescriptors[key].descriptor.get;
-          }
-
-          if (repDescriptor.get === fixture._Fixture) {
-            repDescriptor.get = this._mock.fixturePop;
-          }
+          repDescriptor.get = this.getFinalReplacementForProtoGet(repDescriptor.get, key);
         }
 
         if (this._props[key].descriptor.set) {
@@ -739,17 +773,11 @@ export class ClassMaker {
             maybeCustomValueOrInitial(this._props[key].descriptor.set),
             key,
             this._cls,
-            this._clsProtoScope,
+            this._clsProtoProps,
             this._propsMetadata.extraProps
           );
 
-          if (repDescriptor.set === this._cls) {
-            repDescriptor.set = this._clsProtoPropsDescriptors[key].descriptor.set;
-          }
-
-          if (repDescriptor.set === fixture._Fixture) {
-            repDescriptor.set = this._mock.fixturePop;
-          }
+          repDescriptor.set = this.getFinalReplacementForProtoSet(repDescriptor.set, key);
         }
 
         spyOnDescriptor(cls, key, repDescriptor, {
@@ -791,15 +819,7 @@ export class ClassMaker {
           this._propsMetadata.extraStaticProps
         );
 
-        if (rep === this._cls) {
-          rep = this._clsPropsDescriptors[key].descriptor.value;
-        }
-
-        if (rep === fixture._Fixture) {
-          rep = this._mock.fixturePop;
-        }
-
-        Object.defineProperty(rep, 'name', { value: key, writable: false });
+        rep = this.getFinalReplacementForValue(rep, key);
 
         spyOnStaticMethod(cls, key, rep, {
           argsAnnotation: custom?._argsAnnotation,
@@ -824,19 +844,11 @@ export class ClassMaker {
           maybeCustomValueOrInitial(this._props[key]),
           key,
           this._cls,
-          this._clsProtoScope,
+          this._clsProtoProps,
           this._propsMetadata.extraProps
         );
 
-        if (rep === this._cls) {
-          rep = this._clsProtoPropsDescriptors[key].descriptor.value;
-        }
-
-        if (rep === fixture._Fixture) {
-          rep = this._mock.fixturePop;
-        }
-
-        Object.defineProperty(rep, 'name', { value: key, writable: false });
+        rep = this.getFinalReplacementForProtoValue(rep, key);
 
         spyOnMethod(cls, key, rep, {
           argsAnnotation: custom?._argsAnnotation,
@@ -859,6 +871,78 @@ export class ClassMaker {
 
     return cls;
   }
+
+  private getFinalReplacementForGet(rep, key) {
+    if (rep === this._cls) {
+      rep = this._clsPropsDescriptors[key].descriptor.get;
+    } else if (rep === fixture.Fixture || rep === fixture._Fixture) {
+      rep = this._mock.fixturePop;
+    } else {
+      Object.defineProperty(rep, 'name', { value: key, writable: false });
+    }
+
+    return rep;
+  }
+
+  private getFinalReplacementForSet(rep, key) {
+    if (rep === this._cls) {
+      rep = this._clsPropsDescriptors[key].descriptor.set;
+    } else if (rep === fixture.Fixture || rep === fixture._Fixture) {
+      rep = this._mock.fixturePop;
+    } else {
+      Object.defineProperty(rep, 'name', { value: key, writable: false });
+    }
+
+    return rep;
+  }
+
+  private getFinalReplacementForValue(rep, key) {
+    if (rep === this._cls) {
+      rep = this._clsPropsDescriptors[key].descriptor.value;
+    } else if (rep === fixture.Fixture || rep === fixture._Fixture) {
+      rep = this._mock.fixturePop;
+    } else {
+      Object.defineProperty(rep, 'name', { value: key, writable: false });
+    }
+
+    return rep;
+  }
+
+  private getFinalReplacementForProtoGet(rep, key) {
+    if (rep === this._cls) {
+      rep = this._clsProtoPropsDescriptors[key].descriptor.get;
+    } else if (rep === fixture.Fixture || rep === fixture._Fixture) {
+      rep = this._mock.fixturePop;
+    } else {
+      Object.defineProperty(rep, 'name', { value: key, writable: false });
+    }
+
+    return rep;
+  }
+
+  private getFinalReplacementForProtoSet(rep, key) {
+    if (rep === this._cls) {
+      rep = this._clsProtoPropsDescriptors[key].descriptor.set;
+    } else if (rep === fixture.Fixture || rep === fixture._Fixture) {
+      rep = this._mock.fixturePop;
+    } else {
+      Object.defineProperty(rep, 'name', { value: key, writable: false });
+    }
+
+    return rep;
+  }
+
+  private getFinalReplacementForProtoValue(rep, key) {
+    if (rep === this._cls) {
+      rep = this._clsProtoPropsDescriptors[key].descriptor.value;
+    } else if (rep === fixture.Fixture || rep === fixture._Fixture) {
+      rep = this._mock.fixturePop;
+    } else {
+      Object.defineProperty(rep, 'name', { value: key, writable: false });
+    }
+
+    return rep;
+  }
 }
 
 function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
@@ -875,7 +959,7 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
     }
   }
 
-  if (! (key in objProps)) {
+  if (!(key in objProps)) {
     extraProps.push(key);
   }
 
@@ -887,7 +971,7 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
     return function () {};
   }
 
-  if (prop === fixture._Fixture) {
+  if (prop === fixture._Fixture || prop === fixture.Fixture) {
     return fixture._Fixture;
   }
 

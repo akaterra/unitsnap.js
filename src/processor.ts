@@ -119,7 +119,7 @@ export class _Processor {
       if (p.checker(value, path)) {
         value = p.serializer(value);
   
-        if (!(value instanceof Continue)) {
+        if (!(value instanceof Continue) && value !== Continue) {
           return true;
         }
   
@@ -127,7 +127,7 @@ export class _Processor {
       }
     });
   
-    if (! circular) {
+    if (!circular) {
       circular = [];
     }
   

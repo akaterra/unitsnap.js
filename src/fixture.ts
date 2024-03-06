@@ -4,7 +4,7 @@ export interface IFixtureEnv {
   strategy: IFixtureStrategy;
 }
 
-export class _Fixture {
+export class _Fixture<T = any> {
   private _name: string;
   private _strategy: IFixtureEnv['strategy'];
   private _throwOn: any;
@@ -63,7 +63,7 @@ export class _Fixture {
     return this;
   }
 
-  pop() {
+  pop(): T {
     const value = this._strategy.pop();
 
     if (this._throwOn && this._throwOn(value)) {
@@ -73,7 +73,7 @@ export class _Fixture {
     return value;
   }
 
-  push(...args: any[]) {
+  push(...args: T[]) {
     this._strategy.push(...args);
 
     return this;
@@ -98,8 +98,8 @@ export class _Fixture {
   }
 }
 
-export function Fixture(...args: any[]) {
-  return new _Fixture().push(...args);
+export function Fixture<T = any>(...args: T[]) {
+  return new _Fixture<T>().push(...args);
 }
 
 export interface IFixtureProvider {

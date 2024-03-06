@@ -239,7 +239,7 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?, bypassClass?
 
   let descriptor = instance.getDescriptorAndType(obj, key);
 
-  if (! descriptor.descriptor) {
+  if (!descriptor.descriptor) {
     descriptor = {
       descriptor: { ...repDescriptor },
       type: repDescriptor.get || repDescriptor.set

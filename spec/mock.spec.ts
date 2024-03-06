@@ -36,7 +36,7 @@ describe('Custom', () => {
       const e = unitsnap.ArgsAnnotation(['a']);
 
       expect(e instanceof unitsnap._Custom).toBeTruthy();
-      expect(e._argsAnnotation).toEqual(['a']);
+      expect(e.env.argsAnnotation).toEqual(['a']);
     });
   });
 
@@ -45,7 +45,7 @@ describe('Custom', () => {
       const e = unitsnap.Epoch('epoch');
 
       expect(e instanceof unitsnap._Custom).toBeTruthy();
-      expect(e._epoch).toBe('epoch');
+      expect(e.env.epoch).toBe('epoch');
     });
   });
 
@@ -54,7 +54,7 @@ describe('Custom', () => {
       const e = unitsnap.Exclude();
 
       expect(e instanceof unitsnap._Custom).toBeTruthy();
-      expect(e._exclude).toBeTruthy();
+      expect(e.env.exclude).toBeTruthy();
     });
   });
 });

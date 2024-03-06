@@ -124,7 +124,7 @@ function regexExecAll(rgx, str) {
 }
 
 export function getAncestors(cls) {
-  if (! cls) {
+  if (!cls) {
     return [];
   }
 
@@ -282,7 +282,7 @@ export function copyScope(cls, options?, maxDepth?): Record<string, unknown> {
 
     if (cls) {
       Object.getOwnPropertyNames(cls).forEach((key) => {
-        if (! Object.prototype.hasOwnProperty.call(scope, key)) {
+        if (!Object.prototype.hasOwnProperty.call(scope, key)) {
           const descriptor = getDescriptorAndType(cls, key);
 
           descriptor.level = level;
@@ -320,7 +320,7 @@ export function copyScopeDescriptors(cls, options?, maxDepth?) {
 
     if (cls) {
       Object.getOwnPropertyNames(cls).forEach((key) => {
-        if (! Object.prototype.hasOwnProperty.call(scope, key)) {
+        if (!Object.prototype.hasOwnProperty.call(scope, key)) {
           const descriptor = getDescriptorAndType(cls, key);
 
           descriptor.level = level;

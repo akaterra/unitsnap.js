@@ -81,6 +81,25 @@ describe('Type helpers', () => {
     });
   });
 
+  describe('Copy', () => {
+    it('should check and resolve any value', () => {
+      const t = new unitsnap._Copy();
+
+      for (const v of [1, '1', null, false, Object, {}, []]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should serialize value as copy', () => {
+      const t = new unitsnap._Copy();
+      const o = { a: 1, b: {} };
+
+      expect(t.serialize(o)).not.toBe(o);
+      expect(t.serialize(o).b).not.toBe(o.b);
+      expect(t.serialize(o)).toEqual(o);
+    });
+  });
+
   describe('DateType', () => {
     it('should check and resolve instance of date value', () => {
       const t = new unitsnap._DateType();

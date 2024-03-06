@@ -67,6 +67,20 @@ export class Continue implements IType {
   }
 }
 
+export class _Copy implements IType {
+  check(value?) {
+    return true;
+  }
+
+  serialize(value?) {
+    return structuredClone(value);
+  }
+}
+
+export function Copy() {
+  return new _Copy();
+}
+
 export class _DateType implements IType {
   check(value?) {
     return value instanceof Date;
