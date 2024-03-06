@@ -1,5 +1,6 @@
 import { _Observer } from './observer';
 import * as snapshot from './snapshot';
+import { Fn } from './utils';
 
 export type Check = (entry) => boolean;
 export type IsNot = boolean;
@@ -36,41 +37,41 @@ export class Filter {
   }
 
   context(context) {
-    this._filters.push([ (entry) => entry.context === context, this.notGetAndReset() ]);
+    this._filters.push([ (entry) => entry.context === context, this.isNot() ]);
 
     return this;
   }
 
   ctx(ctx) {
-    this._filters.push([ (entry) => entry.context === ctx, this.notGetAndReset() ]);
+    this._filters.push([ (entry) => entry.context === ctx, this.isNot() ]);
 
     return this;
   }
 
   custom(fn: (entry) => boolean): this {
-    if (fn !== undefined && typeof fn !== 'function') {
+    if (typeof fn !== 'function') {
       throw new Error('Filter "custom" must be callable');
     }
 
-    this._filters.push([ fn, this.notGetAndReset() ]);
+    this._filters.push([ fn, this.isNot() ]);
 
     return this;
   }
 
   epoch(epoch: snapshot.State['epoch']) {
-    this._filters.push([ (entry) => entry.epoch === epoch, this.notGetAndReset() ]);
+    this._filters.push([ (entry) => entry.epoch === epoch, this.isNot() ]);
 
     return this;
   }
 
-  fn(fn: (...args: any[]) => any) {
-    this._filters.push([ (entry) => entry.origin === fn || entry.replacement === fn, this.notGetAndReset() ]);
+  fn(fn: Fn) {
+    this._filters.push([ (entry) => entry.origin === fn || entry.replacement === fn, this.isNot() ]);
 
     return this;
   }
 
   notPromiseResult() {
-    this._filters.push([ (entry) => !(entry.result instanceof Promise), this.notGetAndReset() ]);
+    this._filters.push([ (entry) => !(entry.result instanceof Promise), this.isNot() ]);
 
     return this;
   }
@@ -84,7 +85,7 @@ export class Filter {
       }
 
       return true;
-    }, this.notGetAndReset() ]);
+    }, this.isNot() ]);
 
     return this;
   }
@@ -118,7 +119,7 @@ export class Filter {
     return newSnapshot;
   }
 
-  private notGetAndReset() {
+  private isNot() {
     const not = this._not;
     this._not = false;
   

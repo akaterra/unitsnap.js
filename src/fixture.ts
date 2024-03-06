@@ -79,7 +79,7 @@ export class _Fixture {
     return this;
   }
 
-  throwOnCallback(cb: (value) => boolean){
+  throwOnCallback(cb: (value) => boolean) {
     this._throwOn = cb;
 
     return this;

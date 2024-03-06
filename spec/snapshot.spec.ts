@@ -407,23 +407,35 @@ describe('Snapshot', () => {
     });
 
     it('should serialize with path serializer contained "_" as "single symbol" pattern', () => {
-      const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
-      }]).addPathProcessor('[0]._esult', () => 'serialized');
+      for (const [ path, expectedResult ] of [
+        [ '[0]._esult', 'serialized' ],
+        [ '___.result', 'serialized' ],
+        [ '[1]._esult', 3 ],
+      ] as [ string, string ][]) {
+        const e = new unitsnap.Snapshot([{
+          args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3,
+        }]).addPathProcessor(path, () => 'serialized');
 
-      expect(e.serialize()).toEqual([{
-        args: [], result: 'serialized',
-      }]);
+        expect(e.serialize()).withContext(`path: ${path}`).toEqual([{
+          args: [], result: expectedResult,
+        }]);
+      }
     });
 
     it('should serialize with path serializer contained "*" as "arbitrary symbols" pattern', () => {
-      const e = new unitsnap.Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
-      }]).addPathProcessor('[0]*result', () => 'serialized');
-
-      expect(e.serialize()).toEqual([{
-        args: [], result: 'serialized',
-      }]);
+      for (const [ path, expectedResult ] of [
+        [ '[0]*result', 'serialized' ],
+        [ '*.result', 'serialized' ],
+        [ '[1]*result', 3 ],
+      ] as [ string, string ][]) {
+        const e = new unitsnap.Snapshot([{
+          args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
+        }]).addPathProcessor(path, () => 'serialized');
+  
+        expect(e.serialize()).withContext(`path: ${path}`).toEqual([{
+          args: [], result: expectedResult,
+        }]);
+      }
     });
 
     it('should serialize with path regex serializer', () => {

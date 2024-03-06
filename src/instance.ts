@@ -261,7 +261,7 @@ export function copyPrototype(cls, options?) {
   Prototype.prototype = Object.getPrototypeOf(cls.prototype);
 
   return Object.getOwnPropertyNames(cls.prototype).reduce((acc, key) => {
-    Object.defineProperty(acc, key, Object.assign(getDescriptorAndType(cls.prototype, key).descriptor, options || {}));
+    Object.defineProperty(acc, key, { ...getDescriptorAndType(cls.prototype, key).descriptor, ...options ?? {} });
 
     return acc;
   }, new Prototype());

@@ -839,6 +839,21 @@ Available helpers:
 
 * **Ignore** - the value will be omitted in the serialized snapshot.
 
+* **In** - checks the value is contained in provided enum:
+  ```typescript
+  import { In } from '@akaterra/unitsnap';
+
+  const in = In(1, 2, 3).serialize(1);
+  ```
+
+  Serialized as:
+  ```json
+  {
+    "$$data": "1,2,3",
+    "$$type": "in"
+  }
+  ```
+
 * **InstanceOf** - checks the value to be instance of Date and serializes the value as:
   ```typescript
   {

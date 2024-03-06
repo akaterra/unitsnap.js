@@ -248,7 +248,7 @@ export class Snapshot {
 
   loadCopy(name?: string) {
     return new Snapshot(this._provider.load(name || this._name))
-      .setConfig(Object.assign({}, this._config))
+      .setConfig({ ...this._config })
       .setName(this._name)
       .setProvider(this._provider)
       .addProcessors(...this._processor.processors)

@@ -6,7 +6,7 @@ export interface IType {
 }
 
 export class AnyType implements IType {
-  check(value?) {
+  check(value?) { // eslint-disable-line unused-imports/no-unused-vars
     return true;
   }
 
@@ -20,8 +20,10 @@ export class BooleanType implements IType {
     return typeof value === 'boolean';
   }
 
-  serialize() {
-    return { $$data: null, $$type: 'boolean' };
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
+
+    return { $$data: pref ? value : null, $$type: `${pref}boolean` };
   }
 }
 
@@ -34,8 +36,12 @@ export class _ClassOf implements IType {
     return value !== undefined && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls;
   }
 
-  serialize() {
-    return { $$data: this._cls.prototype.constructor.name, $$type: 'classOf' };
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
+    const typA = Object.getPrototypeOf(value).constructor.name;
+    const typB = this._cls.name;
+
+    return { $$data: pref ? `${typB} ≠ ${typA}` : typA, $$type: `${pref}classOf` };
   }
 }
 
@@ -58,8 +64,10 @@ export class DateType implements IType {
     return value instanceof Date;
   }
 
-  serialize() {
-    return { $$data: null, $$type: 'date' };
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
+
+    return { $$data: null, $$type: `${pref}date` };
   }
 }
 
@@ -69,18 +77,42 @@ export class DateValue implements IType {
   }
 
   serialize(value?) {
+    if (!this.check(value)) {
+      return null;
+    }
+
     return value.toISOString();
   }
 }
 
 export class Ignore implements IType {
-  check(value?) {
+  check(value?) { // eslint-disable-line unused-imports/no-unused-vars
     return true;
   }
 
   serialize() {
     return Ignore;
   }
+}
+
+export class _In implements IType {
+  constructor(private _values: unknown[]) {
+
+  }
+
+  check(value?) {
+    return this._values.includes(value);
+  }
+
+  serialize(value?) { // eslint-disable-line unused-imports/no-unused-vars
+    const pref = this.check(value) ? '' : 'not:';
+
+    return { $$data: JSON.stringify(this._values).slice(1, -1), $$type: `${pref}in` };
+  }
+}
+
+export function In(...values: unknown[]) {
+  return new _In(values);
 }
 
 export class _InstanceOf implements IType {
@@ -93,7 +125,11 @@ export class _InstanceOf implements IType {
   }
 
   serialize(value?) {
-    return { $$data: Object.getPrototypeOf(value).constructor.name, $$type: 'instanceOf' };
+    const pref = this.check(value) ? '' : 'not:';
+    const typA = Object.getPrototypeOf(value).constructor.name;
+    const typB = this._cls.name;
+
+    return { $$data: pref ? `${typB} ⊈ ${typA}` : typA, $$type: `${pref}instanceOf` };
   }
 }
 
@@ -106,8 +142,10 @@ export class NumberType implements IType {
     return typeof value === 'number';
   }
 
-  serialize() {
-    return { $$data: null, $$type: 'number' };
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
+
+    return { $$data: pref ? value : null, $$type: `${pref}number` };
   }
 }
 
@@ -132,12 +170,14 @@ export class _NumberIsCloseTo implements IType {
     return Math.abs(this._value - value) <= this._diff;
   }
 
-  serialize() {
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
     const diff = this._value === Number.POSITIVE_INFINITY || this._value === Number.NEGATIVE_INFINITY
       ? 0
       : this._diff;
+    const data = pref ? `${value} ∉ ${this._value} ±${diff}` : `${this._value} ±${diff}`;
 
-    return { $$data: `${this._value} ±${diff}`, $$type: 'numberIsCloseTo' };
+    return { $$data: data, $$type: `${pref}numberIsCloseTo` };
   }
 }
 
@@ -166,12 +206,14 @@ export class _NumberIsPreciseTo implements IType {
     return Math.abs(this._value - value) <= Math.pow(10, -this._precision);
   }
 
-  serialize() {
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
     const diff = this._value === Number.POSITIVE_INFINITY || this._value === Number.NEGATIVE_INFINITY
       ? 0
       : Math.pow(10, -this._precision);
+    const data = pref ? `${value} ∉ ${this._value} ±${diff}` : `${this._value} ±${diff}`;
 
-    return { $$data: `${this._value} ±${diff}`, $$type: 'numberIsPreciseTo' };
+    return { $$data: data, $$type: `${pref}numberIsPreciseTo` };
   }
 }
 
@@ -198,8 +240,13 @@ export class _Range implements IType {
     return this._min <= value && value <= this._max;
   }
 
-  serialize() {
-    return { $$data: `${this.primitive(this._min)} .. ${this.primitive(this._max)}`, $$type: 'range' };
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
+    const data = pref
+      ? `${this.primitive(value)} ∉ ${this.primitive(this._min)} .. ${this.primitive(this._max)}`
+      : `${this.primitive(this._min)} .. ${this.primitive(this._max)}`;
+
+    return { $$data: data, $$type: `${pref}range` };
   }
 
   private isSameType(val1, val2): boolean {
@@ -238,8 +285,10 @@ export class StringType implements IType {
     return typeof value === 'string';
   }
 
-  serialize() {
-    return { $$data: null, $$type: 'string' };
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
+
+    return { $$data: pref ? value : null, $$type: `${pref}string` };
   }
 }
 
@@ -248,7 +297,9 @@ export class UndefinedType implements IType {
     return value === undefined;
   }
 
-  serialize() {
-    return { $$data: null, $$type: 'undefined' };
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
+
+    return { $$data: pref ? value : null, $$type: `${pref}undefined` };
   }
 }

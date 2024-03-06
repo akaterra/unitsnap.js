@@ -118,6 +118,7 @@ export type MockClass<
 
 // type check, never runs
 if (0) {
+  /* eslint-disable unused-imports/no-unused-vars */
   class X {
     constructor(x: number) {}
     a(a?: string) { return 'a' }
@@ -191,6 +192,7 @@ if (0) {
   e.y();
   e.z() === undefined;
   e.s();
+  /* eslint-enable */
 }
 
 export class _Mock {
@@ -374,7 +376,7 @@ export function StaticProperty<T extends MockPropsTypes = typeof Observe>(get?: 
 }
 
 export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Null> {
-  _argsAnnotation: string[];
+  _argsAnnotation: string[] | Fn;
   _epoch: string;
   _exclude: boolean;
 
@@ -580,8 +582,9 @@ export class ClassMaker {
         this._propsMetadata
       );
 
-      cls = spyOnFunction(copyConstructor(rep), Object.assign({
-        argsAnnotation: this._cls,
+      cls = spyOnFunction(copyConstructor(rep), {
+        argsAnnotation: custom?._argsAnnotation ?? this._cls,
+        exclude: custom?._exclude,
         extra: {
           name: this._clsConstructorName,
           type: 'constructor',
@@ -593,7 +596,7 @@ export class ClassMaker {
             this._mock._history.push(state);
           }
         },
-      }, custom || {}), true);
+      }, true);
     } else {
       cls = copyConstructor(cls, explicitInstance);
     }
@@ -682,22 +685,26 @@ export class ClassMaker {
 
         spyOnStaticDescriptor(cls, key, repDescriptor, {
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
-          get: Object.assign({
+          get: {
+            argsAnnotation: customGet?._argsAnnotation,
+            exclude: customGet?._exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
               type: 'staticGetter',
             },
             origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.get,
             replacement: this._props[key].descriptor.get,
-          }, customGet ?? {}),
-          set: Object.assign({
+          },
+          set: {
+            argsAnnotation: customSet?._argsAnnotation,
+            exclude: customSet?._exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
               type: 'staticSetter',
             },
             origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.set,
             replacement: this._props[key].descriptor.set,
-          }, customSet ?? {}),
+          },
           onCall: (context, state) => {
             if (this._mock._history) {
               this._mock._history.push(state);
@@ -747,22 +754,26 @@ export class ClassMaker {
 
         spyOnDescriptor(cls, key, repDescriptor, {
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
-          get: Object.assign({
+          get: {
+            argsAnnotation: customGet?._argsAnnotation,
+            exclude: customGet?._exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
               type: 'getter',
             },
             origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.get,
             replacement: this._props[key].descriptor.get,
-          }, customGet ?? {}),
-          set: Object.assign({
+          },
+          set: {
+            argsAnnotation: customSet?._argsAnnotation,
+            exclude: customSet?._exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
               type: 'setter',
             },
             origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.set,
             replacement: this._props[key].descriptor.set,
-          }, customSet ?? {}),
+          },
           onCall: (context, state) => {
             if (this._mock._history) {
               this._mock._history.push(state);
@@ -790,7 +801,9 @@ export class ClassMaker {
 
         Object.defineProperty(rep, 'name', { value: key, writable: false });
 
-        spyOnStaticMethod(cls, key, rep, Object.assign({
+        spyOnStaticMethod(cls, key, rep, {
+          argsAnnotation: custom?._argsAnnotation,
+          exclude: custom?._exclude,
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           extra: {
             name: this._clsConstructorName + '.' + key,
@@ -803,7 +816,7 @@ export class ClassMaker {
               this._mock._history.push(state);
             }
           },
-        }, custom ?? {}));
+        });
       } else {
         custom = maybeCustom(this._props[key]);
 
@@ -825,7 +838,9 @@ export class ClassMaker {
 
         Object.defineProperty(rep, 'name', { value: key, writable: false });
 
-        spyOnMethod(cls, key, rep, Object.assign({
+        spyOnMethod(cls, key, rep, {
+          argsAnnotation: custom?._argsAnnotation,
+          exclude: custom?._exclude,
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           extra: {
             name: this._clsConstructorName + '.' + key,
@@ -838,7 +853,7 @@ export class ClassMaker {
               this._mock._history.push(state);
             }
           },
-        }, custom ?? {}));
+        });
       }
     });
 

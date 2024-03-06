@@ -11,7 +11,7 @@ import {
   NumberType,
   StringType,
   UndefinedType
-  } from './type_helpers';
+} from './type_helpers';
 import { ClassDef, Fn } from './utils';
 
 export type ProcessorBaseTypes = typeof Boolean |
