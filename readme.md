@@ -142,10 +142,10 @@ For example, the Mock will be linked to the History, or the Snapshot constructed
 
 For ease of use, Observer also implements a set of methods that are proxy methods for the corresponding module linked to the context.
 
-* **config()** - returns a config object with the History, Mock, Fixture and Snapshot of the Observer.
+* **env** - returns a context with the History, Mock, Fixture and Snapshot of the Observer.
 
   ```typescript
-  observer.config().snapshot.setFsProvider(__dirname);
+  observer.env.snapshot.setFsProvider(__dirname);
   
   observer.snapshot(); // a new Snapshot automatically configured to use the filesystem provider
   ```
@@ -293,9 +293,11 @@ Epochs can be nested.
 
 ```typescript
 import { Mock } from '@akaterra/unitsnap';
+
+const mock = Mock();
 ```
 
-Mock builds a mock that commonly is a fake representation of the initial entity and can be used instead of original entity.
+Mock commonly builds a fake representation of the initial entity which can be used instead of original entity.
 Static methods, instance properties and static properties of the initial entity can be mocked with the special modifiers **StaticMethod**, **Property** and **StaticProperty**.
 Besides, this mock can optionally be linked to the history so that the state of the call observed by the mock will be stored in the history.
 
@@ -793,6 +795,7 @@ The set of special type helpers can be used with value processors that can be us
 
 ```typescript
 snapshot.addProcessor(Date); // adds checker "instance of Date" and serializer to {$$data: null, $$type: 'date'}
+snapshot.serialize();
 ```
 
 Serialized snapshot:

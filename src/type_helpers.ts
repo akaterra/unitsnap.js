@@ -167,6 +167,22 @@ export function InstanceOf(cls: ClassDef<unknown>) {
   return new _ClassOf(cls);
 }
 
+export class _NullType implements IType {
+  check(value?) {
+    return value === null;
+  }
+
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
+
+    return { $$data: pref ? value : null, $$type: `${pref}null` };
+  }
+}
+
+export function NullType() {
+  return new _NullType();
+}
+
 export class _NumberType implements IType {
   check(value?) {
     return typeof value === 'number';

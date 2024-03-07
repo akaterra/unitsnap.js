@@ -234,6 +234,36 @@ describe('Type helpers', () => {
     });
   });
 
+  describe('NullType', () => {
+    it('should check and resolve undefined value', () => {
+      const t = new unitsnap._NullType();
+
+      for (const v of [null]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and reject defined value', () => {
+      const t = new unitsnap._NullType();
+
+      for (const v of [1, '1', undefined, false, Object, {}, []]) {
+        expect(t.check(v)).toBeFalsy();
+      }
+    });
+
+    it('should serialize null value', () => {
+      const t = new unitsnap._NullType();
+
+      expect(t.serialize(null)).toEqual({$$data: null, $$type: 'null'});
+    });
+
+    it('should serialize null value', () => {
+      const t = new unitsnap._NullType();
+
+      expect(t.serialize(1)).toEqual({$$data: 1, $$type: 'not:null'});
+    });
+  });
+
   describe('NumberIsCloseTo', () => {
     it('should check and resolve number close to', () => {
       const t = new unitsnap._NumberIsCloseTo(5, 0.01);

@@ -114,31 +114,31 @@ export class _Snapshot {
   }
 
   addClassOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    this._processor.addClassOf(cls, serializer);
+    this._processor.classOf(cls, serializer);
 
     return this;
   }
 
   addInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    this._processor.addInstanceOf(cls, serializer);
+    this._processor.instanceOf(cls, serializer);
 
     return this;
   }
 
   addPathProcessor(path: string, serializer: ProcessorSerializer) {
-    this._processor.addPath(path, serializer);
+    this._processor.path(path, serializer);
 
     return this;
   }
 
   addRegexPathProcessor(regex: string | RegExp, serializer: ProcessorSerializer) {
-    this._processor.addRegexPath(regex, serializer);
+    this._processor.regexPath(regex, serializer);
 
     return this;
   }
 
   addUndefinedProcessor(serializer?: ProcessorSerializer) {
-    this._processor.addUndefined(serializer);
+    this._processor.undefined(serializer);
 
     return this;
   }

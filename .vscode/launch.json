@@ -7,8 +7,22 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "test",
+      "name": "observer",
       "args": ["node_modules/jasmine/bin/jasmine", "JASMINE_CONFIG_PATH=jasmine.json", "${workspaceFolder}/spec/observer.spec.ts"],
+      "program": "./node_modules/.bin/ts-node"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "mock",
+      "args": ["node_modules/jasmine/bin/jasmine", "JASMINE_CONFIG_PATH=jasmine.json", "${workspaceFolder}/spec/mock.spec.ts"],
+      "program": "./node_modules/.bin/ts-node"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "spy",
+      "args": ["node_modules/jasmine/bin/jasmine", "JASMINE_CONFIG_PATH=jasmine.json", "${workspaceFolder}/spec/spy.spec.ts"],
       "program": "./node_modules/.bin/ts-node"
     }
   ]

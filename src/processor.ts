@@ -17,7 +17,9 @@ import {
   DateValue,
   StringType,
   UndefinedType,
-  NumberType
+  NumberType,
+  _NullType,
+  NullType
 } from './type_helpers';
 import { ClassDef, Fn } from './utils';
 
@@ -25,6 +27,7 @@ export type ProcessorBaseTypes = typeof Boolean |
   typeof Date |
   typeof Number |
   typeof String |
+  null |
   typeof undefined |
   IType |
   typeof _AnyType |
@@ -70,19 +73,19 @@ export class _Processor {
     return this;
   }
 
-  addClassOf(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+  classOf(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
     const helper = new _ClassOf(cls);
 
     return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
   }
 
-  addInstanceOf(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+  instanceOf(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
     const helper = new _InstanceOf(cls);
 
     return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
   }
 
-  addPath(path: string, serializer: ProcessorSerializer) {
+  path(path: string, serializer: ProcessorSerializer) {
     const rgx = RegExp('^' + path
       .replace(/[-[\]{}()+?.,\\^$|#\s]/g, '\\$&')
       .replace(/\*/g, '.*')
@@ -92,19 +95,19 @@ export class _Processor {
     return this.add((value, path) => rgx.test(path), serializer);
   }
 
-  addNull(serializer?: ProcessorSerializer) {
-    const helper = new _UndefinedType();
+  null(serializer?: ProcessorSerializer) {
+    const helper = new _NullType();
 
     return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
   }
 
-  addRegexPath(regex: string | RegExp, serializer: ProcessorSerializer) {
+  regexPath(regex: string | RegExp, serializer: ProcessorSerializer) {
     const rgx = regex instanceof RegExp ? regex : RegExp(regex);
 
     return this.add((value, path) => rgx.test(path), serializer);
   }
 
-  addUndefined(serializer?: ProcessorSerializer) {
+  undefined(serializer?: ProcessorSerializer) {
     const helper = new _UndefinedType();
 
     return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
@@ -159,7 +162,7 @@ export class _Processor {
       circular.push(value);
   
       serialized = Object.keys(value).reduce((acc, key) => {
-        const serialized = this.serializeInternal(value[key], path + '.' + key, false, circular);
+        const serialized = this.serializeInternal(value[key], path ? path + '.' + key : key, false, circular);
   
         if (serialized !== Ignore) {
           acc[key] = serialized;
@@ -193,6 +196,9 @@ const basicTypes: [ any, IType ][] = [
   [ _DateType, new _DateType() ],
   [ DateValue, new _DateValue() ],
   [ _DateValue, new _DateValue() ],
+  [ null, new _NullType() ],
+  [ NullType, new _NullType() ],
+  [ _NullType, new _NullType() ],
   [ Number, new _NumberType() ],
   [ NumberType, new _NumberType() ],
   [ _NumberType, new _NumberType() ],

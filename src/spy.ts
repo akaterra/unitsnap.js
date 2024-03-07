@@ -4,8 +4,12 @@ import { Fn } from './utils';
 
 export type SpyOnFunctionOptions = {
   argsAnnotation?: _Custom['_argsAnnotation'];
+  bypassOnBehalfOfInstanceReplacement?: boolean;
+  epoch?: _Custom['_epoch'];
   exclude?: _Custom['_exclude'];
   extra?: Record<string, any>;
+  get?: Omit<SpyOnFunctionOptions, 'get' | 'set'>;
+  set?: Omit<SpyOnFunctionOptions, 'get' | 'set'>;
   origin?: Fn;
   replacement?: Fn;
   onCall?: (context: unknown, state: State) => void;
@@ -14,6 +18,17 @@ export type SpyOnFunctionOptions = {
 export enum StateReportType {
   CALL_ARGS = 'callArgs',
   RETURN_VALUE = 'returnValue',
+}
+
+export enum StateType {
+  CONSTRUCTOR = 'constructor',
+  METHOD = 'method',
+  GETTER = 'getter',
+  SETTER = 'setter',
+  SINGLE = 'single',
+  STATIC_METHOD = 'staticMethod',
+  STATIC_GETTER = 'staticGetter',
+  STATIC_SETTER = 'staticSetter',
 }
 
 export interface State {
@@ -37,7 +52,7 @@ export interface State {
   result?: any;
   tags?: string[];
   time?: Date;
-  type?: 'constructor'|'method'|'getter'|'setter'|'single'|'staticMethod'|'staticGetter'|'staticSetter';
+  type?: StateType;
 }
 
 export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstructor?: boolean) {
@@ -208,7 +223,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
   return callable;
 }
 
-export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?) {
+export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions) {
   return {
     reportType: StateReportType.CALL_ARGS,
 
@@ -225,7 +240,7 @@ export function spyOnFunctionCreateArgsReport(callable, context?, originalCallab
   };
 }
 
-export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?) {
+export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions) {
   return {
     reportType: StateReportType.RETURN_VALUE,
 
@@ -242,7 +257,7 @@ export function spyOnFunctionCreateResultReport(callable, context?, originalCall
   };
 }
 
-export function spyOnDescriptor(obj, key, repDescriptor?, options?, bypassClass?) {
+export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctionOptions, bypassClass?) {
   const initialObj = obj;
   const objIsClass = typeof obj === 'function' && obj.prototype instanceof Object;
 
@@ -424,19 +439,19 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?, bypassClass?
   return initialObj;
 }
 
-export function spyOnMethod(cls, key, rep?, options?) {
+export function spyOnMethod(cls, key, rep?, options?: SpyOnFunctionOptions) {
   spyOnDescriptor(cls, key, rep || cls.prototype[key], options);
 
   return cls;
 }
 
-export function spyOnStaticDescriptor(cls, key, repDescriptor?, options?) {
+export function spyOnStaticDescriptor(cls, key, repDescriptor?, options?: SpyOnFunctionOptions) {
   spyOnDescriptor(cls, key, repDescriptor || Object.getOwnPropertyDescriptor(cls, key), options, true);
 
   return cls;
 }
 
-export function spyOnStaticMethod(cls, key, rep?, options?) {
+export function spyOnStaticMethod(cls, key, rep?, options?: SpyOnFunctionOptions) {
   spyOnDescriptor(cls, key, rep || cls[key], options, true);
 
   return cls;

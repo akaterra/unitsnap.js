@@ -1287,47 +1287,84 @@ describe('Mock', () => {
       expect(history.entries).toEqual([]);
     });
 
-    it('should spy with custom call args and return value processors', () => {
+    it('should spy with custom call args and return value value processors', () => {
       history.begin('epoch', 'comment');
 
       class T {}
+      class Q {}
 
-      const custom = unitsnap.Custom((...args: any[]) => 1).argsAnnotation(B.prototype.c)
+      const custom = unitsnap.Custom((...args: any[]) => 1).argsAnnotation(['x', 'y', 'z'])
         .onCallArgs
           .addProcessor((value) => value === 1, (value) => 'arg is 1')
           .addClassOfProcessor(T, (value) => 'arg is cls T')
-          .addInstanceOfProcessor(T, (value) => 'arg is ins T')
-          .addPathProcessor('args[1]', (value) => 'arg is 2')
+          .addInstanceOfProcessor(Q, (value) => 'arg is ins Q')
+          .addPathProcessor('*[0]', (value) => 'arg is 4')
           // .addRegexPathProcessor()
-          .addUndefinedProcessor((value) => 'res is undefined')
+          .addUndefinedProcessor((value) => 'arg is undefined')
         .onReturnValue
           .addProcessor((value) => value === 1, (value) => 'ret is 1')
           .addClassOfProcessor(T, (value) => 'ret is cls T')
-          .addInstanceOfProcessor(T, (value) => 'ret is ins T')
+          .addInstanceOfProcessor(Q, (value) => 'ret is ins Q')
           // .addPathProcessor()
           // .addRegexPathProcessor()
           .addUndefinedProcessor((value) => 'ret is undefined')
         ;
 
       const E = new unitsnap._Mock(history).by(B, {
+        constructor: unitsnap.Observe,
+        a: unitsnap.StaticMethod(custom),
         c: custom,
+        d: unitsnap.Property(custom, custom),
+        e: unitsnap.StaticProperty().get(custom).set(custom),
+        x: custom,
+        y: unitsnap.Property(custom, custom),
+        z: unitsnap.StaticProperty().get(custom).set(custom),
       });
 
       const e = new E();
 
       try {
-        e.c(1, 2, 3, T, new T(), undefined, null);
+        e.c(1, 2, 3, 4, new T(), new Q(), undefined, null);
+        e.x(1, 2, 3, 4, new T(), new Q(), undefined, null);
+        E.a(1, 2, 3, 4, new T(), new Q(), undefined, null);
+        e.d;
+        e.d = 1;
+        E.e;
+        E.e = 1;
+        e.y;
+        e.y = 1;
+        E.z;
+        E.z = 1;
       } catch (e) {
 
       }
 
       history.end();
 
-      expect(history.entries[0].args).toEqual({
-        'args': [ 2, 'arg is 2', 'arg is cls T', 'arg is ist T', 'arg is undefined', null ],
-        a: 1,
-      });
-      expect(history.entries[1].result).toEqual('ret is 1');
+      expect(history.entries[0].args).toEqual({ '*': [] });
+      expect(history.entries[1].result).toBeUndefined();
+      expect(history.entries[2].args).toEqual({ '*': [ 'arg is 4', 'arg is cls T', 'arg is ins Q', 'arg is undefined', null ], x: 'arg is 1', y: 2, z: 3 });
+      expect(history.entries[3].result).toBe('ret is 1');
+      expect(history.entries[4].args).toEqual({ '*': [ 'arg is 4', 'arg is cls T', 'arg is ins Q', 'arg is undefined', null ], x: 'arg is 1', y: 2, z: 3 });
+      expect(history.entries[5].result).toBe('ret is 1');
+      expect(history.entries[6].args).toEqual({ '*': [ 'arg is 4', 'arg is cls T', 'arg is ins Q', 'arg is undefined', null ], x: 'arg is 1', y: 2, z: 3 });
+      expect(history.entries[7].result).toBe('ret is 1');
+      expect(history.entries[8].args).toEqual({ '*': [] });
+      expect(history.entries[9].result).toBe('ret is 1');
+      expect(history.entries[10].args).toEqual({ '*': [], x: 'arg is 1' });
+      expect(history.entries[11].result).toBe('ret is 1');
+      expect(history.entries[12].args).toEqual({ '*': [] });
+      expect(history.entries[13].result).toBe('ret is 1');
+      expect(history.entries[14].args).toEqual({ '*': [], x: 'arg is 1' });
+      expect(history.entries[15].result).toBe('ret is 1');
+      expect(history.entries[16].args).toEqual({ '*': [] });
+      expect(history.entries[17].result).toBe('ret is 1');
+      expect(history.entries[18].args).toEqual({ '*': [], x: 'arg is 1' });
+      expect(history.entries[19].result).toBe('ret is 1');
+      expect(history.entries[20].args).toEqual({ '*': [] });
+      expect(history.entries[21].result).toBe('ret is 1');
+      expect(history.entries[22].args).toEqual({ '*': [], x: 'arg is 1' });
+      expect(history.entries[23].result).toBe('ret is 1');
     });
 
     it('should return mocked "this" value', () => {

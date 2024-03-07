@@ -1,5 +1,5 @@
 import * as fixture from './fixture';
-import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod, State, StateReportType } from './spy';
+import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod, State, StateReportType, StateType } from './spy';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { _History } from './history';
 import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5ClassDef, Es6Class, Es6ClassDef, Fn, NotNeverKeys, ObjectFromList } from './utils';
@@ -23,14 +23,14 @@ export type ExtractFixture<T, TSelf = never> = T extends fixture._Fixture<any>
   : T extends typeof fixture.Fixture | typeof fixture._Fixture ? TSelf : T;
 
 export type PropertyType<T> = T extends _Property<any>
-  ? T['descriptor']['value'] extends Fn<any>
-    ? ReturnType<T['descriptor']['value']>
+  ? Extract<T['descriptor']['value']> extends Fn<any>
+    ? ReturnType<Extract<T['descriptor']['value']>>
     : T['descriptor']['value']
   : T;
 
 export type StaticPropertyType<T> = T extends _StaticProperty<any>
-  ? T['descriptor']['value'] extends Fn<any>
-    ? ReturnType<T['descriptor']['value']>
+  ? Extract<T['descriptor']['value']> extends Fn<any>
+    ? ReturnType<Extract<T['descriptor']['value']>>
     : T['descriptor']['value']
   : T;
 
@@ -329,7 +329,7 @@ export class _Mock {
       argsAnnotation: fn,
       extra: {
         name: fn.name,
-        type: 'single',
+        type: StateType.SINGLE,
       },
       origin: fn,
       onCall: (context, state) => {
@@ -469,31 +469,37 @@ export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Nu
   }
 
   addClassOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    this._currentProcessor.addClassOf(cls, serializer);
+    this._currentProcessor.classOf(cls, serializer);
 
     return this;
   }
 
   addInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    this._currentProcessor.addInstanceOf(cls, serializer);
+    this._currentProcessor.instanceOf(cls, serializer);
+
+    return this;
+  }
+
+  addNullProcessor(serializer?: ProcessorSerializer) {
+    this._currentProcessor.null(serializer);
 
     return this;
   }
 
   addPathProcessor(path: string, serializer: ProcessorSerializer) {
-    this._currentProcessor.addPath(path, serializer);
+    this._currentProcessor.path(path, serializer);
 
     return this;
   }
 
   addRegexPathProcessor(regex: string | RegExp, serializer: ProcessorSerializer) {
-    this._currentProcessor.addRegexPath(regex, serializer);
+    this._currentProcessor.regexPath(regex, serializer);
 
     return this;
   }
 
   addUndefinedProcessor(serializer?: ProcessorSerializer) {
-    this._currentProcessor.addUndefined(serializer);
+    this._currentProcessor.undefined(serializer);
 
     return this;
   }
@@ -626,7 +632,7 @@ export class ClassMaker {
       throw new Error('Class constructor must be function');
     }
 
-    let custom;
+    let custom: _Custom;
     let rep;
 
     if (this._props.hasOwnProperty('constructor')) {
@@ -641,17 +647,21 @@ export class ClassMaker {
       );
 
       cls = spyOnFunction(copyConstructor(rep), {
-        argsAnnotation: custom?._argsAnnotation ?? this._cls,
-        exclude: custom?._exclude,
+        argsAnnotation: custom?.env.argsAnnotation ?? this._cls,
+        exclude: custom?.env.exclude,
         extra: {
           name: this._clsConstructorName,
-          type: 'constructor',
+          type: StateType.CONSTRUCTOR,
         },
         origin: cls,
         replacement: rep,
         onCall: (context, state) => {
           if (this._mock._history) {
-            this._mock._history.push(state);
+            this._mock._history.push(classMakerProcessState(
+              state,
+              (state.type === StateType.GETTER ? custom : custom)?.env?.callArgsProcessor,
+              (state.type === StateType.GETTER ? custom : custom)?.env?.returnValueProcessor,
+            ));
           }
         },
       }, true);
@@ -736,7 +746,7 @@ export class ClassMaker {
             exclude: customGet?.env?.exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
-              type: 'staticGetter',
+              type: StateType.STATIC_GETTER,
             },
             origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.get,
             replacement: this._props[key].descriptor.get,
@@ -746,7 +756,7 @@ export class ClassMaker {
             exclude: customSet?.env?.exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
-              type: 'staticSetter',
+              type: StateType.STATIC_SETTER,
             },
             origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.set,
             replacement: this._props[key].descriptor.set,
@@ -755,8 +765,8 @@ export class ClassMaker {
             if (this._mock._history) {
               this._mock._history.push(classMakerProcessState(
                 state,
-                (state.type === 'getter' ? customGet : customSet)?.env?.callArgsProcessor,
-                (state.type === 'getter' ? customGet : customSet)?.env?.returnValueProcessor,
+                (state.type === StateType.STATIC_GETTER ? customGet : customSet)?.env?.callArgsProcessor,
+                (state.type === StateType.STATIC_GETTER ? customGet : customSet)?.env?.returnValueProcessor,
               ));
             }
           },
@@ -797,7 +807,7 @@ export class ClassMaker {
             exclude: customGet?.env?.exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
-              type: 'getter',
+              type: StateType.GETTER,
             },
             origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.get,
             replacement: this._props[key].descriptor.get,
@@ -807,7 +817,7 @@ export class ClassMaker {
             exclude: customSet?.env.exclude,
             extra: {
               name: this._clsConstructorName + '.' + key,
-              type: 'setter',
+              type: StateType.SETTER,
             },
             origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.set,
             replacement: this._props[key].descriptor.set,
@@ -816,8 +826,8 @@ export class ClassMaker {
             if (this._mock._history) {
               this._mock._history.push(classMakerProcessState(
                 state,
-                (state.type === 'getter' ? customGet : customSet)?.env?.callArgsProcessor,
-                (state.type === 'getter' ? customGet : customSet)?.env?.returnValueProcessor,
+                (state.type === StateType.GETTER ? customGet : customSet)?.env?.callArgsProcessor,
+                (state.type === StateType.GETTER ? customGet : customSet)?.env?.returnValueProcessor,
               ));
             }
           },
@@ -841,7 +851,7 @@ export class ClassMaker {
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           extra: {
             name: this._clsConstructorName + '.' + key,
-            type: 'staticMethod',
+            type: StateType.STATIC_METHOD,
           },
           origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.value,
           replacement: rep,
@@ -874,7 +884,7 @@ export class ClassMaker {
           bypassOnBehalfOfInstanceReplacement: this._bypassOnBehalfOfInstanceReplacement,
           extra: {
             name: this._clsConstructorName + '.' + key,
-            type: 'method',
+            type: StateType.METHOD,
           },
           origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.value,
           replacement: rep,
