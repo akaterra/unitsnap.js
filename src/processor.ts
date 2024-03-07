@@ -42,7 +42,7 @@ export type ProcessorChecker = ((value?: unknown, path?: string) => boolean | vo
 export type ProcessorSerializer = ((value?: unknown) => unknown) | ProcessorBaseTypes;
 
 export class _Processor {
-  private _processors: { checker: Fn, serializer: Fn }[] = [];
+  private _processors: { checker: Fn & { original?: Fn }, serializer: Fn & { original?: Fn } }[] = [];
 
   get processors() {
     return this._processors;

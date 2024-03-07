@@ -113,7 +113,7 @@ export class _Filter {
         .setConfig(this._observer.env.snapshot.config)
         .setMapper(this._observer.env.snapshot.env.mapper)
         .setProvider(this._observer.env.snapshot.env.provider)
-        .addProcessors(...this._observer.env.snapshot.env.processors)
+        .addProcessors(...this._observer.env.snapshot.env.processor.processors)
         .link(this._observer);
     }
 

@@ -192,7 +192,7 @@ describe('Filter', () => {
     expect(e.snapshot().config).toBe(observer.env.snapshot.config);
     expect(e.snapshot().env.mapper).toBe(observer.env.snapshot.env.mapper);
     expect(e.snapshot().env.observer).toBe(observer);
-    expect(e.snapshot().env.processors).toEqual(observer.env.snapshot.env.processors);
+    expect(e.snapshot().env.processor.processors).toEqual(observer.env.snapshot.env.processor.processors);
     expect(e.snapshot().env.provider).toBe(observer.env.snapshot.env.provider);
   });
 });

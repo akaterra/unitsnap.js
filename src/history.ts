@@ -10,6 +10,7 @@ export interface IHistoryEpoch {
 
 export class _History {
   private _entries: State[];
+  private _level: number = -1;
   private _epochs: IHistoryEpoch[];
   private _observer: _Observer = null;
 
@@ -23,6 +24,20 @@ export class _History {
 
   get observer() {
     return this._observer;
+  }
+
+  get enterLevel() {
+    const level = this._level;
+    this._level += 1;
+
+    return level;
+  }
+
+  get leaveLevel() {
+    const level = this._level;
+    this._level = level > 0 ? level - 1 : 0;
+
+    return level;
   }
 
   constructor() {

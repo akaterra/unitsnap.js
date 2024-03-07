@@ -729,7 +729,9 @@ export class ClassMaker {
             ));
           }
         },
-      }, true);
+        onEnterLevel: this._mock.history ? () => this._mock.history.enterLevel : null,
+        onLeaveLevel: this._mock.history ? () => this._mock.history.leaveLevel : null,
+    }, true);
     } else {
       cls = copyConstructor(cls, explicitInstance);
     }
@@ -835,6 +837,8 @@ export class ClassMaker {
               ));
             }
           },
+          onEnterLevel: this._mock.history ? () => this._mock.history.enterLevel : null,
+          onLeaveLevel: this._mock.history ? () => this._mock.history.leaveLevel : null,
         });
       } else if (this._props[key] instanceof _Property) {
         customGet = maybeCustom(this._props[key].descriptor.get);
@@ -896,6 +900,8 @@ export class ClassMaker {
               ));
             }
           },
+          onEnterLevel: this._mock.history ? () => this._mock.history.enterLevel : null,
+          onLeaveLevel: this._mock.history ? () => this._mock.history.leaveLevel : null,
         });
       } else if (this._props[key] instanceof _StaticMethod) {
         custom = maybeCustom(this._props[key].fn);
@@ -929,6 +935,8 @@ export class ClassMaker {
               ));
             }
           },
+          onEnterLevel: this._mock.history ? () => this._mock.history.enterLevel : null,
+          onLeaveLevel: this._mock.history ? () => this._mock.history.leaveLevel : null,
         });
       } else {
         custom = maybeCustom(this._props[key]);
@@ -962,6 +970,8 @@ export class ClassMaker {
               ));
             }
           },
+          onEnterLevel: this._mock.history ? () => this._mock.history.enterLevel : null,
+          onLeaveLevel: this._mock.history ? () => this._mock.history.leaveLevel : null,
         });
       }
     });

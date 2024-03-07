@@ -13,6 +13,8 @@ export type SpyOnFunctionOptions = {
   origin?: Fn;
   replacement?: Fn;
   onCall?: (context: unknown, state: State) => void;
+  onEnterLevel?: () => number;
+  onLeaveLevel?: () => number;
 }
 
 export enum StateReportType {
@@ -45,6 +47,7 @@ export interface State {
   isAsync?: boolean;
   isAsyncPending?: boolean;
   isException?: boolean;
+  level?: number;
   name?: string;
   origin?: (...args: any[]) => any;
   replacement?: (...args: any[]) => any;
@@ -225,6 +228,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
 
 export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions) {
   return {
+    level: options?.onEnterLevel ? options.onEnterLevel() : 0,
     reportType: StateReportType.CALL_ARGS,
 
     args: callable.ARGS,
@@ -242,6 +246,7 @@ export function spyOnFunctionCreateArgsReport(callable, context?, originalCallab
 
 export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions) {
   return {
+    level: options?.onLeaveLevel ? options.onLeaveLevel() : 0,
     reportType: StateReportType.RETURN_VALUE,
 
     callsCount: callable.CALLS_COUNT,

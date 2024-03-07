@@ -1,15 +1,19 @@
 import { _Filter } from './filter';
 import { _Observer } from './observer';
 import { _Processor, ProcessorChecker, ProcessorSerializer } from './processor';
+import { formatNativeSnapshotEntries } from './shapshot_formatter.navite';
+import { formatPrettySnapshotEntries } from './snapshot_formatter.pretty';
 import { State, StateReportType } from './spy';
 import { ClassDef, Fn } from './utils';
 
 export interface ISnapshotEnv {
   mapper: (snapshot: _Snapshot, entry: State) => State;
   observer: _Observer;
-  processors: { checker: Fn & { original?: Fn }, serializer: Fn & { original?: Fn } }[];
+  processor: _Processor;
   provider: ISnapshotProvider;
 }
+
+export type SnapshotNativeEntry = Pick<State, 'name' | 'args' | 'exception' | 'result' | 'type' | 'callsCount' | 'epoch' | 'exceptionsCount' | 'isAsync'>;
 
 export class _Snapshot {
   private _config: any = {
@@ -32,7 +36,7 @@ export class _Snapshot {
     return {
       mapper: this._mapper,
       observer: this._observer,
-      processors: this._processor.processors,
+      processor: this._processor,
       provider: this._provider,
     };
   }
@@ -143,7 +147,7 @@ export class _Snapshot {
     return this;
   }
 
-  addProcessors(...processors: ISnapshotEnv['processors']) {
+  addProcessors(...processors: ISnapshotEnv['processor']['processors']) {
     processors.forEach((processor) => this.addProcessor(processor.checker, processor.serializer));
 
     return this;
@@ -244,11 +248,19 @@ export class _Snapshot {
     return this;
   }
 
-  serialize(): Array<Pick<State, 'name' | 'args' | 'exception' | 'result' | 'type' | 'callsCount' | 'epoch' | 'exceptionsCount' | 'isAsync'>> {
-    return this._entries.map((entry, ind) => this._processor.serialize(
-      this._mapper(this, entry),
-      `[${ind}]`,
-    ));
+  serialize(): SnapshotNativeEntry[];
+
+  serialize(format: 'native'): SnapshotNativeEntry[];
+
+  serialize(format: 'pretty'): string;
+
+  serialize(format?: 'native' | 'pretty'): any {
+    switch (format) {
+      case 'pretty':
+        return formatPrettySnapshotEntries(this);
+      default:
+        return formatNativeSnapshotEntries(this);
+    }
   }
 }
 
