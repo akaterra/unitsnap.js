@@ -2,7 +2,9 @@
   "name": "@akaterra.co/unitsnap",
   "version": "1.5.4",
   "description": "Library for snapshot based unit testing",
-  "types": "index.d.ts",
+  "files": [
+    "**/*"
+  ],
   "scripts": {
     "coveralls": "node ./node_modules/.bin/istanbul cover --root src ./node_modules/.bin/jasmine JASMINE_CONFIG_PATH=jasmine.json",
     "lint": "npx eslint ./src/* --ext=.tsx,.ts --fix",

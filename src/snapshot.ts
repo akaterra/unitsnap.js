@@ -244,7 +244,7 @@ export class _Snapshot {
     return this;
   }
 
-  serialize() {
+  serialize(): Array<Pick<State, 'name' | 'args' | 'exception' | 'result' | 'type' | 'callsCount' | 'epoch' | 'exceptionsCount' | 'isAsync'>> {
     return this._entries.map((entry, ind) => this._processor.serialize(
       this._mapper(this, entry),
       `[${ind}]`,

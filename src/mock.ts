@@ -40,7 +40,7 @@ export type Placeholder<T, TSelf = never> = T extends typeof Observe | typeof In
     ? TSelf
     : T extends typeof Null // same as "null"
       ? null
-      : T extends typeof Undefined // same as "undefined"
+      : T extends typeof Function | typeof Undefined // same as "undefined"
         ? undefined
         : T;
 
@@ -50,20 +50,26 @@ export type PlaceholderFn<T, TSelf = never> = T extends typeof Observe | typeof 
     ? Fn<TSelf>
     : T extends typeof Null // same as "null"
       ? Fn<null>
-      : T extends typeof Undefined // same as "undefined"
+      : T extends typeof Function | typeof Undefined // same as "undefined"
         ? Fn<undefined>
         : T extends Fn ? T : Fn<T>;
 
-export type Integrated<T = any> = string | number | boolean | symbol | null | undefined | Fn<T>;
+export type Integrated =
+  number |
+  bigint |
+  boolean |
+  string |
+  symbol |
+  object;
 
-export type AllPlaceholders = typeof Initial | typeof Observe | typeof This | typeof Null | typeof Undefined;
+export type AllPlaceholders = typeof Function | typeof Initial | typeof Observe | typeof This | typeof Null | typeof Undefined;
 
-export type StubPlaceholders = typeof This | typeof Null | typeof Undefined;
+export type StubPlaceholders = typeof Function | typeof This | typeof Null | typeof Undefined;
 
-export type MockProps<T, U = never, TSelf = never> = Extract<T> extends Integrated | StubPlaceholders
-  ? PlaceholderFn<Extract<T>, TSelf>
-  : T extends _Property<any>
-    ? Placeholder<Extract<PropertyType<T>>, TSelf>
+export type MockProps<T, U = never, TSelf = never> = T extends _Property<any>
+  ? Placeholder<Extract<PropertyType<T>>, TSelf>
+  : Extract<T> extends Integrated | StubPlaceholders
+    ? PlaceholderFn<Extract<T>, TSelf>
     : U;
 
 export type MockStaticProps<T, U = never, TSelf = never> = T extends _StaticProperty<any>
@@ -72,7 +78,7 @@ export type MockStaticProps<T, U = never, TSelf = never> = T extends _StaticProp
     ? PlaceholderFn<Extract<T['fn']>, TSelf>
     : U;
 
-export type MockPropsTypes<T = any> = Integrated<T> |
+export type MockPropsTypes = Integrated |
   AllPlaceholders |
   fixture._Fixture |
   typeof fixture._Fixture |
@@ -81,7 +87,7 @@ export type MockPropsTypes<T = any> = Integrated<T> |
 
 export type MockPropsMap = Record<
   string,
-  MockPropsTypes<any> | _Property<any> | _StaticMethod<any> | _StaticProperty<any>
+  MockPropsTypes | _Property<any> | _StaticMethod<any> | _StaticProperty<any>
 >;
 
 export type MockClassMixin<T> = {
@@ -225,10 +231,19 @@ export class _Mock {
   explicitInstance: boolean;
 
   private _callArgsProcessor = new _Processor();
+  private _returnValueProcessor = new _Processor();
   private _currentProcessor = null;
+
   private _history: _History;
   private _fixturePop: any;
-  private _returnValueProcessor = new _Processor();
+
+  get callArgsProcessor() {
+    return this._callArgsProcessor.processors.length ? this._callArgsProcessor : null;
+  }
+
+  get returnValueProcessor() {
+    return this._returnValueProcessor.processors.length ? this._returnValueProcessor : null;
+  }
 
   get fixturePop() {
     if (!this._fixturePop) {
@@ -265,6 +280,48 @@ export class _Mock {
 
   setExplicitInstance() {
     this.explicitInstance = true;
+
+    return this;
+  }
+
+  addProcessor(checker: ProcessorChecker, serializer?: ProcessorSerializer) {
+    this._currentProcessor.add(checker, serializer);
+
+    return this;
+  }
+
+  addClassOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+    this._currentProcessor.classOf(cls, serializer);
+
+    return this;
+  }
+
+  addInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+    this._currentProcessor.instanceOf(cls, serializer);
+
+    return this;
+  }
+
+  addNullProcessor(serializer?: ProcessorSerializer) {
+    this._currentProcessor.null(serializer);
+
+    return this;
+  }
+
+  addPathProcessor(path: string, serializer: ProcessorSerializer) {
+    this._currentProcessor.path(path, serializer);
+
+    return this;
+  }
+
+  addRegexPathProcessor(regex: string | RegExp, serializer: ProcessorSerializer) {
+    this._currentProcessor.regexPath(regex, serializer);
+
+    return this;
+  }
+
+  addUndefinedProcessor(serializer?: ProcessorSerializer) {
+    this._currentProcessor.undefined(serializer);
 
     return this;
   }
@@ -429,8 +486,16 @@ export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Nu
   private _exclude: ICustomEnv['exclude'];
 
   private _callArgsProcessor = new _Processor();
-  private _currentProcessor: _Processor = null;
   private _returnValueProcessor = new _Processor();
+  private _currentProcessor: _Processor = null;
+
+  get callArgsProcessor() {
+    return this._callArgsProcessor.processors.length ? this._callArgsProcessor : null;
+  }
+
+  get returnValueProcessor() {
+    return this._returnValueProcessor.processors.length ? this._returnValueProcessor : null;
+  }
 
   get env(): ICustomEnv {
     return {
@@ -551,7 +616,7 @@ export class ClassMaker {
   private _clsProtoProps: any;
   private _clsPropsDescriptors: any;
   private _clsProtoPropsDescriptors: any;
-  private _mock: any;
+  private _mock: _Mock;
   private _props: any;
   private _propsMetadata: any;
 
@@ -575,7 +640,7 @@ export class ClassMaker {
     return this._propsMetadata;
   }
 
-  constructor(mock, cls, props, bypassOnBehalfOfInstanceReplacement) {
+  constructor(mock: _Mock, cls, props, bypassOnBehalfOfInstanceReplacement) {
     if (typeof cls !== 'function') {
       throw new Error('Class constructor must be function');
     }
@@ -656,11 +721,11 @@ export class ClassMaker {
         origin: cls,
         replacement: rep,
         onCall: (context, state) => {
-          if (this._mock._history) {
-            this._mock._history.push(classMakerProcessState(
+          if (this._mock.history) {
+            this._mock.history.push(classMakerProcessState(
               state,
-              (state.type === StateType.GETTER ? custom : custom)?.env?.callArgsProcessor,
-              (state.type === StateType.GETTER ? custom : custom)?.env?.returnValueProcessor,
+              custom?.callArgsProcessor ?? this._mock.callArgsProcessor,
+              custom?.returnValueProcessor ?? this._mock.returnValueProcessor,
             ));
           }
         },
@@ -762,11 +827,11 @@ export class ClassMaker {
             replacement: this._props[key].descriptor.set,
           },
           onCall: (context, state) => {
-            if (this._mock._history) {
-              this._mock._history.push(classMakerProcessState(
+            if (this._mock.history) {
+              this._mock.history.push(classMakerProcessState(
                 state,
-                (state.type === StateType.STATIC_GETTER ? customGet : customSet)?.env?.callArgsProcessor,
-                (state.type === StateType.STATIC_GETTER ? customGet : customSet)?.env?.returnValueProcessor,
+                (state.type === StateType.STATIC_GETTER ? customGet : customSet)?.callArgsProcessor ?? this._mock.callArgsProcessor,
+                (state.type === StateType.STATIC_GETTER ? customGet : customSet)?.returnValueProcessor ?? this._mock.returnValueProcessor,
               ));
             }
           },
@@ -823,11 +888,11 @@ export class ClassMaker {
             replacement: this._props[key].descriptor.set,
           },
           onCall: (context, state) => {
-            if (this._mock._history) {
-              this._mock._history.push(classMakerProcessState(
+            if (this._mock.history) {
+              this._mock.history.push(classMakerProcessState(
                 state,
-                (state.type === StateType.GETTER ? customGet : customSet)?.env?.callArgsProcessor,
-                (state.type === StateType.GETTER ? customGet : customSet)?.env?.returnValueProcessor,
+                (state.type === StateType.GETTER ? customGet : customSet)?.callArgsProcessor ?? this._mock.callArgsProcessor,
+                (state.type === StateType.GETTER ? customGet : customSet)?.returnValueProcessor ?? this._mock.returnValueProcessor,
               ));
             }
           },
@@ -856,11 +921,11 @@ export class ClassMaker {
           origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.value,
           replacement: rep,
           onCall: (context, state) => {
-            if (this._mock._history) {
-              this._mock._history.push(classMakerProcessState(
+            if (this._mock.history) {
+              this._mock.history.push(classMakerProcessState(
                 state,
-                custom?.env?.callArgsProcessor,
-                custom?.env?.returnValueProcessor,
+                custom?.callArgsProcessor ?? this._mock.callArgsProcessor,
+                custom?.returnValueProcessor ?? this._mock.returnValueProcessor,
               ));
             }
           },
@@ -889,11 +954,11 @@ export class ClassMaker {
           origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.value,
           replacement: rep,
           onCall: (context, state) => {
-            if (this._mock._history) {
-              this._mock._history.push(classMakerProcessState(
+            if (this._mock.history) {
+              this._mock.history.push(classMakerProcessState(
                 state,
-                custom?.env?.callArgsProcessor,
-                custom?.env?.returnValueProcessor,
+                custom?.callArgsProcessor ?? this._mock.callArgsProcessor,
+                custom?.returnValueProcessor ?? this._mock.returnValueProcessor,
               ));
             }
           },
@@ -999,7 +1064,7 @@ function classMakerGetReplacement(prop, key, obj, objProps, extraProps) {
     return function () { return null; };
   }
 
-  if (prop === Undefined) {
+  if (prop === Function || prop === Undefined) {
     return function () {};
   }
 

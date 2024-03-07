@@ -21,64 +21,68 @@ import { _Observer } from './src/observer';
 import { _Snapshot } from './src/snapshot';
 
 export function extendJasmine() {
-  jasmine.addMatchers({
-    toMatchSnapshot: function toMatchSnapshot(util) {
-      const toEqual = (jasmine as any).matchers.toEqual(util).compare;
+  if (typeof jasmine !== 'undefined') {
+    (jasmine as any).addMatchers({
+      toMatchSnapshot: function toMatchSnapshot(util) {
+        const toEqual = (jasmine as any).matchers.toEqual(util).compare;
 
-      return {
-        compare: function (actual, expected) {
-          if (actual instanceof _Filter) {
-            actual = actual.snapshot();
-          } else if (actual instanceof _Observer) {
-            actual = actual.snapshot();
-          }
+        return {
+          compare: function (actual, expected) {
+            if (actual instanceof _Filter) {
+              actual = actual.snapshot();
+            } else if (actual instanceof _Observer) {
+              actual = actual.snapshot();
+            }
 
-          if (actual instanceof _Snapshot) {
-            let saveSnapshot = false;
+            if (actual instanceof _Snapshot) {
+              let saveSnapshot = false;
 
-            if (typeof process !== 'undefined') {
-              saveSnapshot = 'SAVE_SNAPSHOT' in process.env && process.env.SAVE_SNAPSHOT !== '0';
+              if (typeof process !== 'undefined') {
+                saveSnapshot = 'SAVE_SNAPSHOT' in process.env && process.env.SAVE_SNAPSHOT !== '0';
+
+                if (!saveSnapshot) {
+                  saveSnapshot = !!process.argv.find(function (argv) {
+                    return argv === '--saveSnapshot';
+                  });
+                }
+              }
+
+              if (typeof window !== 'undefined' && !saveSnapshot) {
+                saveSnapshot = typeof window !== 'undefined' && (window as any).SAVE_SNAPSHOT === true;
+              }
 
               if (!saveSnapshot) {
-                saveSnapshot = !!process.argv.find(function (argv) {
-                  return argv === '--saveSnapshot';
-                });
+                saveSnapshot = !actual.exists(typeof expected === 'string' ? expected : void 0);
               }
+
+              if (saveSnapshot) {
+                actual.save(typeof expected === 'string' ? expected : void 0);
+
+                return {
+                  message: 'saved',
+                  pass: true
+                };
+              }
+
+              if (typeof expected === 'string') {
+                expected = actual.loadCopy(expected);
+              }
+
+              actual = actual.serialize();
             }
 
-            if (typeof window !== 'undefined' && !saveSnapshot) {
-              saveSnapshot = typeof window !== 'undefined' && (window as any).SAVE_SNAPSHOT === true;
+            if (expected instanceof _Snapshot) {
+              expected = expected.serialize();
             }
 
-            if (!saveSnapshot) {
-              saveSnapshot = !actual.exists(typeof expected === 'string' ? expected : void 0);
-            }
-
-            if (saveSnapshot) {
-              actual.save(typeof expected === 'string' ? expected : void 0);
-
-              return {
-                message: 'saved',
-                pass: true
-              };
-            }
-
-            if (typeof expected === 'string') {
-              expected = actual.loadCopy(expected);
-            }
-
-            actual = actual.serialize();
+            return toEqual.call(this, actual, expected);
           }
-
-          if (expected instanceof _Snapshot) {
-            expected = expected.serialize();
-          }
-
-          return toEqual.call(this, actual, expected);
         }
-      }
-    },
-  });
+      },
+    });
+  } else {
+    throw new Error('Jasmine is not installed');
+  }
 };
 
 export default new _Observer();

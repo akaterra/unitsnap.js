@@ -531,11 +531,11 @@ describe('Snapshot', () => {
 
     it('should serialize with enabled include type', () => {
       const e = new unitsnap._Snapshot([{
-        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: 'type',
+        args: [], callsCount: 1, epoch: 'epoch', exceptionsCount: 2, isAsync: true, name: 'name', result: 3, type: unitsnap.StateType.SINGLE,
       }]).includeType();
 
       expect(e.serialize()).toEqual([{
-        args: [], result: 3, type: 'type',
+        args: [], result: 3, type: unitsnap.StateType.SINGLE,
       }]);
     });
 

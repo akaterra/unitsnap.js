@@ -1287,38 +1287,55 @@ describe('Mock', () => {
       expect(history.entries).toEqual([]);
     });
 
-    it('should spy with custom call args and return value value processors', () => {
+    it('should spy with mock or custom "call args" and "return value" value processors', () => {
       history.begin('epoch', 'comment');
 
       class T {}
       class Q {}
 
-      const custom = unitsnap.Custom((...args: any[]) => 1).argsAnnotation(['x', 'y', 'z'])
+      const customA = unitsnap.Custom((...args: any[]) => 1).argsAnnotation(['x', 'y', 'z'])
         .onCallArgs
-          .addProcessor((value) => value === 1, (value) => 'arg is 1')
-          .addClassOfProcessor(T, (value) => 'arg is cls T')
-          .addInstanceOfProcessor(Q, (value) => 'arg is ins Q')
-          .addPathProcessor('*[0]', (value) => 'arg is 4')
+          .addProcessor((value) => value === 1, () => 'arg is 1')
+          .addClassOfProcessor(T, () => 'arg is cls T')
+          .addInstanceOfProcessor(Q, () => 'arg is ins Q')
+          .addPathProcessor('*[0]', () => 'arg is 4')
           // .addRegexPathProcessor()
-          .addUndefinedProcessor((value) => 'arg is undefined')
+          .addUndefinedProcessor(() => 'arg is undefined')
         .onReturnValue
-          .addProcessor((value) => value === 1, (value) => 'ret is 1')
-          .addClassOfProcessor(T, (value) => 'ret is cls T')
-          .addInstanceOfProcessor(Q, (value) => 'ret is ins Q')
+          .addProcessor((value) => value === 1, () => 'ret is 1')
+          .addClassOfProcessor(T, () => 'ret is cls T')
+          .addInstanceOfProcessor(Q, () => 'ret is ins Q')
           // .addPathProcessor()
           // .addRegexPathProcessor()
-          .addUndefinedProcessor((value) => 'ret is undefined')
+          .addUndefinedProcessor(() => 'ret is undefined')
+        ;
+      const customB = unitsnap.Custom((...args: any[]) => 1).argsAnnotation(['x', 'y', 'z']);
+      const mock = unitsnap.Mock(history)
+        .onCallArgs
+          .addProcessor((value) => value === 1, () => 'arg is 1 (mock)')
+          .addClassOfProcessor(T, () => 'arg is cls T (mock)')
+          .addInstanceOfProcessor(Q, () => 'arg is ins Q (mock)')
+          .addPathProcessor('*[0]', () => 'arg is 4 (mock)')
+          // .addRegexPathProcessor()
+          .addUndefinedProcessor(() => 'arg is undefined (mock)')
+        .onReturnValue
+          .addProcessor((value) => value === 1, () => 'ret is 1 (mock)')
+          .addClassOfProcessor(T, () => 'ret is cls T (mock)')
+          .addInstanceOfProcessor(Q, () => 'ret is ins Q (mock)')
+          // .addPathProcessor()
+          // .addRegexPathProcessor()
+          .addUndefinedProcessor(() => 'ret is undefined (mock)')
         ;
 
-      const E = new unitsnap._Mock(history).by(B, {
+      const E = mock.by(B, {
         constructor: unitsnap.Observe,
-        a: unitsnap.StaticMethod(custom),
-        c: custom,
-        d: unitsnap.Property(custom, custom),
-        e: unitsnap.StaticProperty().get(custom).set(custom),
-        x: custom,
-        y: unitsnap.Property(custom, custom),
-        z: unitsnap.StaticProperty().get(custom).set(custom),
+        a: unitsnap.StaticMethod(customA),
+        c: customA,
+        d: unitsnap.Property(customA, customA),
+        e: unitsnap.StaticProperty().get(customA).set(customA),
+        x: customB,
+        y: unitsnap.Property(customB, customB),
+        z: unitsnap.StaticProperty().get(customB).set(customB),
       });
 
       const e = new E();
@@ -1342,11 +1359,11 @@ describe('Mock', () => {
       history.end();
 
       expect(history.entries[0].args).toEqual({ '*': [] });
-      expect(history.entries[1].result).toBeUndefined();
+      expect(history.entries[1].result).toBe('ret is undefined (mock)');
       expect(history.entries[2].args).toEqual({ '*': [ 'arg is 4', 'arg is cls T', 'arg is ins Q', 'arg is undefined', null ], x: 'arg is 1', y: 2, z: 3 });
       expect(history.entries[3].result).toBe('ret is 1');
-      expect(history.entries[4].args).toEqual({ '*': [ 'arg is 4', 'arg is cls T', 'arg is ins Q', 'arg is undefined', null ], x: 'arg is 1', y: 2, z: 3 });
-      expect(history.entries[5].result).toBe('ret is 1');
+      expect(history.entries[4].args).toEqual({ '*': [ 'arg is 4 (mock)', 'arg is cls T (mock)', 'arg is ins Q (mock)', 'arg is undefined (mock)', null ], x: 'arg is 1 (mock)', y: 2, z: 3 });
+      expect(history.entries[5].result).toBe('ret is 1 (mock)');
       expect(history.entries[6].args).toEqual({ '*': [ 'arg is 4', 'arg is cls T', 'arg is ins Q', 'arg is undefined', null ], x: 'arg is 1', y: 2, z: 3 });
       expect(history.entries[7].result).toBe('ret is 1');
       expect(history.entries[8].args).toEqual({ '*': [] });
@@ -1358,13 +1375,13 @@ describe('Mock', () => {
       expect(history.entries[14].args).toEqual({ '*': [], x: 'arg is 1' });
       expect(history.entries[15].result).toBe('ret is 1');
       expect(history.entries[16].args).toEqual({ '*': [] });
-      expect(history.entries[17].result).toBe('ret is 1');
-      expect(history.entries[18].args).toEqual({ '*': [], x: 'arg is 1' });
-      expect(history.entries[19].result).toBe('ret is 1');
+      expect(history.entries[17].result).toBe('ret is 1 (mock)');
+      expect(history.entries[18].args).toEqual({ '*': [], x: 'arg is 1 (mock)' });
+      expect(history.entries[19].result).toBe('ret is 1 (mock)');
       expect(history.entries[20].args).toEqual({ '*': [] });
-      expect(history.entries[21].result).toBe('ret is 1');
-      expect(history.entries[22].args).toEqual({ '*': [], x: 'arg is 1' });
-      expect(history.entries[23].result).toBe('ret is 1');
+      expect(history.entries[21].result).toBe('ret is 1 (mock)');
+      expect(history.entries[22].args).toEqual({ '*': [], x: 'arg is 1 (mock)' });
+      expect(history.entries[23].result).toBe('ret is 1 (mock)');
     });
 
     it('should return mocked "this" value', () => {
