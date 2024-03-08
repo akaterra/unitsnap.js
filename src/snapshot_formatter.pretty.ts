@@ -1,5 +1,6 @@
 import { _Snapshot } from './snapshot';
 import {StateReportType} from './spy';
+import {Wrapped} from './type_helpers';
 
 const INDENT = '    ';
 
@@ -15,14 +16,14 @@ export function formatPrettySnapshotEntries(shapshot: _Snapshot): string {
 
     if (param === 'name') {
       if (entry.reportType == StateReportType.CALL_ARGS) {
-        output += `${lineIndent}--> ${lines[0].slice(1, -1)}\n`;
+        output += `${lineIndent}--> ${lines[0].slice(1, -1)} --> `;
       } else {
-        output += `${lineIndent}<-- ${lines[0].slice(1, -1)}\n`;
+        output += `${lineIndent}<-- ${lines[0].slice(1, -1)} <-- `;
       }
     } else if (param === 'args') {
-      output += `${lineIndent}--> ${lines[0]}\n`;
+      output += `${lines[0]}\n`;
     } else if (param === 'result') {
-      output += `${lineIndent}<-- ${lines[0]}\n`;
+      output += `${lines[0]}\n`;
     } else {
       output += `${lineIndent}${param} = ${lines[0]}\n`;
     }
@@ -68,7 +69,7 @@ function serialize(value, indent?, output?, circular?) {
   }
 
   if (circular.has(value)) {
-    return '[[ Circular! ]]\n';
+    value = new Wrapped('[[ Circular ! ]]');
   }
 
   let pre = '';
@@ -98,7 +99,7 @@ function serialize(value, indent?, output?, circular?) {
       value = `[[ Date : ${value.toISOString()} ]]`;
       return `${value}\n`;
     case value instanceof Error:
-      value = `[[ Error : ${value.name ?? '?'}, ${value.message ?? '?'} ]]`;
+      value = `[[ Error : ${value.name || '<no name>'}, ${value.message || '<no message>'} ]]`;
       return `${value}\n`;
     case value instanceof Map:
       pre = '[[ Map : ';
@@ -106,15 +107,18 @@ function serialize(value, indent?, output?, circular?) {
       value = Object.fromEntries(value.entries());
       break;
     case value instanceof RegExp:
-      value = `[[ RegExp : ${value.source ?? '?'} ]]`;
+      value = `[[ RegExp : ${value.source || '<no source>'} ]]`;
       return `${value}\n`;
     case value instanceof Set:
       pre = '[[ Set : ';
       post = ' ]]';
       value = Array.from(value.values());
       break;
+    case value instanceof Wrapped:
+      value = value.value;
+      break;
     case typeof value === 'function':
-      value = `[[ Function : ${value.name ?? '?'} ]]`;
+      value = `[[ Function : ${value.name || '<anonymous>'} ]]`;
       return `${value}\n`;
     case typeof value === 'string':
       value = `"${value.replace(/"/g, '\\"')}"`;
@@ -124,7 +128,7 @@ function serialize(value, indent?, output?, circular?) {
         const constructor = Object.getPrototypeOf(value).constructor;
 
         if (constructor !== Object && constructor !== Array) {
-          pre = `[[ ${constructor.name} : `;
+          pre = `[[ ${constructor.name || '<anonymous>'} : `;
           post = ' ]]';
         }
       }

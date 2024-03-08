@@ -19,7 +19,8 @@ import {
   UndefinedType,
   NumberType,
   _NullType,
-  NullType
+  NullType,
+  Wrapped
 } from './type_helpers';
 import { ClassDef, Fn } from './utils';
 
@@ -131,38 +132,48 @@ export class _Processor {
     });
   
     if (!circular) {
-      circular = [];
+      circular = new Set<unknown>();
     }
   
     let serialized;
   
     if (!primitiveOnly && Array.isArray(value)) {
-      if (circular.indexOf(value) !== - 1) {
-        return '[[ Circular ! ]]'
+      if (circular.has(value)) {
+        return new Wrapped('[[ Circular ! ]]');
       }
   
-      circular.push(value);
+      circular.add(value);
   
       serialized = value.map((val, ind) => {
-        return this.serializeInternal(val, path + '[' + ind + ']', false, circular);
+        try {
+          return this.serializeInternal(val, path + '[' + ind + ']', false, circular);
+        } catch (err) {
+          return new Wrapped('[[ Unserializable ! ]]');
+        }
       }).filter((val) => {
         return val !== Ignore;
       });
   
-      circular.pop();
+      circular.delete(value);
   
       return serialized;
     }
   
     if (!primitiveOnly && value && typeof value === 'object') {
-      if (circular.indexOf(value) !== - 1) {
-        return '[[ Circular ! ]]'
+      if (circular.has(value)) {
+        return new Wrapped('[[ Circular ! ]]');
       }
   
-      circular.push(value);
+      circular.add(value);
   
       serialized = Object.keys(value).reduce((acc, key) => {
-        const serialized = this.serializeInternal(value[key], path ? path + '.' + key : key, false, circular);
+        let serialized;
+
+        try {
+          serialized = this.serializeInternal(value[key], path ? path + '.' + key : key, false, circular);
+        } catch (err) {
+          return new Wrapped('[[ Unserializable ! ]]');
+        }
   
         if (serialized !== Ignore) {
           acc[key] = serialized;
@@ -171,7 +182,7 @@ export class _Processor {
         return acc;
       }, {});
   
-      circular.pop();
+      circular.delete(value);
   
       return serialized;
     }

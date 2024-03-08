@@ -361,3 +361,21 @@ export class _UndefinedType implements IType {
 export function UndefinedType() {
   return new _UndefinedType();
 }
+
+export class Wrapped {
+  constructor(public readonly value: any) {
+
+  }
+
+  valueOf() {
+    return this.value;
+  }
+
+  toJSON() {
+    return this.value;
+  }
+
+  toString() {
+    return String(this.value);
+  }
+}

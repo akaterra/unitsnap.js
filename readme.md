@@ -30,7 +30,7 @@ Then this result can be saved as a snapshot and compared with a snapshot of the 
 ### Installation
 
 ```bash
-npm install @akaterra.co/unitsnap
+npm i @akaterra.co/unitsnap
 ```
 
 ### Example of snapshot generation

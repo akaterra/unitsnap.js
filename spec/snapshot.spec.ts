@@ -553,7 +553,7 @@ describe('Snapshot', () => {
       }]);
 
       expect(e.serialize()).toEqual([{
-        result: {a:['[[ Circular ! ]]']},
+        result: { a: [ new unitsnap.Wrapped('[[ Circular ! ]]') ] },
       }]);
     });
 
@@ -571,7 +571,7 @@ describe('Snapshot', () => {
       }]);
 
       expect(e.serialize()).toEqual([{
-        result: {a:{result: '[[ Circular ! ]]'}},
+        result: { a: { result: new unitsnap.Wrapped('[[ Circular ! ]]') } },
       }]);
     });
   });
