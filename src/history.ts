@@ -37,7 +37,7 @@ export class _History {
     const level = this._level;
     this._level = level > 0 ? level - 1 : 0;
 
-    return level;
+    return this._level;
   }
 
   constructor() {
