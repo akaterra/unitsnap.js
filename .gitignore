@@ -1,5 +1,6 @@
 .env
 .idea/
+.nyc_output/
 *ignore.js
 dist/
 coverage/

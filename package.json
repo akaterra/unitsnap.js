@@ -6,7 +6,7 @@
     "**/*"
   ],
   "scripts": {
-    "coveralls": "node ./node_modules/.bin/istanbul cover --root src ./node_modules/.bin/jasmine JASMINE_CONFIG_PATH=jasmine.json",
+    "coverage": "npx nyc --reporter=lcov npm run test",
     "lint": "npx eslint ./src/* --ext=.tsx,.ts --fix",
     "test": "npx ts-node node_modules/jasmine/bin/jasmine JASMINE_CONFIG_PATH=jasmine.json"
   },
@@ -27,24 +27,9 @@
     "@typescript-eslint/eslint-plugin": "^6.5.0",
     "eslint": "^8.48.0",
     "eslint-plugin-unused-imports": "^3.0.0",
-    "istanbul": "0.4.5",
     "jasmine": "^5.1.0",
+    "nyc": "^15.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".spec.ts$",
-    "transform": {
-      ".+\\.(t|j)s$": "ts-jest"
-    },
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "testTimeout": 60000
   }
 }
