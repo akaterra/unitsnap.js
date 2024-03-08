@@ -13,6 +13,10 @@ export interface ISnapshotEnv {
   provider: ISnapshotProvider;
 }
 
+export interface ISnapshotFormatter<T = any> {
+  format(snapshot: _Snapshot): T;
+}
+
 export type SnapshotNativeEntry = Pick<State, 'name' | 'args' | 'exception' | 'result' | 'type' | 'callsCount' | 'epoch' | 'exceptionsCount' | 'isAsync'>;
 
 export class _Snapshot {
@@ -254,9 +258,17 @@ export class _Snapshot {
 
   serialize(format: 'pretty'): string;
 
-  serialize(format?: 'native' | 'pretty'): any {
-    switch (format) {
-      case 'pretty':
+  serialize<T>(format: (snapshot: _Snapshot) => T): T;
+
+  serialize<T>(format: ISnapshotFormatter<T>): T;
+
+  serialize(format?) {
+    switch (true) {
+      case typeof format === 'object':
+        return format.format(this);;
+      case typeof format === 'function':
+        return format(this);
+      case format === 'pretty':
         return formatPrettySnapshotEntries(this);
       default:
         return formatNativeSnapshotEntries(this);

@@ -10,7 +10,7 @@ export function formatPrettySnapshotEntries(shapshot: _Snapshot): string {
   let output = '';
 
   function addLines(param, entry, value, lineIndent) {
-    const strValue = serialize(value);
+    const strValue = serialize(value).trim();
     const lines = strValue.split('\n');
 
     if (param === 'name') {
@@ -77,23 +77,43 @@ function serialize(value, indent?, output?, circular?) {
   let post = '';
 
   switch (true) {
-    case value instanceof Buffer:
-      value = Array.from(value);
-      pre = '[[ Buffer : ';
+    case value instanceof ArrayBuffer:
+      pre = '[[ ArrayBuffer : ';
       post = ' ]]';
+      value = Array.from(new Uint8Array(value));
+      break;
+    case value instanceof Buffer:
+    case value instanceof Float32Array:
+    case value instanceof Float64Array:
+    case value instanceof Uint32Array:
+    case value instanceof Int8Array:
+    case value instanceof Int16Array:
+    case value instanceof Int32Array:
+    case value instanceof Uint8Array:
+    case value instanceof Uint16Array:
+    case value instanceof Uint32Array:
+      pre = `[[ ${Object.getPrototypeOf(value).constructor.name} : `;
+      post = ' ]]';
+      value = Array.from(value);
       break;
     case value instanceof Date:
       value = `[[ Date : ${value.toISOString()} ]]`;
       return `${value}\n`;
+    case value instanceof Error:
+      value = `[[ Error : ${value.name ?? '?'}, ${value.message ?? '?'} ]]`;
+      return `${value}\n`;
     case value instanceof Map:
-      value = Object.fromEntries(value.entries());
       pre = '[[ Map : ';
       post = ' ]]';
+      value = Object.fromEntries(value.entries());
       break;
+    case value instanceof RegExp:
+      value = `[[ RegExp : ${value.source ?? '?'} ]]`;
+      return `${value}\n`;
     case value instanceof Set:
-      value = Array.from(value.values());
       pre = '[[ Set : ';
       post = ' ]]';
+      value = Array.from(value.values());
       break;
     case typeof value === 'function':
       value = `[[ Function : ${value.name ?? '?'} ]]`;
@@ -101,6 +121,15 @@ function serialize(value, indent?, output?, circular?) {
     case typeof value === 'string':
       value = `"${value.replace(/"/g, '\\"')}"`;
       return `${value}\n`;
+    default:
+      if (value && typeof value === 'object') {
+        const constructor = Object.getPrototypeOf(value).constructor;
+
+        if (constructor !== Object && constructor !== Array) {
+          pre = `[[ ${constructor.name} : `;
+          post = ' ]]';
+        }
+      }
   }
 
   if (Array.isArray(value)) {
