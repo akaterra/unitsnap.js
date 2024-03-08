@@ -15,16 +15,14 @@ export function formatPrettySnapshotEntries(shapshot: _Snapshot): string {
 
     if (param === 'name') {
       if (entry.reportType == StateReportType.CALL_ARGS) {
-        output += `${lineIndent}-->\n`;
-        output += `${lineIndent}--> ${lines[0]}\n`;
-        output += `${lineIndent}-->\n`;
+        output += `${lineIndent}--> ${lines[0].slice(1, -1)}\n`;
       } else {
-        output += `${lineIndent}<--\n`;
-        output += `${lineIndent}<-- ${lines[0]}\n`;
-        output += `${lineIndent}<--\n`;
+        output += `${lineIndent}<-- ${lines[0].slice(1, -1)}\n`;
       }
-    } else if (param === 'args' || param === 'result') {
-      output += `${lineIndent}${lines[0]}\n`;
+    } else if (param === 'args') {
+      output += `${lineIndent}--> ${lines[0]}\n`;
+    } else if (param === 'result') {
+      output += `${lineIndent}<-- ${lines[0]}\n`;
     } else {
       output += `${lineIndent}${param} = ${lines[0]}\n`;
     }
