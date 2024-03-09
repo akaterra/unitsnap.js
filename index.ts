@@ -6,9 +6,6 @@ declare global {
   }
 }
 
-import { URL } from 'url';
-import { createRequire } from 'node:module';
-
 if (typeof globalThis === 'undefined') {
   (window as any).globalThis = window;
 }
@@ -99,3 +96,7 @@ export function extendJasmine() {
 };
 
 export default new _Observer();
+
+if (typeof window !== 'undefined') {
+  (window as any).unitsnap = module.exports;
+}

@@ -2,6 +2,7 @@ import * as fixture from './fixture';
 import * as history from './history';
 import * as mock from './mock';
 import * as snapshot from './snapshot';
+import { getSpyStats } from './spy';
 import { ClassDef, Fn } from './utils';
 
 let observerId = 1000;
@@ -117,34 +118,6 @@ export class _Observer {
 
 export function Observer() {
   return new _Observer();
-}
-
-export type SpiedFn<T> = (((...args: any[]) => T) | { new (...args: any[]): T }) & Partial<{
-  ARGS: { '*': any[] } & Record<string, any>;
-  CALLS_COUNT: number;
-  EXCEPTIONS_COUNT: number;
-  EXCEPTION: any;
-  IS_ASYNC: boolean;
-  IS_ASYNC_PENDING: boolean;
-  IS_EXCEPTION: boolean;
-  ORIGIN: any;
-  REPLACEMENT: any;
-  RESTORE: () => void;
-}>;
-
-export function getSpyStats<T>(fn: SpiedFn<T>) {
-  return {
-    args: fn.ARGS,
-    callsCount: fn.CALLS_COUNT,
-    exceptionsCount: fn.EXCEPTIONS_COUNT,
-    exception: fn.EXCEPTION,
-    isAsync: fn.IS_ASYNC,
-    isAsyncPending: fn.IS_ASYNC_PENDING,
-    isException: fn.IS_EXCEPTION,
-    origin: fn.ORIGIN,
-    replacement: fn.REPLACEMENT,
-    restore: fn.RESTORE,
-  };
 }
 
 export const stat = getSpyStats;

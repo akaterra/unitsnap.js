@@ -11,7 +11,7 @@ describe('Spy', () => {
 
       spied(1, 2, 3, 4, 5);
 
-      expect(spied.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
+      expect(unitsnap.stat(spied).args).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
     });
 
     it('should use arguments annotations in ES6 declaration', () => {
@@ -23,7 +23,7 @@ describe('Spy', () => {
 
       spied(1, {b: 2, c: 3, d: 4}, 5);
 
-      expect(spied.ARGS).toEqual({a: 1, b: 2, c: 3, dd: 4, e: undefined, ff: undefined, g: [5]});
+      expect(unitsnap.stat(spied).args).toEqual({a: 1, b: 2, c: 3, dd: 4, e: undefined, ff: undefined, g: [5]});
     });
 
     it('should use arguments annotations in ES6 declaration with no brackets single argument', () => {
@@ -35,7 +35,7 @@ describe('Spy', () => {
 
       spied(1, 2, 3, 4, 5);
 
-      expect(spied.ARGS).toEqual({'*': [2, 3, 4, 5], a: 1});
+      expect(unitsnap.stat(spied).args).toEqual({'*': [2, 3, 4, 5], a: 1});
     });
 
     it('should use arguments annotations in ES5 class constructor declaration', () => {
@@ -47,7 +47,7 @@ describe('Spy', () => {
 
       new Spied(1, 2, 3, 4, 5);
 
-      expect(Spied.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
+      expect(unitsnap.stat(Spied).args).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
     });
 
     it('should use arguments annotations in ES6 class constructor declaration', () => {
@@ -59,7 +59,7 @@ describe('Spy', () => {
 
       new Spied(1, 2, 3, 4, 5);
 
-      expect(Spied.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
+      expect(unitsnap.stat(Spied).args).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
     });
 
     it('should use arguments annotations in ES6 extended class constructor declaration', () => {
@@ -71,7 +71,7 @@ describe('Spy', () => {
 
       new Spied(1, 2, 3, 4, 5);
 
-      expect(Spied.ARGS).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
+      expect(unitsnap.stat(Spied).args).toEqual({'*': [4, 5], a: 1, b: 2, c: 3});
     });
 
     it('should spy on resolved promise', (done) => {
@@ -83,8 +83,8 @@ describe('Spy', () => {
 
       spied().then((result) => {
         expect(result).toBe(1);
-        expect(spied.IS_ASYNC).toBe(true);
-        expect(spied.IS_EXCEPTION).toBe(false);
+        expect(unitsnap.stat(spied).isAsync).toBe(true);
+        expect(unitsnap.stat(spied).isException).toBe(false);
 
         done();
       });
@@ -99,8 +99,8 @@ describe('Spy', () => {
 
       spied().catch((result) => {
         expect(result).toBe(1);
-        expect(spied.IS_ASYNC).toBe(true);
-        expect(spied.IS_EXCEPTION).toBe(true);
+        expect(unitsnap.stat(spied).isAsync).toBe(true);
+        expect(unitsnap.stat(spied).isException).toBe(true);
 
         done();
       });
@@ -123,7 +123,7 @@ describe('Spy', () => {
 
       spied.a(1);
 
-      expect(spied.a.ARGS).toEqual({'*': [], a: 1});
+      expect(unitsnap.stat(spied.a).args).toEqual({'*': [], a: 1});
     });
 
     it('should use arguments annotations in ES6 class declaration', () => {
@@ -141,7 +141,7 @@ describe('Spy', () => {
 
       spied.a(1);
 
-      expect(spied.a.ARGS).toEqual({'*': [], a: 1});
+      expect(unitsnap.stat(spied.a).args).toEqual({'*': [], a: 1});
     });
 
     it('should use arguments annotations in async ES7 class declaration', () => {
@@ -159,7 +159,7 @@ describe('Spy', () => {
 
       spied.a(1);
 
-      expect(spied.a.ARGS).toEqual({'*': [], a: 1});
+      expect(unitsnap.stat(spied.a).args).toEqual({'*': [], a: 1});
     });
   });
 
@@ -179,7 +179,7 @@ describe('Spy', () => {
 
       Spied.a(1);
 
-      expect(Spied.a.ARGS).toEqual({'*': [], a: 1});
+      expect(unitsnap.stat(Spied.a).args).toEqual({'*': [], a: 1});
     });
 
     it('should use arguments annotations in ES6 class declaration', () => {
@@ -197,7 +197,7 @@ describe('Spy', () => {
 
       Spied.a(1);
 
-      expect(Spied.a.ARGS).toEqual({'*': [], a: 1});
+      expect(unitsnap.stat(Spied.a).args).toEqual({'*': [], a: 1});
     });
 
     it('should use arguments annotations in async ES7 class declaration', () => {
@@ -215,7 +215,7 @@ describe('Spy', () => {
 
       Spied.a(1);
 
-      expect(Spied.a.ARGS).toEqual({'*': [], a: 1});
+      expect(unitsnap.stat(Spied.a).args).toEqual({'*': [], a: 1});
     });
   });
 
@@ -235,7 +235,7 @@ describe('Spy', () => {
 
       spied.a(1);
 
-      expect(spied.a.ARGS).toEqual({'*': [], a: 1});
+      expect(unitsnap.stat(spied.a).args).toEqual({'*': [], a: 1});
     });
 
     it('should arguments annotations in ES5 class getter declaration', () => {

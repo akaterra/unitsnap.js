@@ -1,6 +1,6 @@
 import * as instance from './instance';
 import { _Custom } from './mock';
-import { Fn } from './utils';
+import { Es6ClassDef, Fn } from './utils';
 
 export type SpyOnFunctionOptions = {
   argsAnnotation?: _Custom['_argsAnnotation'];
@@ -49,13 +49,57 @@ export interface State {
   isException?: boolean;
   level?: number;
   name?: string;
-  origin?: (...args: any[]) => any;
-  replacement?: (...args: any[]) => any;
+  origin?: Fn;
+  replacement?: Fn;
   reportType?: StateReportType;
   result?: any;
   tags?: string[];
   time?: Date;
   type?: StateType;
+}
+
+export interface CallState {
+  args?: {
+    '*'?: any[];
+    [key: string]: any;
+  };
+  callsCount?: number;
+  exception?: any | Error;
+  exceptionsCount?: number;
+  isAsync?: boolean;
+  isAsyncPending?: boolean;
+  isException?: boolean;
+  origin?: Fn & { original?: Fn };
+  replacement?: Fn & { original?: Fn };
+  result?: any;
+  restore?: () => void;
+}
+
+const callStates = new WeakMap<Fn | Es6ClassDef<any>, CallState>();
+
+function cs(fn: Fn): CallState {
+  if (!callStates.has(fn)) {
+    callStates.set(fn, {});
+  }
+
+  return callStates.get(fn);
+}
+
+export function getSpyStats(fn: Fn | Es6ClassDef<any>) {
+  const c = callStates.get(fn);
+
+  return {
+    args: c?.args ?? {},
+    callsCount: c?.callsCount ?? 0,
+    exceptionsCount: c?.exceptionsCount ?? 0,
+    exception: c?.exception ?? undefined,
+    isAsync: c?.isAsync ?? false,
+    isAsyncPending: c?.isAsyncPending ?? false,
+    isException: c?.isException ?? false,
+    origin: c?.origin ?? undefined,
+    replacement: c?.replacement ?? undefined,
+    restore: (fn as any)?.RESTORE ?? c?.restore ?? (() => {}),
+  };
 }
 
 export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstructor?: boolean) {
@@ -87,8 +131,9 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
   }
 
   callable = function (...args: unknown[]) {
-    callable.ARGS = { '*': [] };
-    callable.CALLS_COUNT ++;
+    const c = cs(callable);
+    c.args = { '*': [] };
+    c.callsCount += 1;
 
     let isRest = false;
     let isRestEs6Ind = null;
@@ -99,21 +144,21 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
       } else if (originalCallableAnnotation.args[ind].type === 'rest') {
         isRest = true;
         isRestEs6Ind = ind;
-        callable.ARGS[originalCallableAnnotation.args[isRestEs6Ind].name] = [];
+        c.args[originalCallableAnnotation.args[isRestEs6Ind].name] = [];
 
-        delete callable.ARGS['*'];
+        delete c.args['*'];
       } else if (originalCallableAnnotation.args[ind].type === 'unpack') {
         originalCallableAnnotation.args[ind].props.forEach((annotation) => {
-          callable.ARGS[annotation.alias || annotation.name] = val[annotation.name];
+          c.args[annotation.alias || annotation.name] = val[annotation.name];
         });
 
         return;
       }
 
       if (isRest) {
-        callable.ARGS[isRestEs6Ind !== null ? originalCallableAnnotation.args[isRestEs6Ind].name : '*'].push(val);
+        c.args[isRestEs6Ind !== null ? originalCallableAnnotation.args[isRestEs6Ind].name : '*'].push(val);
       } else {
-        callable.ARGS[originalCallableAnnotation.args[ind].name] = val;
+        c.args[originalCallableAnnotation.args[ind].name] = val;
       }
     });
     
@@ -138,16 +183,18 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
       }
 
       if (result instanceof Promise) {
-        callable.IS_ASYNC = true;
-        callable.IS_ASYNC_PENDING = true;
-        callable.RESULT = result;
+        const c = cs(callable);
+        c.isAsync = true;
+        c.isAsyncPending = true;
+        c.result = result;
 
         return result.then(
-          function (result) {
-            callable.EXCEPTION = undefined;
-            callable.IS_ASYNC_PENDING = false;
-            callable.IS_EXCEPTION = false;
-            callable.RESULT = result;
+          (result) => {
+            const c = cs(callable);
+            c.exception = undefined;
+            c.isAsyncPending = false;
+            c.isException = false;
+            c.result = result;
 
             if (options && options.onCall) {
               if (options.exclude !== true) {
@@ -160,11 +207,12 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
 
             return result;
           },
-          function (error) {
-            callable.EXCEPTION = error;
-            callable.IS_ASYNC_PENDING = false;
-            callable.IS_EXCEPTION = true;
-            callable.RESULT = undefined;
+          (error) => {
+            const c = cs(callable);
+            c.exception = error;
+            c.isAsyncPending = false;
+            c.isException = true;
+            c.result = undefined;
 
             if (options && options.onCall) {
               if (options.exclude !== true) {
@@ -180,85 +228,95 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
         );
       }
 
-      callable.EXCEPTION = undefined;
-      callable.IS_ASYNC = false;
-      callable.IS_ASYNC_PENDING = false;
-      callable.IS_EXCEPTION = false;
-      callable.RESULT = result;
+      const c = cs(callable);
+      c.exception = undefined;
+      c.isAsync = false;
+      c.isAsyncPending = false;
+      c.isException = false;
+      c.result = result;
 
       return result;
     } catch (e) {
-      callable.EXCEPTIONS_COUNT ++;
+      const c = cs(callable);
+      c.exceptionsCount += 1;
 
-      callable.EXCEPTION = e;
-      callable.IS_ASYNC = false;
-      callable.IS_ASYNC_PENDING = false;
-      callable.IS_EXCEPTION = true;
-      callable.RESULT = undefined;
+      c.exception = e;
+      c.isAsync = false;
+      c.isAsyncPending = false;
+      c.isException = true;
+      c.result = undefined;
 
       throw e;
     } finally {
+      const c = cs(callable);
+
       if (options && options.onCall) {
         if (options.exclude !== true) {
           options.onCall(this, {
             ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
             ...options.extra || {},
-            result: asConstructor ? undefined : callable.RESULT
+            result: asConstructor ? undefined : c.result,
           }); // context, fn
         }
       }
     }
-  };
+  }
 
-  callable.ARGS = { '*': [] };
-  callable.CALLS_COUNT = 0;
-  callable.EXCEPTION = undefined;
-  callable.EXCEPTIONS_COUNT = 0;
-  callable.IS_ASYNC_PENDING = false;
-  callable.IS_ASYNC = false;
-  callable.IS_EXCEPTION = false;
-  callable.ORIGIN = options && options.origin || originalCallable;
-  callable.REPLACEMENT = options && options.replacement || callable;
-  callable.RESULT = undefined;
+  const c = cs(callable);
+  c.args = { '*': [] };
+  c.callsCount = 0;
+  c.exception = undefined;
+  c.exceptionsCount = 0;
+  c.isAsyncPending = false;
+  c.isAsync = false;
+  c.isException = false;
+  c.origin = options && options.origin || originalCallable;
+  c.replacement = options && options.replacement || callable;
+  c.result = undefined;
 
+  Object.defineProperty(callable, 'length', { value: originalCallable.length, writable: false });
   Object.defineProperty(callable, 'name', { value: originalCallable.name, writable: false });
 
   return callable;
 }
 
 export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions) {
+  const c = cs(callable);
+
   return {
     level: options?.onEnterLevel ? options.onEnterLevel() : 0,
     reportType: StateReportType.CALL_ARGS,
 
-    args: callable.ARGS,
-    callsCount: callable.CALLS_COUNT,
+    args: c.args,
+    callsCount: c.callsCount,
     context: context,
-    //exception: callable.EXCEPTION,
-    //exceptionsCount: callable.EXCEPTIONS_COUNT,
-    //isAsync: callable.IS_ASYNC,
-    //isAsyncPending: callable.IS_ASYNC_PENDING,
-    //isException: callable.IS_EXCEPTION,
+    // exception: c.exception,
+    // exceptionsCount: c.exceptionsCount,
+    // isAsync: c.isAsync,
+    // isAsyncPending: c.isAsyncPending,
+    // isException: c.isException,
     origin: options && options.origin || originalCallable,
-    replacement: options && options.replacement || originalCallable.REPLACEMENT,
+    replacement: options && options.replacement || c.replacement,
   };
 }
 
 export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions) {
+  const c = cs(callable);
+
   return {
     level: options?.onLeaveLevel ? options.onLeaveLevel() : 0,
     reportType: StateReportType.RETURN_VALUE,
 
-    callsCount: callable.CALLS_COUNT,
+    callsCount: c.callsCount,
     context: context,
-    exception: callable.EXCEPTION,
-    exceptionsCount: callable.EXCEPTIONS_COUNT,
-    isAsync: callable.IS_ASYNC,
-    isAsyncPending: callable.IS_ASYNC_PENDING,
-    isException: callable.IS_EXCEPTION,
+    exception: c.exception,
+    exceptionsCount: c.exceptionsCount,
+    isAsync: c.isAsync,
+    isAsyncPending: c.isAsyncPending,
+    isException: c.isException,
     origin: options && options.origin || originalCallable,
-    replacement: options && options.replacement || originalCallable.REPLACEMENT,
-    result: callable.RESULT,
+    replacement: options && options.replacement || c.replacement,
+    result: c.result,
   };
 }
 
@@ -340,16 +398,17 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
         }
       })(descriptor);
 
-      descriptor.get.ARGS = { '*': [] };
-      descriptor.get.CALLS_COUNT = 0;
-      descriptor.get.EXCEPTIONS_COUNT = 0;
-      descriptor.get.EXCEPTION = undefined;
-      descriptor.get.IS_ASYNC = false;
-      descriptor.get.IS_ASYNC_PENDING = false;
-      descriptor.get.IS_EXCEPTION = false;
-      descriptor.get.ORIGIN = options && options.get && options.get.origin;
-      descriptor.get.REPLACEMENT = options && options.get && options.get.replacement;
-      descriptor.get.RESULT = undefined;
+      const c = cs(descriptor.get);
+      c.args = { '*': [] };
+      c.callsCount = 0;
+      c.exceptionsCount = 0;
+      c.exception = undefined;
+      c.isAsync = false;
+      c.isAsyncPending = false;
+      c.isException = false;
+      c.origin = options && options.get && options.get.origin;
+      c.replacement = options && options.get && options.get.replacement;
+      c.result = undefined;
     }
 
     if (repDescriptor.set) {
@@ -379,16 +438,17 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
         }
       })(descriptor);
 
-      descriptor.set.ARGS = { '*': [] };
-      descriptor.set.CALLS_COUNT = 0;
-      descriptor.set.EXCEPTIONS_COUNT = 0;
-      descriptor.set.EXCEPTION = undefined;
-      descriptor.set.IS_ASYNC = false;
-      descriptor.set.IS_ASYNC_PENDING = false;
-      descriptor.set.IS_EXCEPTION = false;
-      descriptor.set.ORIGIN = options && options.set && options.set.origin;
-      descriptor.set.REPLACEMENT = options && options.set && options.set.replacement;
-      descriptor.set.RESULT = undefined;
+      const c = cs(descriptor.set);
+      c.args = { '*': [] };
+      c.callsCount = 0;
+      c.exceptionsCount = 0;
+      c.exception = undefined;
+      c.isAsync = false;
+      c.isAsyncPending = false;
+      c.isException = false;
+      c.origin = options && options.set && options.set.origin;
+      c.replacement = options && options.set && options.set.replacement;
+      c.result = undefined;
     }
 
     break;
@@ -422,16 +482,17 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
       })(descriptor);
     }
 
-    descriptor.value.ARGS = { '*': [] };
-    descriptor.value.CALLS_COUNT = 0;
-    descriptor.value.EXCEPTIONS_COUNT = 0;
-    descriptor.value.EXCEPTION = undefined;
-    descriptor.value.IS_ASYNC = false;
-    descriptor.value.IS_ASYNC_PENDING = false;
-    descriptor.value.IS_EXCEPTION = false;
-    descriptor.value.ORIGIN = options && options.origin;
-    descriptor.value.REPLACEMENT = options && options.replacement;
-    descriptor.value.RESULT = undefined;
+    const c = cs(descriptor.value);
+    c.args = { '*': [] };
+    c.callsCount = 0;
+    c.exceptionsCount = 0;
+    c.exception = undefined;
+    c.isAsync = false;
+    c.isAsyncPending = false;
+    c.isException = false;
+    c.origin = options && options.origin;
+    c.replacement = options && options.replacement;
+    c.result = undefined;
 
     break;
 
