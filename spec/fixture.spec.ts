@@ -40,7 +40,7 @@ describe('Fixture', () => {
   });
 
   it('should initiate fs provider for current strategy', () => {
-    const e = new unitsnap._Fixture().setName('test').loadFromFsProvider(__dirname + '/fixtures');
+    const e = new unitsnap._Fixture().setName('test').loadFromFsProvider(__dirname + '/spec/fixtures');
 
     expect(e.env.strategy.pop(3)).toEqual([1, 2, 3]);
   });
@@ -58,7 +58,7 @@ describe('Fixture', () => {
   });
 
   it('should set fs provider for current strategy', () => {
-    const e = new unitsnap._Fixture().setName('test').loadFromFsProvider(new unitsnap.FixtureFsProvider(__dirname + '/fixtures'));
+    const e = new unitsnap._Fixture().setName('test').loadFromFsProvider(new unitsnap.FixtureFsProvider(__dirname + '/spec/fixtures'));
 
     expect(e.env.strategy.pop(3)).toEqual([1, 2, 3]);
   });
@@ -206,13 +206,13 @@ describe('FixtureFsProvider', () => {
   });
 
   it('should load by name', () => {
-    const e = new unitsnap.FixtureFsProvider(__dirname + '/fixtures');
+    const e = new unitsnap.FixtureFsProvider(__dirname + '/spec/fixtures');
 
     expect(e.load('test')).toEqual([1, 2, 3]);
   });
 
   it('should load by self name', () => {
-    const e = new unitsnap.FixtureFsProvider(__dirname + '/fixtures').setName('test');
+    const e = new unitsnap.FixtureFsProvider(__dirname + '/spec/fixtures').setName('test');
 
     expect(e.load()).toEqual([1, 2, 3]);
   });

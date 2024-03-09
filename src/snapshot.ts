@@ -1,10 +1,11 @@
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { _Filter } from './filter';
 import { _Observer } from './observer';
 import { _Processor, ProcessorChecker, ProcessorSerializer } from './processor';
 import { formatNativeSnapshotEntries } from './snapshot_formatter.native';
 import { formatPrettySnapshotEntries } from './snapshot_formatter.pretty';
 import { State, StateReportType } from './spy';
-import { ClassDef, Fn } from './utils';
+import { ClassDef } from './utils';
 
 export interface ISnapshotEnv {
   mapper: (snapshot: _Snapshot, entry: State) => State;
@@ -388,31 +389,32 @@ export class SnapshotFsProvider implements ISnapshotProvider {
   }
 
   exists(name) {
-    return require('fs').existsSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
+    return existsSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
   }
 
   load(name) {
-    const snapshot = JSON.parse(require('fs').readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json'));
+    const snapshot = JSON.parse(readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json', 'utf-8'));
 
     return snapshot;
   }
 
   remove(name) {
     if (name && this.exists(name)) {
-      require('fs').unlinkSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
+      unlinkSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
     }
 
     return this;
   }
 
   save(name, snapshot) {
-    require('fs').writeFileSync(
+    writeFileSync(
       this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json',
       JSON.stringify(
         snapshot instanceof _Snapshot ? snapshot.serialize() : snapshot,
         undefined,
         4
-      )
+      ),
+      'utf-8',
     );
 
     return this;

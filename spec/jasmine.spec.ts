@@ -3,7 +3,7 @@ import * as unitsnap from '..';
 describe('some suite 1', () => {
   const observer = unitsnap.default;
 
-  observer.env.snapshot.setFsProvider(__dirname + '/snapshots').includeName();
+  observer.env.snapshot.setFsProvider(__dirname + '/spec/snapshots').includeName();
 
   beforeAll(() => unitsnap.extendJasmine());
   beforeEach(() => observer.begin());
@@ -34,7 +34,7 @@ describe('some suite 1', () => {
 describe('some suite 2', () => {
   const observer = unitsnap.default;
 
-  observer.env.snapshot.setFsProvider(__dirname + '/snapshots');
+  observer.env.snapshot.setFsProvider(__dirname + '/spec/snapshots');
 
   beforeAll(() => unitsnap.extendJasmine());
   beforeEach(() => {

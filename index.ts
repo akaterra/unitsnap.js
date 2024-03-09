@@ -6,6 +6,17 @@ declare global {
   }
 }
 
+import { URL } from 'url';
+import { createRequire } from 'node:module';
+
+if (typeof globalThis === 'undefined') {
+  (window as any).globalThis = window;
+}
+
+if (typeof globalThis.__dirname === 'undefined') {
+  globalThis.__dirname = '.';
+}
+
 export * from './src/filter';
 export * from './src/fixture';
 export * from './src/history';

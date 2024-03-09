@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import { PositiveInteger as PositiveInt } from './utils';
 
 export interface IFixtureEnv {
@@ -166,7 +167,7 @@ export class FixtureFsProvider implements IFixtureProvider {
       throw new Error('Fixture source name is required');
     }
 
-    return JSON.parse(require('fs').readFileSync(this._dir + '/' + (sourceName || this._name).replace(/\s/g, '_') + '.fixture.json'));
+    return JSON.parse(readFileSync(this._dir + '/' + (sourceName || this._name).replace(/\s/g, '_') + '.fixture.json', 'utf-8'));
   }
 }
 

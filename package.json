@@ -16,7 +16,7 @@
     "build": "npx tsc --project tsconfig.cjs.json && npx tsc --project tsconfig.esm.json",
     "coverage": "npx nyc --reporter=lcov npm run test",
     "lint": "npx eslint ./src/* --ext=.ts --fix",
-    "test": "npx ts-node node_modules/jasmine/bin/jasmine JASMINE_CONFIG_PATH=jasmine.json"
+    "test": "node --experimental-specifier-resolution=node --loader ts-node/esm node_modules/jasmine/bin/jasmine JASMINE_CONFIG_PATH=jasmine.json"
   },
   "author": "akaterra",
   "license": "MIT",
@@ -33,6 +33,7 @@
     "@types/jasmine": "^5.1.4",
     "@types/node": "^20.11.20",
     "@typescript-eslint/eslint-plugin": "^6.5.0",
+    "browserify": "^17.0.0",
     "eslint": "^8.48.0",
     "eslint-plugin-unused-imports": "^3.0.0",
     "jasmine": "^5.1.0",

@@ -732,15 +732,15 @@ describe('Snapshot', () => {
 
 describe('SnapshotFsProvider', () => {
   it('should exist', () => {
-    expect(new unitsnap.SnapshotFsProvider(__dirname + '/snapshots').exists('a')).toBeTruthy();
+    expect(new unitsnap.SnapshotFsProvider(__dirname + '/spec/snapshots').exists('a')).toBeTruthy();
   });
 
   it('should not exist', () => {
-    expect(new unitsnap.SnapshotFsProvider(__dirname + '/snapshots').exists('b')).toBeFalsy();
+    expect(new unitsnap.SnapshotFsProvider(__dirname + '/spec/snapshots').exists('b')).toBeFalsy();
   });
 
   it('should remove', () => {
-    const e = new unitsnap.SnapshotFsProvider(__dirname + '/snapshots');
+    const e = new unitsnap.SnapshotFsProvider(__dirname + '/spec/snapshots');
 
     e.save('test', new unitsnap._Snapshot([{}])).remove('test');
 
@@ -748,7 +748,7 @@ describe('SnapshotFsProvider', () => {
   });
 
   it('should save/load', () => {
-    const e = new unitsnap.SnapshotFsProvider(__dirname + '/snapshots');
+    const e = new unitsnap.SnapshotFsProvider(__dirname + '/spec/snapshots');
 
     e.save('test', new unitsnap._Snapshot([{}]));
 
@@ -756,7 +756,7 @@ describe('SnapshotFsProvider', () => {
   });
 
   it('should save/load arbitrary object', () => {
-    const e = new unitsnap.SnapshotFsProvider(__dirname + '/snapshots');
+    const e = new unitsnap.SnapshotFsProvider(__dirname + '/spec/snapshots');
 
     e.save('test', [{args: null, result: null}]);
 
