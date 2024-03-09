@@ -7,7 +7,7 @@
     "experimentalDecorators": true,
     "target": "es2022",
     "sourceMap": true,
-    "outDir": "./dist",
+    "outDir": "./cjs",
     "baseUrl": ".",
     "incremental": true,
     "skipLibCheck": true,
@@ -19,6 +19,7 @@
   "exclude": [
     "./coverage",
     "./dist",
+    "./spec",
     "./esm",
     "./cjs"
   ]

@@ -3,6 +3,8 @@
 .nyc_output/
 *ignore.js
 dist/
+cjs/
+esm/
 coverage/
 node_modules/
 snapshots/
