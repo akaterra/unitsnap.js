@@ -1,3 +1,4 @@
+import {CIRCULAR, UNSERIALIZABLE} from './const';
 import {
   _ClassOf,
   _InstanceOf,
@@ -81,12 +82,6 @@ export class _Processor {
     return this;
   }
 
-  classOf(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    const helper = new _ClassOf(cls);
-
-    return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
-  }
-
   instanceOf(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
     const helper = new _InstanceOf(cls);
 
@@ -103,16 +98,16 @@ export class _Processor {
     return this.add((value, path) => rgx.test(path), serializer);
   }
 
-  null(serializer?: ProcessorSerializer) {
-    const helper = new _NullType();
-
-    return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
-  }
-
   regexPath(regex: string | RegExp, serializer: ProcessorSerializer) {
     const rgx = regex instanceof RegExp ? regex : RegExp(regex);
 
     return this.add((value, path) => rgx.test(path), serializer);
+  }
+
+  strictInstanceOf(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+    const helper = new _ClassOf(cls);
+
+    return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
   }
 
   undefined(serializer?: ProcessorSerializer) {
@@ -129,7 +124,7 @@ export class _Processor {
     if (!circular) {
       circular = new Set<unknown>();
     } else if (circular.has(value)) {
-      return new Wrapped('[[ Circular ! ]]');
+      return new Wrapped(CIRCULAR);
     }
 
     this._processors.some((p) => {
@@ -153,7 +148,7 @@ export class _Processor {
         try {
           return this.serializeInternal(val, path + '[' + ind + ']', false, circular);
         } catch (err) {
-          return new Wrapped('[[ Unserializable ! ]]');
+          return new Wrapped(UNSERIALIZABLE);
         }
       }).filter((val) => {
         return val !== Ignore;

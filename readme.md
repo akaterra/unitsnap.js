@@ -755,21 +755,15 @@ Note, that each added processor will be inserted into beginning of the processor
 
   **checker** is a function that checks if the value should be serialized, **serializer** performs value serialization.
 
-* **addClassOfProcessor(class, serializer)** - adds "class of" processor, the value will be serialized as:
-  ```typescript
-  {
-    $$data: <class name>,
-    $$type: 'classOf'
-  }
-  ```
-
 * **addInstanceOfProcessor(class, serializer)** - adds "instance of" processor, the value will be serialized as:
   ```typescript
   {
-    $$data: <class name of instance>,
-    $$type: 'instanceOf'
+    '[[ Data ]]': <class name>,
+    '[[ Type ]]': 'instanceOf'
   }
   ```
+
+  **serializer** will be called if the value has a instance of the provided class or its inherent.
 
 * **addPathProcessor(path, serializer)** - adds "match to path" processor, the value having **path** will be serialized with **serializer**
 
@@ -777,11 +771,21 @@ Note, that each added processor will be inserted into beginning of the processor
 
 * **addRegexPathProcessor(regex, serializer)** - adds "match to regex path" processor, the value with path matched to the **regex** will be serialized with **serializer**.
 
+* **addStrictInstanceOfProcessor(class, serializer)** - adds "strict instance of" processor, the value will be serialized as:
+  ```typescript
+  {
+    '[[ Data ]]': <class name>,
+    '[[ Type ]]': 'strictInstanceOf'
+  }
+  ```
+
+  **serializer** will be called if the value has a strict instance of the provided class.
+
 * **addUndefinedProcessor(serializer)** - adds "undefined value" processor, the value will be serialized as:
   ```typescript
   {
-    $$data: null,
-    $$type: 'undefined'
+    '[[ Data ]]': null,
+    '[[ Type ]]': 'undefined'
   }
   ```
 
@@ -795,7 +799,7 @@ snapshot.addProcessor((value) => value === 5, (value) => new Continue(value));
 The set of special type helpers can be used with value processors that can be useful in some cases.
 
 ```typescript
-snapshot.addProcessor(Date); // adds checker "instance of Date" and serializer to {$$data: null, $$type: 'date'}
+snapshot.addProcessor(Date); // adds checker "instance of Date" and serializer to {'[[ Data ]]': null, '[[ Type ]]': 'date'}
 snapshot.serialize();
 ```
 
@@ -810,8 +814,8 @@ Serialized snapshot:
     },
     {
         "result": {
-            "$$data": null,
-            "$$type": "date"
+            "[[ Data ]]": null,
+            "[[ Type ]]": "date"
         }
     }
 ]
@@ -822,24 +826,24 @@ Available helpers:
 * **AnyType** - serializes any value as:
   ```typescript
   {
-    $$data: null,
-    $$type: "any"
+    '[[ Data ]]': null,
+    '[[ Type ]]': "any"
   }
   ```
 
 * **BooleanType (or JS Boolean type)** - checks the value to be boolean and serializes the value as:
   ```typescript
   {
-    $$data: null,
-    $$type: "boolean"
+    '[[ Data ]]': null,
+    '[[ Type ]]': "boolean"
   }
   ```
 
 * **ClassOf** - checks the value to be class of and serializes the value as:
   ```typescript
   {
-    $$data: "<class name>",
-    $$type: "classOf"
+    '[[ Data ]]': "<class name>",
+    '[[ Type ]]': "classOf"
   }
   ```
 
@@ -851,16 +855,16 @@ Available helpers:
 * **DateType (or JS Date type)** - checks the value to be instance of Date and serializes the value as:
   ```typescript
   {
-    $$data: null,
-    $$type: "date"
+    '[[ Data ]]': null,
+    '[[ Type ]]': "date"
   }
   ```
 
 * **DateValue** - checks the value to be instance of Date and serializes the value as:
   ```typescript
   {
-    $$data: "<ISO string>",
-    $$type: "date"
+    '[[ Data ]]': "<ISO string>",
+    '[[ Type ]]': "date"
   }
   ```
 
@@ -871,8 +875,8 @@ Available helpers:
   const value = In(1, 2, 3).serialize(1);
 
   {
-    "$$data": "1,2,3",
-    "$$type": "in"
+    '[[ Data ]]': '1,2,3',
+    '[[ Type ]]': 'in'
   }
   ```
 
@@ -880,64 +884,64 @@ Available helpers:
   const value = In(1, 2, 3).serialize(4);
 
   {
-    "$$data": "4 ∉ 1,2,3",
-    "$$type": "not:in"
+    '[[ Data ]]': '4 ∉ 1,2,3',
+    '[[ Type ]]': 'not:in'
   }
   ```
 
 * **InstanceOf** - checks the value to be instance of Date and serializes the value as:
   ```typescript
   {
-    $$data: "<class name>",
-    $$type: "instanceOf"
+    '[[ Data ]]': "<class name>",
+    '[[ Type ]]': "instanceOf"
   }
   ```
 
 * **NumberIsCloseTo** - checks the value to be number which is close to some number with a difference and serializes the value as:
   ```typescript
   {
-    $$data: "<expected> ±<difference>",
-    $$type: "numberIsCloseTo"
+    '[[ Data ]]': '<expected> ±<difference>',
+    '[[ Type ]]': 'numberIsCloseTo'
   }
   ```
 
 * **NumberIsPreciseTo** - same as **NumberIsCloseTo** but uses negative exponent to calculate an expected difference:
   ```typescript
   {
-    $$data: "<expected> ±<difference>",
-    $$type: "numberIsPreciseTo"
+    '[[ Data ]]': "<expected> ±<difference>",
+    '[[ Type ]]': "numberIsPreciseTo"
   }
   ```
 
 * **NumberType (or JS Number type)** - checks the value to be number and serializes the value as:
   ```typescript
   {
-    $$data: null,
-    $$type: "number"
+    '[[ Data ]]': null,
+    '[[ Type ]]': "number"
   }
   ```
 
 * **Range** - checks the value is in range (numeric, lexicographic or dates) and serializes the value as:
   ```typescript
   {
-    $$data: "<min> .. <max>",
-    $$type: "range"
+    '[[ Data ]]': "<min> .. <max>",
+    '[[ Type ]]': "range"
   }
   ```
 
 * **StringType (or JS String type)** - checks the value to be string and serializes the value as:
   ```typescript
   {
-    $$data: null,
-    $$type: "string"
+    '[[ Data ]]': null,
+    '[[ Type ]]': "string"
   }
   ```
 
 * **UndefinedType (or undefined)** - checks the value to be undefined value and serializes the value as:
   ```typescript
   {
-    $$data: null,
-    $$type: "undefined"
+    '[[ Data ]]': null,
+    '[[ Type ]]': "undefined"
   }
   ```
 

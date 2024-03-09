@@ -232,7 +232,7 @@ export class _Mock {
 
   private _callArgsProcessor = new _Processor();
   private _returnValueProcessor = new _Processor();
-  private _currentProcessor = null;
+  private _currentProcessor: _Processor = null;
 
   private _history: _History;
   private _fixturePop: any;
@@ -290,20 +290,8 @@ export class _Mock {
     return this;
   }
 
-  addClassOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    this._currentProcessor.classOf(cls, serializer);
-
-    return this;
-  }
-
   addInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
     this._currentProcessor.instanceOf(cls, serializer);
-
-    return this;
-  }
-
-  addNullProcessor(serializer?: ProcessorSerializer) {
-    this._currentProcessor.null(serializer);
 
     return this;
   }
@@ -316,6 +304,12 @@ export class _Mock {
 
   addRegexPathProcessor(regex: string | RegExp, serializer: ProcessorSerializer) {
     this._currentProcessor.regexPath(regex, serializer);
+
+    return this;
+  }
+
+  addStrictInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+    this._currentProcessor.strictInstanceOf(cls, serializer);
 
     return this;
   }
@@ -533,20 +527,8 @@ export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Nu
     return this;
   }
 
-  addClassOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    this._currentProcessor.classOf(cls, serializer);
-
-    return this;
-  }
-
   addInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
     this._currentProcessor.instanceOf(cls, serializer);
-
-    return this;
-  }
-
-  addNullProcessor(serializer?: ProcessorSerializer) {
-    this._currentProcessor.null(serializer);
 
     return this;
   }
@@ -559,6 +541,12 @@ export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Nu
 
   addRegexPathProcessor(regex: string | RegExp, serializer: ProcessorSerializer) {
     this._currentProcessor.regexPath(regex, serializer);
+
+    return this;
+  }
+
+  addStrictInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+    this._currentProcessor.strictInstanceOf(cls, serializer);
 
     return this;
   }

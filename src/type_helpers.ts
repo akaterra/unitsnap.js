@@ -1,3 +1,4 @@
+import { DATA, TYPE } from './const';
 import { ClassDef } from './utils';
 
 export interface IType {
@@ -11,7 +12,7 @@ export class _AnyType implements IType {
   }
 
   serialize() {
-    return { $$data: null, $$type: 'any' };
+    return { [ DATA ]: null, [ TYPE ]: 'any' };
   }
 }
 
@@ -27,7 +28,7 @@ export class _BooleanType implements IType {
   serialize(value?) {
     const pref = this.check(value) ? '' : 'not:';
 
-    return { $$data: pref ? value : null, $$type: `${pref}boolean` };
+    return { [ DATA ]: pref ? value : null, [ TYPE ]: `${pref}boolean` };
   }
 }
 
@@ -49,7 +50,7 @@ export class _ClassOf implements IType {
     const typA = Object.getPrototypeOf(value).constructor.name;
     const typB = this._cls.name;
 
-    return { $$data: pref ? `${typB} ≠ ${typA}` : typA, $$type: `${pref}classOf` };
+    return { [ DATA ]: pref ? `${typB} ≠ ${typA}` : typA, [ TYPE ]: `${pref}classOf` };
   }
 }
 
@@ -93,7 +94,7 @@ export class _DateType implements IType {
   serialize(value?) {
     const pref = this.check(value) ? '' : 'not:';
 
-    return { $$data: null, $$type: `${pref}date` };
+    return { [ DATA ]: null, [ TYPE ]: `${pref}date` };
   }
 }
 
@@ -141,7 +142,7 @@ export class _In implements IType {
   serialize(value?) { // eslint-disable-line unused-imports/no-unused-vars
     const pref = this.check(value) ? '' : 'not:';
 
-    return { $$data: JSON.stringify(this._values).slice(1, -1), $$type: `${pref}in` };
+    return { [ DATA ]: JSON.stringify(this._values).slice(1, -1), [ TYPE ]: `${pref}in` };
   }
 }
 
@@ -163,7 +164,7 @@ export class _InstanceOf implements IType {
     const typA = Object.getPrototypeOf(value).constructor.name;
     const typB = this._cls.name;
 
-    return { $$data: pref ? `${typB} ⊈ ${typA}` : typA, $$type: `${pref}instanceOf` };
+    return { [ DATA ]: pref ? `${typB} ⊈ ${typA}` : typA, [ TYPE ]: `${pref}instanceOf` };
   }
 }
 
@@ -179,7 +180,7 @@ export class _NullType implements IType {
   serialize(value?) {
     const pref = this.check(value) ? '' : 'not:';
 
-    return { $$data: pref ? value : null, $$type: `${pref}null` };
+    return { [ DATA ]: pref ? value : null, [ TYPE ]: `${pref}null` };
   }
 }
 
@@ -195,7 +196,7 @@ export class _NumberType implements IType {
   serialize(value?) {
     const pref = this.check(value) ? '' : 'not:';
 
-    return { $$data: pref ? value : null, $$type: `${pref}number` };
+    return { [ DATA ]: pref ? value : null, [ TYPE ]: `${pref}number` };
   }
 }
 
@@ -231,7 +232,7 @@ export class _NumberIsCloseTo implements IType {
       : this._diff;
     const data = pref ? `${value} ∉ ${this._value} ±${diff}` : `${this._value} ±${diff}`;
 
-    return { $$data: data, $$type: `${pref}numberIsCloseTo` };
+    return { [ DATA ]: data, [ TYPE ]: `${pref}numberIsCloseTo` };
   }
 }
 
@@ -267,7 +268,7 @@ export class _NumberIsPreciseTo implements IType {
       : Math.pow(10, -this._precision);
     const data = pref ? `${value} ∉ ${this._value} ±${diff}` : `${this._value} ±${diff}`;
 
-    return { $$data: data, $$type: `${pref}numberIsPreciseTo` };
+    return { [ DATA ]: data, [ TYPE ]: `${pref}numberIsPreciseTo` };
   }
 }
 
@@ -300,7 +301,7 @@ export class _Range implements IType {
       ? `${this.primitive(value)} ∉ ${this.primitive(this._min)} .. ${this.primitive(this._max)}`
       : `${this.primitive(this._min)} .. ${this.primitive(this._max)}`;
 
-    return { $$data: data, $$type: `${pref}range` };
+    return { [ DATA ]: data, [ TYPE ]: `${pref}range` };
   }
 
   private isSameType(val1, val2): boolean {
@@ -342,7 +343,7 @@ export class _StringType implements IType {
   serialize(value?) {
     const pref = this.check(value) ? '' : 'not:';
 
-    return { $$data: pref ? value : null, $$type: `${pref}string` };
+    return { [ DATA ]: pref ? value : null, [ TYPE ]: `${pref}string` };
   }
 }
 
@@ -358,7 +359,7 @@ export class _UndefinedType implements IType {
   serialize(value?) {
     const pref = this.check(value) ? '' : 'not:';
 
-    return { $$data: pref ? value : null, $$type: `${pref}undefined` };
+    return { [ DATA ]: pref ? value : null, [ TYPE ]: `${pref}undefined` };
   }
 }
 

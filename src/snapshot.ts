@@ -123,7 +123,7 @@ export class _Snapshot {
   }
 
   addClassOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    this._processor.classOf(cls, serializer);
+    this._processor.strictInstanceOf(cls, serializer);
 
     return this;
   }

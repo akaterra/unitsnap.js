@@ -1,3 +1,4 @@
+import {CIRCULAR, UNSERIALIZABLE} from './const';
 import { _Snapshot } from './snapshot';
 import { StateReportType } from './spy';
 import { Wrapped } from './type_helpers';
@@ -74,7 +75,7 @@ function serialize(value, indent?, output?, circular?) {
   if (typeof circular === 'undefined') {
     circular = new Set<unknown>();
   } else if (circular.has(value)) {
-    value = new Wrapped('[[ Circular ! ]]');
+    value = new Wrapped(CIRCULAR);
   }
 
   let pre = '';
@@ -121,6 +122,9 @@ function serialize(value, indent?, output?, circular?) {
     case value instanceof Wrapped:
       value = value.value;
       break;
+    case typeof value === 'bigint':
+      value = `[[ BigInt : ${value.valueOf()} ]]`;
+      return `${value}\n`;
     case typeof value === 'function':
       value = `[[ Function : ${value.name || '<anonymous>'} ]]`;
       return `${value}\n`;
@@ -149,9 +153,15 @@ function serialize(value, indent?, output?, circular?) {
     circular.add(value);
 
     output += `${pre}[\n`;
-    value.forEach((val) => {
-      output += `${indent}${INDENT}${serialize(val, indent + INDENT, '', circular)}`;
-    });
+
+    try {
+      value.forEach((val) => {
+        output += `${indent}${INDENT}${serialize(val, indent + INDENT, '', circular)}`;
+      });
+    } catch (err) {
+      output += `${indent}${INDENT}${UNSERIALIZABLE}\n`;
+    }
+
     output += `${indent}]${post}\n`;
 
     circular.delete(value);
@@ -167,9 +177,15 @@ function serialize(value, indent?, output?, circular?) {
     circular.add(value);
 
     output += `${pre}{\n`;
-    Object.entries(value).forEach(([ key, val ], ind) => {
-      output += `${indent}${INDENT}${key} = ${serialize(val, indent + INDENT, '', circular)}`;
-    });
+
+    try {
+      Object.entries(value).forEach(([ key, val ], ind) => {
+        output += `${indent}${INDENT}${key} = ${serialize(val, indent + INDENT, '', circular)}`;
+      });
+    } catch (err) {
+      output += `${indent}${INDENT}${UNSERIALIZABLE}\n`;
+    }
+
     output += `${indent}}${post}\n`;
 
     circular.delete(value);

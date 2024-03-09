@@ -1,4 +1,5 @@
 import * as unitsnap from '..';
+import { DATA, TYPE } from '../src/const';
 
 describe('Type helpers', () => {
   describe('AnyType', () => {
@@ -13,7 +14,7 @@ describe('Type helpers', () => {
     it('should serialize value', () => {
       const t = new unitsnap._AnyType();
 
-      expect(t.serialize()).toEqual({$$data: null, $$type: 'any'});
+      expect(t.serialize()).toEqual({[ DATA ]: null, [ TYPE ]: 'any'});
     });
   });
 
@@ -37,13 +38,13 @@ describe('Type helpers', () => {
     it('should serialize instance of boolean value', () => {
       const t = new unitsnap._BooleanType();
 
-      expect(t.serialize(true)).toEqual({$$data: null, $$type: 'boolean'});
+      expect(t.serialize(true)).toEqual({[ DATA ]: null, [ TYPE ]: 'boolean'});
     });
 
     it('should serialize not instance of boolean value', () => {
       const t = new unitsnap._BooleanType();
 
-      expect(t.serialize(1)).toEqual({$$data: 1, $$type: 'not:boolean'});
+      expect(t.serialize(1)).toEqual({[ DATA ]: 1, [ TYPE ]: 'not:boolean'});
     });
   });
 
@@ -71,13 +72,13 @@ describe('Type helpers', () => {
     it('should serialize class of value', () => {
       const t = new unitsnap._ClassOf(Date);
 
-      expect(t.serialize(new Date())).toEqual({$$data: 'Date', $$type: 'classOf'});
+      expect(t.serialize(new Date())).toEqual({[ DATA ]: 'Date', [ TYPE ]: 'classOf'});
     });
 
     it('should serialize not class of value', () => {
       const t = new unitsnap._ClassOf(Date);
 
-      expect(t.serialize(new D())).toEqual({$$data: 'Date ≠ D', $$type: 'not:classOf'});
+      expect(t.serialize(new D())).toEqual({[ DATA ]: 'Date ≠ D', [ TYPE ]: 'not:classOf'});
     });
   });
 
@@ -120,13 +121,13 @@ describe('Type helpers', () => {
     it('should serialize instance of date value', () => {
       const t = new unitsnap._DateType();
 
-      expect(t.serialize(new Date())).toEqual({$$data: null, $$type: 'date'});
+      expect(t.serialize(new Date())).toEqual({[ DATA ]: null, [ TYPE ]: 'date'});
     });
 
     it('should serialize not instance of date value', () => {
       const t = new unitsnap._DateType();
 
-      expect(t.serialize(1)).toEqual({$$data: null, $$type: 'not:date'});
+      expect(t.serialize(1)).toEqual({[ DATA ]: null, [ TYPE ]: 'not:date'});
     });
   });
 
@@ -190,13 +191,13 @@ describe('Type helpers', () => {
     it('should serialize value is in', () => {
       const t = unitsnap.In(1, 2, 3, "1");
 
-      expect(t.serialize(1)).toEqual({$$data: '1,2,3,"1"', $$type: 'in'});
+      expect(t.serialize(1)).toEqual({[ DATA ]: '1,2,3,"1"', [ TYPE ]: 'in'});
     });
 
     it('should serialize value is not in', () => {
       const t = unitsnap.In(1, 2, 3, "1");
 
-      expect(t.serialize(0)).toEqual({$$data: '1,2,3,"1"', $$type: 'not:in'});
+      expect(t.serialize(0)).toEqual({[ DATA ]: '1,2,3,"1"', [ TYPE ]: 'not:in'});
     });
   });
 
@@ -224,13 +225,13 @@ describe('Type helpers', () => {
     it('should serialize instance of value', () => {
       const t = new unitsnap._InstanceOf(Date);
 
-      expect(t.serialize(new Date('2018-01-01'))).toEqual({$$data: 'Date', $$type: 'instanceOf'});
+      expect(t.serialize(new Date('2018-01-01'))).toEqual({[ DATA ]: 'Date', [ TYPE ]: 'instanceOf'});
     });
 
     it('should serialize not instance of value', () => {
       const t = new unitsnap._InstanceOf(Date);
 
-      expect(t.serialize(123)).toEqual({$$data: 'Date ⊈ Number', $$type: 'not:instanceOf'});
+      expect(t.serialize(123)).toEqual({[ DATA ]: 'Date ⊈ Number', [ TYPE ]: 'not:instanceOf'});
     });
   });
 
@@ -254,13 +255,13 @@ describe('Type helpers', () => {
     it('should serialize null value', () => {
       const t = new unitsnap._NullType();
 
-      expect(t.serialize(null)).toEqual({$$data: null, $$type: 'null'});
+      expect(t.serialize(null)).toEqual({[ DATA ]: null, [ TYPE ]: 'null'});
     });
 
     it('should serialize null value', () => {
       const t = new unitsnap._NullType();
 
-      expect(t.serialize(1)).toEqual({$$data: 1, $$type: 'not:null'});
+      expect(t.serialize(1)).toEqual({[ DATA ]: 1, [ TYPE ]: 'not:null'});
     });
   });
 
@@ -284,13 +285,13 @@ describe('Type helpers', () => {
     it('should serialize number close to', () => {
       const t = new unitsnap._NumberIsCloseTo(5, 0.01);
 
-      expect(t.serialize(5)).toEqual({$$data: `5 ±0.01`, $$type: 'numberIsCloseTo'});
+      expect(t.serialize(5)).toEqual({[ DATA ]: `5 ±0.01`, [ TYPE ]: 'numberIsCloseTo'});
     });
 
     it('should serialize number not close to', () => {
       const t = new unitsnap._NumberIsCloseTo(5, 0.01);
 
-      expect(t.serialize(4)).toEqual({$$data: `4 ∉ 5 ±0.01`, $$type: 'not:numberIsCloseTo'});
+      expect(t.serialize(4)).toEqual({[ DATA ]: `4 ∉ 5 ±0.01`, [ TYPE ]: 'not:numberIsCloseTo'});
     });
   });
 
@@ -314,13 +315,13 @@ describe('Type helpers', () => {
     it('should serialize number precise to', () => {
       const t = new unitsnap._NumberIsPreciseTo(5, 2);
 
-      expect(t.serialize(5)).toEqual({$$data: `5 ±0.01`, $$type: 'numberIsPreciseTo'});
+      expect(t.serialize(5)).toEqual({[ DATA ]: `5 ±0.01`, [ TYPE ]: 'numberIsPreciseTo'});
     });
 
     it('should serialize number not precise to', () => {
       const t = new unitsnap._NumberIsPreciseTo(5, 2);
 
-      expect(t.serialize(4)).toEqual({$$data: `4 ∉ 5 ±0.01`, $$type: 'not:numberIsPreciseTo'});
+      expect(t.serialize(4)).toEqual({[ DATA ]: `4 ∉ 5 ±0.01`, [ TYPE ]: 'not:numberIsPreciseTo'});
     });
   });
 
@@ -344,13 +345,13 @@ describe('Type helpers', () => {
     it('should serialize instance of number value', () => {
       const t = new unitsnap._NumberType();
 
-      expect(t.serialize(1)).toEqual({$$data: null, $$type: 'number'});
+      expect(t.serialize(1)).toEqual({[ DATA ]: null, [ TYPE ]: 'number'});
     });
 
     it('should serialize instance of not number value', () => {
       const t = new unitsnap._NumberType();
 
-      expect(t.serialize('1')).toEqual({$$data: '1', $$type: 'not:number'});
+      expect(t.serialize('1')).toEqual({[ DATA ]: '1', [ TYPE ]: 'not:number'});
     });
   });
 
@@ -382,25 +383,25 @@ describe('Type helpers', () => {
     it('should serialize value in range', () => {
       const t = new unitsnap._Range(1, 5);
 
-      expect(t.serialize(3)).toEqual({$$data: `1 .. 5`, $$type: 'range'});
+      expect(t.serialize(3)).toEqual({[ DATA ]: `1 .. 5`, [ TYPE ]: 'range'});
     });
 
     it('should serialize not value in range', () => {
       const t = new unitsnap._Range(1, 5);
 
-      expect(t.serialize(0)).toEqual({$$data: `0 ∉ 1 .. 5`, $$type: 'not:range'});
+      expect(t.serialize(0)).toEqual({[ DATA ]: `0 ∉ 1 .. 5`, [ TYPE ]: 'not:range'});
     });
 
     it('should serialize value in range (Date instance)', () => {
       const t = new unitsnap._Range(new Date('2020-01-01'), new Date('2020-01-02'));
 
-      expect(t.serialize(new Date('2020-01-01T12:00:00.000Z'))).toEqual({$$data: `2020-01-01T00:00:00.000Z .. 2020-01-02T00:00:00.000Z`, $$type: 'range'});
+      expect(t.serialize(new Date('2020-01-01T12:00:00.000Z'))).toEqual({[ DATA ]: `2020-01-01T00:00:00.000Z .. 2020-01-02T00:00:00.000Z`, [ TYPE ]: 'range'});
     });
 
     it('should serialize value not in range (Date instance)', () => {
       const t = new unitsnap._Range(new Date('2020-01-01'), new Date('2020-01-02'));
 
-      expect(t.serialize(new Date('2020-01-03'))).toEqual({$$data: `2020-01-03T00:00:00.000Z ∉ 2020-01-01T00:00:00.000Z .. 2020-01-02T00:00:00.000Z`, $$type: 'not:range'});
+      expect(t.serialize(new Date('2020-01-03'))).toEqual({[ DATA ]: `2020-01-03T00:00:00.000Z ∉ 2020-01-01T00:00:00.000Z .. 2020-01-02T00:00:00.000Z`, [ TYPE ]: 'not:range'});
     });
   });
 
@@ -424,13 +425,13 @@ describe('Type helpers', () => {
     it('should serialize instance of string value', () => {
       const t = new unitsnap._StringType();
 
-      expect(t.serialize('')).toEqual({$$data: null, $$type: 'string'});
+      expect(t.serialize('')).toEqual({[ DATA ]: null, [ TYPE ]: 'string'});
     });
 
     it('should serialize not instance of string value', () => {
       const t = new unitsnap._StringType();
 
-      expect(t.serialize(1)).toEqual({$$data: 1, $$type: 'not:string'});
+      expect(t.serialize(1)).toEqual({[ DATA ]: 1, [ TYPE ]: 'not:string'});
     });
   });
 
@@ -454,13 +455,13 @@ describe('Type helpers', () => {
     it('should serialize undefined value', () => {
       const t = new unitsnap._UndefinedType();
 
-      expect(t.serialize(undefined)).toEqual({$$data: null, $$type: 'undefined'});
+      expect(t.serialize(undefined)).toEqual({[ DATA ]: null, [ TYPE ]: 'undefined'});
     });
 
     it('should serialize defined value', () => {
       const t = new unitsnap._UndefinedType();
 
-      expect(t.serialize(1)).toEqual({$$data: 1, $$type: 'not:undefined'});
+      expect(t.serialize(1)).toEqual({[ DATA ]: 1, [ TYPE ]: 'not:undefined'});
     });
   });
 });

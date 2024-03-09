@@ -13,13 +13,17 @@ const obj = {
   g: Symbol('g'),
   h: BigInt(1),
   i: [1, 2, 3],
+  iEmpty: [],
   j: { a: 1 },
+  jEmpty: {},
   k: () => {},
+  kEmpty: [ function () {} ],
   l: new Obj(),
   m: new Date('2020-01-01'),
   n: new Set(['n']),
   o: new Map([['m', 'm']]),
   p: new Error('p'),
+  pEmpty: new Error(''),
   r: new RegExp('/r/'),
 
   A: Buffer.from('A'),
@@ -34,12 +38,14 @@ const obj = {
   J: Uint32Array.from([1, 2, 3]),
 };
 
-describe('Snapshot forammet pretty', () => {
+describe('Snapshot formatter "pretty"', () => {
   it('should format snapshot entries', () => {
-    expect(formatPrettySnapshotEntries(Snapshot([
-      { name: 'a', args: [ obj ], reportType: StateReportType.CALL_ARGS },
-      { name: 'a', result: obj, reportType: StateReportType.RETURN_VALUE },
-    ]).includeName())).toBe(`
+    const formatted = formatPrettySnapshotEntries(Snapshot([
+        { name: 'a', args: [ obj ], reportType: StateReportType.CALL_ARGS },
+        { name: 'a', result: obj, reportType: StateReportType.RETURN_VALUE },
+    ]).includeName());
+
+    expect(formatted).toBe(`
 --> a --> [
     {
         a = 1
@@ -49,16 +55,21 @@ describe('Snapshot forammet pretty', () => {
         e = true
         f = false
         g = [[ Symbol : g ]]
-        h = 1
+        h = [[ BigInt : 1 ]]
         i = [
             1
             2
             3
         ]
+        iEmpty = []
         j = {
             a = 1
         }
+        jEmpty = {}
         k = [[ Function : k ]]
+        kEmpty = [
+            [[ Function : <anonymous> ]]
+        ]
         l = [[ Obj : {} ]]
         m = [[ Date : 2020-01-01T00:00:00.000Z ]]
         n = [[ Set : [
@@ -68,6 +79,7 @@ describe('Snapshot forammet pretty', () => {
             m = "m"
         } ]]
         p = [[ Error : Error, p ]]
+        pEmpty = [[ Error : Error, <no message> ]]
         r = [[ RegExp : \\/r\\/ ]]
         A = [[ Buffer : [
             65
@@ -128,16 +140,21 @@ describe('Snapshot forammet pretty', () => {
     e = true
     f = false
     g = [[ Symbol : g ]]
-    h = 1
+    h = [[ BigInt : 1 ]]
     i = [
         1
         2
         3
     ]
+    iEmpty = []
     j = {
         a = 1
     }
+    jEmpty = {}
     k = [[ Function : k ]]
+    kEmpty = [
+        [[ Function : <anonymous> ]]
+    ]
     l = [[ Obj : {} ]]
     m = [[ Date : 2020-01-01T00:00:00.000Z ]]
     n = [[ Set : [
@@ -147,6 +164,7 @@ describe('Snapshot forammet pretty', () => {
         m = "m"
     } ]]
     p = [[ Error : Error, p ]]
+    pEmpty = [[ Error : Error, <no message> ]]
     r = [[ RegExp : \\/r\\/ ]]
     A = [[ Buffer : [
         65
