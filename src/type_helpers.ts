@@ -73,6 +73,10 @@ export class _Copy implements IType {
   }
 
   serialize(value?) {
+    if (typeof structuredClone === 'undefined') {
+      throw new Error('"structuredClone" is not defined, use https://github.com/ungap/structured-clone polyfill to support this feature.');
+    }
+
     return structuredClone(value);
   }
 }

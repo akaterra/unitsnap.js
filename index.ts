@@ -13,6 +13,8 @@ export * from './src/instance';
 export * from './src/mock';
 export * from './src/observer';
 export * from './src/snapshot';
+export * from './src/snapshot_formatter.native';
+export * from './src/snapshot_formatter.pretty';
 export * from './src/spy';
 export * from './src/type_helpers';
 

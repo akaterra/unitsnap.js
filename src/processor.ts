@@ -44,9 +44,16 @@ export type ProcessorSerializer = ((value?: unknown) => unknown) | ProcessorBase
 
 export class _Processor {
   private _processors: { checker: Fn & { original?: Fn }, serializer: Fn & { original?: Fn } }[] = [];
+  private _instancePassThrough = false;
 
   get processors() {
     return this._processors;
+  }
+
+  setInstancePassThrough(value: boolean = true) {
+    this._instancePassThrough = value;
+
+    return this;
   }
 
   add(checker: ProcessorChecker, serializer?: ProcessorSerializer): this {
@@ -119,6 +126,12 @@ export class _Processor {
   }
 
   private serializeInternal(value, path, primitiveOnly?, circular?) {
+    if (!circular) {
+      circular = new Set<unknown>();
+    } else if (circular.has(value)) {
+      return new Wrapped('[[ Circular ! ]]');
+    }
+
     this._processors.some((p) => {
       if (p.checker(value, path)) {
         value = p.serializer(value);
@@ -131,17 +144,9 @@ export class _Processor {
       }
     });
   
-    if (!circular) {
-      circular = new Set<unknown>();
-    }
-  
     let serialized;
   
     if (!primitiveOnly && Array.isArray(value)) {
-      if (circular.has(value)) {
-        return new Wrapped('[[ Circular ! ]]');
-      }
-  
       circular.add(value);
   
       serialized = value.map((val, ind) => {
@@ -160,10 +165,13 @@ export class _Processor {
     }
   
     if (!primitiveOnly && value && typeof value === 'object') {
-      if (circular.has(value)) {
-        return new Wrapped('[[ Circular ! ]]');
+      // ignore instances derived not from Object
+      // 1. instance of class A {} serialized as-is
+      // 2. plain object will be traversed
+      if (!this._instancePassThrough && Object.getPrototypeOf(value).constructor !== Object) {
+        return value;
       }
-  
+
       circular.add(value);
   
       serialized = Object.keys(value).reduce((acc, key) => {

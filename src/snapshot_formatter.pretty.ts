@@ -1,8 +1,9 @@
 import { _Snapshot } from './snapshot';
-import {StateReportType} from './spy';
-import {Wrapped} from './type_helpers';
+import { StateReportType } from './spy';
+import { Wrapped } from './type_helpers';
 
 const INDENT = '    ';
+const PARAMS = [ 'name', 'args', 'result', 'exception' ];
 
 export function formatPrettySnapshotEntries(shapshot: _Snapshot): string {
   const processor = shapshot.env.processor;
@@ -15,10 +16,12 @@ export function formatPrettySnapshotEntries(shapshot: _Snapshot): string {
     const lines = strValue.split('\n');
 
     if (param === 'name') {
+      const fnName = lines[0].slice(1, -1);
+
       if (entry.reportType == StateReportType.CALL_ARGS) {
-        output += `${lineIndent}--> ${lines[0].slice(1, -1)} --> `;
+        output += `${lineIndent}--> ${fnName} --> `;
       } else {
-        output += `${lineIndent}<-- ${lines[0].slice(1, -1)} <-- `;
+        output += `${lineIndent}<-- ${fnName} <-- `;
       }
     } else if (param === 'args') {
       output += `${lines[0]}\n`;
@@ -42,11 +45,15 @@ export function formatPrettySnapshotEntries(shapshot: _Snapshot): string {
 
     output += '\n';
 
-    for (const [ param, value ] of Object.entries(e)) {
+    for (const param of PARAMS) {
+      if (!e.hasOwnProperty(param)) {
+        continue;
+      }
+
       addLines(
         param,
         entry,
-        value,
+        e[param],
         lineIndent,
       );
     }
@@ -66,9 +73,7 @@ function serialize(value, indent?, output?, circular?) {
 
   if (typeof circular === 'undefined') {
     circular = new Set<unknown>();
-  }
-
-  if (circular.has(value)) {
+  } else if (circular.has(value)) {
     value = new Wrapped('[[ Circular ! ]]');
   }
 
@@ -84,7 +89,6 @@ function serialize(value, indent?, output?, circular?) {
     case value instanceof Buffer:
     case value instanceof Float32Array:
     case value instanceof Float64Array:
-    case value instanceof Uint32Array:
     case value instanceof Int8Array:
     case value instanceof Int16Array:
     case value instanceof Int32Array:
@@ -122,6 +126,9 @@ function serialize(value, indent?, output?, circular?) {
       return `${value}\n`;
     case typeof value === 'string':
       value = `"${value.replace(/"/g, '\\"')}"`;
+      return `${value}\n`;
+    case typeof value === 'symbol':
+      value = `[[ Symbol : ${value.toString().slice(7, -1)} ]]`;
       return `${value}\n`;
     default:
       if (value && typeof value === 'object') {

@@ -6,26 +6,28 @@ Then this result can be saved as a snapshot and compared with a snapshot of the 
 
 ### Contents
 
-* [Installation](#installation)
-* [Example of snapshot generation](#example-of-snapshot-generation)
-* [Example of snapshot assertion](#example-of-snapshot-assertion)
-* [Observer](#observer)
-* [History](#history)
-* [Mock](#mock)
-  * [Customization](#customization)
-* [Fixture](#fixture)
-  * [FixtureCallbackStrategy](#fixturecallbackstrategy)
-  * [FixtureQueueStrategy](#fixturequeuestrategy)
-  * [FixtureFsProvider (for Queue strategy)](#fixturefsprovider-for-queue-strategy)
-  * [FixtureMemoryProvider (for Queue strategy)](#fixturememoryprovider-for-queue-strategy)
-* [Filter](#filter)
-* [Snapshot](#snapshot)
-  * [Value processors](#value-processors)
-  * [Type helpers](#type-helpers)
-  * [SnapshotFsProvider](#snapshotfsprovider)
-  * [SnapshotMemoryProvider](#snapshotmemoryprovider)
-* [Jasmine matcher](#jasmine-matcher)
-* [Using with typescript-ioc](#using-with-typescript-ioc)
+- [UnitSnap](#unitsnap)
+    - [Contents](#contents)
+    - [Installation](#installation)
+    - [Example of snapshot generation](#example-of-snapshot-generation)
+    - [Example of snapshot assertion](#example-of-snapshot-assertion)
+    - [Observer](#observer)
+    - [History](#history)
+    - [Mock](#mock)
+        - [Customization](#customization)
+    - [Fixture](#fixture)
+        - [FixtureCallbackStrategy](#fixturecallbackstrategy)
+        - [FixtureQueueStrategy](#fixturequeuestrategy)
+        - [FixtureFsProvider (for Queue strategy)](#fixturefsprovider-for-queue-strategy)
+        - [FixtureMemoryProvider (for Queue strategy)](#fixturememoryprovider-for-queue-strategy)
+    - [Filter](#filter)
+    - [Snapshot](#snapshot)
+        - [Value processors](#value-processors)
+        - [Type helpers](#type-helpers)
+        - [SnapshotFsProvider](#snapshotfsprovider)
+        - [SnapshotMemoryProvider](#snapshotmemoryprovider)
+    - [Jasmine matcher](#jasmine-matcher)
+    - [Using with typescript-ioc](#using-with-typescript-ioc)
 
 ### Installation
 
@@ -644,9 +646,7 @@ Filesystem provider allows to load values from the file.
 
 ```typescript
 fixture.setName('test'); // set fixture name that will be used as a part of filename
-
 fixture.setQueueStrategy();
-
 fixture.setFsProvider(__dirname); // values from the __dirname/test.fixture.json will be loaded
 ```
 
@@ -656,9 +656,7 @@ Memory provider allows to load values from the memory.
 
 ```typescript
 fixture.setName('test'); // set fixture name that will be a key in the dictionary of values
-
 fixture.setQueueStrategy();
-
 fixture.setMemoryProvider({test: [1, 2, 3]}); // values by dictionary key "test" will be loaded
 ```
 
@@ -738,7 +736,10 @@ Snapshot entries in their turn could be filtered and then create an additional s
 
 * **save(name)** - saves a serialized representation of the snapshot.
 
-* **serialize()** - creates a serialized representation of the snapshot.
+* **serialize(format="native" | "pretty" | function)** - creates a serialized representation of the snapshot.
+  * "native" - returns array of serialized entries
+  * "pretty" - returns formatted string
+  * function - custom formatter
 
 * **setName(name)** - sets the name of the snapshot, this name will be used as a default name for **exists**, **load**, **loadCopy**, **remove** and **save**.
 
@@ -843,6 +844,9 @@ Available helpers:
   ```
 
 * **Continue** - the value will be continued with the rest processors.
+
+* **Copy** - creates as deep copy of the value using [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/structuredClone).
+  If there is no support of **structuredClone** feature the [polyfill](https://github.com/ungap/structured-clone) can be used instead.
 
 * **DateType (or JS Date type)** - checks the value to be instance of Date and serializes the value as:
   ```typescript

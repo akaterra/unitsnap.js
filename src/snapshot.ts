@@ -1,7 +1,7 @@
 import { _Filter } from './filter';
 import { _Observer } from './observer';
 import { _Processor, ProcessorChecker, ProcessorSerializer } from './processor';
-import { formatNativeSnapshotEntries } from './shapshot_formatter.navite';
+import { formatNativeSnapshotEntries } from './snapshot_formatter.native';
 import { formatPrettySnapshotEntries } from './snapshot_formatter.pretty';
 import { State, StateReportType } from './spy';
 import { ClassDef, Fn } from './utils';
