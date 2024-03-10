@@ -519,10 +519,10 @@ Besides, this mock can optionally be linked to the history so that the state of 
 * **override(class, props)** - overrides props of the class
 
     Generally can be used same as the **by** but instead of creation of a new class it overrides props of the provided class.
-    The overridden props can be restored after by calling **RESTORE**:
+    The overridden props can be restored after by calling **state.restore**:
 
     ```typescript
-    import { Mock } from '@akaterra/unitsnap';
+    import { Mock, state } from '@akaterra/unitsnap';
 
     const mock = Mock(history);
 
@@ -533,7 +533,7 @@ Besides, this mock can optionally be linked to the history so that the state of 
         }
     });
 
-    A.RESTORE(); // A.prototype.a is been restored
+    state(A).restore(); // A.prototype.a is been restored
     ```
 
 * **spy(function)** - spies on a single function

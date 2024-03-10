@@ -1,5 +1,5 @@
 import * as fixture from './fixture';
-import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod, State, StateReportType, StateType } from './spy';
+import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod, State, StateReportType, StateType, ensSpyState } from './spy';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { _History } from './history';
 import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5ClassDef, Es6Class, Es6ClassDef, Fn, NotNeverKeys, ObjectFromList } from './utils';
@@ -90,11 +90,6 @@ export type MockPropsMap = Record<
   MockPropsTypes | _Property<any> | _StaticMethod<any> | _StaticProperty<any>
 >;
 
-export type MockClassMixin<T> = {
-  OBSERVER?: _Observer;
-  RESTORE?: () => T;
-}
-
 export type MockClassBase<
   T extends ClassDef<any> = Es6Class<any>,
   P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[],
@@ -132,7 +127,7 @@ export type MockClassBase<
 export type MockClass<
   T extends ClassDef<any> = Es6Class<any>,
   P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[],
-> = MockClassBase<T, P> & MockClassMixin<MockClassBase<T, P>>;
+> = MockClassBase<T, P>;
 
 // type check, never runs
 if (0) {
@@ -222,8 +217,6 @@ if (0) {
   assert(e.x(), null);
   assert(e.y(), new X(1));
   assert(e.z(), undefined);
-
-  assert(E.RESTORE(), E);
   /* eslint-enable */
 }
 
@@ -346,7 +339,8 @@ export class _Mock {
     const maker = new ClassMaker(this, cls, props, bypassOnBehalfOfInstanceReplacement);
     const clazz = maker.makePrototypeFor(cls, true);
 
-    clazz.RESTORE = cls.prototype.constructor.RESTORE = () => {
+    const c = ensSpyState(clazz);
+    c.restore = () => {
       Object.entries<any>(maker.clsPropsDescriptors).forEach(([ key, descriptor ]) => {
         if (descriptor.level === 0) {
           Object.defineProperty(cls, key, descriptor.descriptor);
@@ -364,10 +358,6 @@ export class _Mock {
         }
       });
       maker.propsMetadata.extraProps.forEach((key) => { delete cls.prototype[key]; });
-
-      delete (cls as any).OBSERVER;
-      delete (cls as any).RESTORE;
-      delete (cls as any).prototype.constructor.RESTORE;
 
       return cls;
     };

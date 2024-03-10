@@ -2,7 +2,7 @@ import * as fixture from './fixture';
 import * as history from './history';
 import * as mock from './mock';
 import * as snapshot from './snapshot';
-import { getSpyStats } from './spy';
+import { ensSpyState, getSpyState } from './spy';
 import { ClassDef, Fn } from './utils';
 
 let observerId = 1000;
@@ -70,14 +70,18 @@ export class _Observer {
     bypassOnBehalfOfInstanceReplacement?,
   ) {
     const clazz = this._mock.by<T, P>(cls, props, bypassOnBehalfOfInstanceReplacement);
-    clazz.OBSERVER = this;
+
+    const c = ensSpyState(clazz);
+    c.observer = this;
 
     return clazz;
   }
 
   from<P extends mock.MockPropsMap>(props: P, bypassOnBehalfOfInstanceReplacement?) {
     const clazz = this._mock.from<P>(props, bypassOnBehalfOfInstanceReplacement);
-    clazz.OBSERVER = this;
+
+    const c = ensSpyState(clazz);
+    c.observer = this;
 
     return clazz;
   }
@@ -88,10 +92,12 @@ export class _Observer {
     bypassOnBehalfOfInstanceReplacement?,
   ) {
     const clazz = this._mock.override<T, P>(cls, props, bypassOnBehalfOfInstanceReplacement);
-    clazz.OBSERVER = this;
+
+    const c = ensSpyState(clazz);
+    c.observer = this;
 
     this._history.addOnEndCallback(() => {
-      clazz.RESTORE();
+      c.restore();
     });
 
     return clazz;
@@ -120,4 +126,4 @@ export function Observer() {
   return new _Observer();
 }
 
-export const stat = getSpyStats;
+export const state = getSpyState;

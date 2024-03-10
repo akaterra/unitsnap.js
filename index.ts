@@ -28,9 +28,19 @@ export * from './src/type_helpers';
 
 import { _Filter } from './src/filter';
 import { _Observer } from './src/observer';
-import { _Snapshot } from './src/snapshot';
+import { ISnapshotFormatter, _Snapshot } from './src/snapshot';
 
-export function extendJasmine() {
+export function extendJasmine();
+
+export function extendJasmine(format: 'native');
+
+export function extendJasmine(format: 'pretty');
+
+export function extendJasmine(format: (snapshot: _Snapshot) => any);
+
+export function extendJasmine(format: ISnapshotFormatter<any>);
+
+export function extendJasmine(format?) {
   if (typeof jasmine !== 'undefined') {
     (jasmine as any).addMatchers({
       toMatchSnapshot: function toMatchSnapshot(util) {
@@ -39,9 +49,9 @@ export function extendJasmine() {
         return {
           compare: function (actual, expected) {
             if (actual instanceof _Filter) {
-              actual = actual.snapshot();
+              actual = actual.snapshot().setFormat(format);
             } else if (actual instanceof _Observer) {
-              actual = actual.snapshot();
+              actual = actual.snapshot().setFormat(format);
             }
 
             if (actual instanceof _Snapshot) {
@@ -52,7 +62,7 @@ export function extendJasmine() {
 
                 if (!saveSnapshot) {
                   saveSnapshot = !!process.argv.find(function (argv) {
-                    return argv === '--saveSnapshot';
+                    return argv === '--save-snapshot';
                   });
                 }
               }
@@ -78,11 +88,11 @@ export function extendJasmine() {
                 expected = actual.loadCopy(expected);
               }
 
-              actual = actual.serialize();
+              actual = actual.setFormat(format).serialize();
             }
 
             if (expected instanceof _Snapshot) {
-              expected = expected.serialize();
+              expected = expected.setFormat(format).serialize();
             }
 
             return toEqual.call(this, actual, expected);

@@ -1,4 +1,4 @@
-import {CIRCULAR, UNSERIALIZABLE} from './const';
+import { CIRCULAR, UNSERIALIZABLE } from './const';
 import { _Snapshot } from './snapshot';
 import { StateReportType } from './spy';
 import { Wrapped } from './type_helpers';
@@ -6,9 +6,9 @@ import { Wrapped } from './type_helpers';
 const INDENT = '    ';
 const PARAMS = [ 'name', 'args', 'result', 'exception' ];
 
-export function formatPrettySnapshotEntries(shapshot: _Snapshot): string {
-  const processor = shapshot.env.processor;
-  const mapper = shapshot.env.mapper;
+export function formatPrettySnapshotEntries(snapshot: _Snapshot): string {
+  const processor = snapshot.env.processor;
+  const mapper = snapshot.env.mapper;
 
   let output = '';
 
@@ -37,10 +37,14 @@ export function formatPrettySnapshotEntries(shapshot: _Snapshot): string {
     }
   }
 
-  shapshot.entries.forEach((entry, ind) => {
+  if (!Array.isArray(snapshot.entries)) {
+    return snapshot.entries;
+  }
+
+  snapshot.entries.forEach((entry, ind) => {
     const lineIndent = entry.level > 0 ? INDENT.repeat(entry.level) : '';
     const e = processor.serialize(
-      mapper(shapshot, entry),
+      mapper(snapshot, entry),
       `[${ind}]`,
     );
 

@@ -168,7 +168,7 @@ export class _Processor {
       }
 
       circular.add(value);
-  
+
       serialized = Object.keys(value).reduce((acc, key) => {
         let serialized;
 

@@ -1,5 +1,5 @@
 import * as unitsnap from '..';
-import { stat } from '..';
+import { state } from '..';
 
 describe('Property', () => {
   const get = 1;
@@ -220,20 +220,20 @@ describe('Mock', () => {
   });
 
   afterEach(() => {
-    if (stat(A).restore) { // @see Mock
-      stat(A).restore();
+    if (state(A).restore) { // @see Mock
+      state(A).restore();
     }
 
-    if (stat(B).restore) { // @see Mock
-      stat(B).restore();
+    if (state(B).restore) { // @see Mock
+      state(B).restore();
     }
 
-    if (stat(C).restore) { // @see Mock
-      stat(C).restore();
+    if (state(C).restore) { // @see Mock
+      state(C).restore();
     }
 
-    if (stat(D).restore) { // @see Mock
-      stat(D).restore();
+    if (state(D).restore) { // @see Mock
+      state(D).restore();
     }
   });
 
@@ -249,7 +249,7 @@ describe('Mock', () => {
     it('should builds mock', () => {
       const E = new unitsnap._Mock(history).from({c: f});
 
-      expect(stat(E.prototype.c).replacement).toBe(f);
+      expect(state(E.prototype.c).replacement).toBe(f);
     });
   });
 
@@ -290,31 +290,31 @@ describe('Mock', () => {
       it('should override all props with spy', () => {
         const E = new unitsnap._Mock(history).by(B);
 
-        expect(stat(E.prototype.a).origin).toBe(B.prototype.a);
-        expect(stat(E.prototype.b).origin).toBe(B.prototype.b);
-        expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'e').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'e').get);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'e').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'e').set);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'f').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'f').get);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'f').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'f').set);
+        expect(state(E.prototype.a).origin).toBe(B.prototype.a);
+        expect(state(E.prototype.b).origin).toBe(B.prototype.b);
+        expect(state(E.prototype.c).origin).toBe(B.prototype.c);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'e').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'e').get);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'e').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'e').set);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'f').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'f').get);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'f').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'f').set);
       });
 
       it('should override constructor with spy', () => {
         const E = new unitsnap._Mock(history).by(B, ['constructor']);
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E).origin).toBe(B);
-        expect(typeof stat(E).replacement === 'function').toBeTruthy();
+        expect(state(E).origin).toBe(B);
+        expect(typeof state(E).replacement === 'function').toBeTruthy();
       });
 
       it('should override props with spy', () => {
         const E = new unitsnap._Mock(history).by(B, ['c']);
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
-        expect(stat(E.prototype.c).replacement).toBe(B.prototype.c);
+        expect(state(E.prototype.c).origin).toBe(B.prototype.c);
+        expect(state(E.prototype.c).replacement).toBe(B.prototype.c);
       });
 
       it('should stub absented props with spy', () => {
@@ -326,7 +326,7 @@ describe('Mock', () => {
       it('should stub constructor', () => {
         const E = new unitsnap._Mock(history).by(B, ['constructor']);
 
-        expect(stat(E).origin).toBe(B);
+        expect(state(E).origin).toBe(B);
       });
     });
 
@@ -335,103 +335,103 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).by(B, {constructor: f});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E).origin).toBe(B);
-        expect(stat(E).replacement).toBe(f);
+        expect(state(E).origin).toBe(B);
+        expect(state(E).replacement).toBe(f);
       });
 
       it('should override methods with spy', () => {
         const E = new unitsnap._Mock(history).by(B, {c: f});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
-        expect(stat(E.prototype.c).replacement).toBe(f);
+        expect(state(E.prototype.c).origin).toBe(B.prototype.c);
+        expect(state(E.prototype.c).replacement).toBe(f);
       });
 
       it('should override methods of parent class with spy', () => {
         const E = new unitsnap._Mock(history).by(B, {m: f});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.m).origin).toBe(A.prototype.m);
-        expect(stat(E.prototype.m).replacement).toBe(f);
+        expect(state(E.prototype.m).origin).toBe(A.prototype.m);
+        expect(state(E.prototype.m).replacement).toBe(f);
       });
 
       it('should override static methods with spy', () => {
         const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(f)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(E.c).origin).toBe(B.c);
-        expect(stat(E.c).replacement).toBe(f);
+        expect(state(E.c).origin).toBe(B.c);
+        expect(state(E.c).replacement).toBe(f);
       });
 
       it('should override properties with spy on single getter', () => {
         const E = new unitsnap._Mock(history).by(B, {d: unitsnap.Property().get(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).replacement).toBe(f);
       });
 
       it('should override properties with spy on single setter', () => {
         const E = new unitsnap._Mock(history).by(B, {d: unitsnap.Property().set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).replacement).toBe(f);
       });
 
       it('should override properties with spy on getter of getter/setter pair', () => {
         const E = new unitsnap._Mock(history).by(B, {d: unitsnap.Property().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').get);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).replacement).toBe(f);
       });
 
       it('should override properties with spy on setter of getter/setter pair', () => {
         const E = new unitsnap._Mock(history).by(B, {d: unitsnap.Property().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B.prototype, 'd').set);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).replacement).toBe(f);
       });
 
       it('should override static properties with spy on single getter', () => {
         const E = new unitsnap._Mock(history).by(B, {d: unitsnap.StaticProperty().get(f)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').get).replacement).toBe(f);
       });
 
       it('should override static properties with spy on single setter', () => {
         const E = new unitsnap._Mock(history).by(B, {d: unitsnap.StaticProperty().set(f)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').set).replacement).toBe(f);
       });
 
       it('should override static properties with spy on getter of getter/setter pair', () => {
         const E = new unitsnap._Mock(history).by(B, {d: unitsnap.StaticProperty().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').get);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').get).replacement).toBe(f);
       });
 
       it('should override static properties with spy on setter of getter/setter pair', () => {
         const E = new unitsnap._Mock(history).by(B, {d: unitsnap.StaticProperty().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(Object.getOwnPropertyDescriptor(B, 'd').set);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').set).replacement).toBe(f);
       });
 
       it('should stub methods marked as This', () => {
         const E = new unitsnap._Mock(history).by(B, {c: unitsnap.This});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
+        expect(state(E.prototype.c).origin).toBe(B.prototype.c);
         expect(typeof E.prototype.c === 'function').toBeTruthy();
       });
 
@@ -439,7 +439,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(unitsnap.This)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(E.c).origin).toBe(B.c);
+        expect(state(E.c).origin).toBe(B.c);
         expect(typeof E.c === 'function').toBeTruthy();
       });
 
@@ -447,7 +447,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).by(B, {c: Function});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
+        expect(state(E.prototype.c).origin).toBe(B.prototype.c);
         expect(typeof E.prototype.c === 'function').toBeTruthy();
       });
 
@@ -455,7 +455,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(Function)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(E.c).origin).toBe(B.c);
+        expect(state(E.c).origin).toBe(B.c);
         expect(typeof E.c === 'function').toBeTruthy();
       });
 
@@ -463,7 +463,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).by(B, {c: 123});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
+        expect(state(E.prototype.c).origin).toBe(B.prototype.c);
         expect(typeof E.prototype.c === 'function').toBeTruthy();
       });
 
@@ -471,7 +471,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(123)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(E.c).origin).toBe(B.c);
+        expect(state(E.c).origin).toBe(B.c);
         expect(typeof E.c === 'function').toBeTruthy();
       });
 
@@ -479,7 +479,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).by(B, {c: () => {}});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
+        expect(state(E.prototype.c).origin).toBe(B.prototype.c);
         expect(typeof E.prototype.c === 'function').toBeTruthy();
       });
 
@@ -487,7 +487,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).by(B, {c: unitsnap.Initial});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
+        expect(state(E.prototype.c).origin).toBe(B.prototype.c);
         expect(typeof E.prototype.c === 'function').toBeTruthy();
       });
 
@@ -495,7 +495,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(() => {})});
 
         expect(E.a).toBe(B.a);
-        expect(stat(E.c).origin).toBe(B.c);
+        expect(state(E.c).origin).toBe(B.c);
         expect(typeof E.c === 'function').toBeTruthy();
       });
 
@@ -515,32 +515,32 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).by(B, {c: fixture});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
-        expect(stat(E.prototype.c).replacement.original).toBe(fixture.pop);
+        expect(state(E.prototype.c).origin).toBe(B.prototype.c);
+        expect(state(E.prototype.c).replacement.original).toBe(fixture.pop);
       });
 
       it('should override static methods linked to fixture with spy', () => {
         const E = new unitsnap._Mock(history).by(B, {c: unitsnap.StaticMethod(fixture)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(E.c).origin).toBe(B.c);
-        expect(stat(E.c).replacement.original).toBe(fixture.pop);
+        expect(state(E.c).origin).toBe(B.c);
+        expect(state(E.c).replacement.original).toBe(fixture.pop);
       });
 
       it('should override methods linked to fixture of observer by Fixture ref with spy', () => {
         const E = new unitsnap._Mock(new unitsnap._History().link(observer)).by(B, {c: unitsnap._Fixture});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(B.prototype.c);
-        expect(stat(E.prototype.c).replacement.original).toBe(observer.env.fixture.pop);
+        expect(state(E.prototype.c).origin).toBe(B.prototype.c);
+        expect(state(E.prototype.c).replacement.original).toBe(observer.env.fixture.pop);
       });
 
       it('should override static methods linked to fixture of observer by Fixture ref with spy', () => {
         const E = new unitsnap._Mock(new unitsnap._History().link(observer)).by(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(E.c).origin).toBe(B.c);
-        expect(stat(E.c).replacement.original).toBe(observer.env.fixture.pop);
+        expect(state(E.c).origin).toBe(B.c);
+        expect(state(E.c).replacement.original).toBe(observer.env.fixture.pop);
       });
 
       it('should throw exception on methods linked to fixture of unlinked observer by Fixture ref', () => {
@@ -1450,23 +1450,23 @@ describe('Mock', () => {
       it('should override all props with spy', () => {
         const E = new unitsnap._Mock(history).override(B);
 
-        expect(stat(E.prototype.a).origin).toBe(bPrototype.a);
-        expect(stat(E.prototype.b).origin).toBe(bPrototype.b);
-        expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(bPrototypeDescriptors.d.get);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(bPrototypeDescriptors.d.set);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'e').get).origin).toBe(bPrototypeDescriptors.e.get);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'e').set).origin).toBe(bPrototypeDescriptors.e.set);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'f').get).origin).toBe(bPrototypeDescriptors.f.get);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'f').set).origin).toBe(bPrototypeDescriptors.f.set);
+        expect(state(E.prototype.a).origin).toBe(bPrototype.a);
+        expect(state(E.prototype.b).origin).toBe(bPrototype.b);
+        expect(state(E.prototype.c).origin).toBe(bPrototype.c);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(bPrototypeDescriptors.d.get);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(bPrototypeDescriptors.d.set);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'e').get).origin).toBe(bPrototypeDescriptors.e.get);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'e').set).origin).toBe(bPrototypeDescriptors.e.set);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'f').get).origin).toBe(bPrototypeDescriptors.f.get);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'f').set).origin).toBe(bPrototypeDescriptors.f.set);
       });
 
       it('should override props with spy', () => {
         const E = new unitsnap._Mock(history).override(B, ['c']);
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
-        expect(stat(E.prototype.c).replacement).toBe(bPrototype.c);
+        expect(state(E.prototype.c).origin).toBe(bPrototype.c);
+        expect(state(E.prototype.c).replacement).toBe(bPrototype.c);
       });
 
       it('should stub absented props with spy', () => {
@@ -1481,95 +1481,95 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).override(B, {c: f});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
-        expect(stat(E.prototype.c).replacement).toBe(f);
+        expect(state(E.prototype.c).origin).toBe(bPrototype.c);
+        expect(state(E.prototype.c).replacement).toBe(f);
       });
 
       it('should override methods of parent class with spy', () => {
         const E = new unitsnap._Mock(history).override(B, {m: f});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.m).origin).toBe(A.prototype.m);
-        expect(stat(E.prototype.m).replacement).toBe(f);
+        expect(state(E.prototype.m).origin).toBe(A.prototype.m);
+        expect(state(E.prototype.m).replacement).toBe(f);
       });
 
       it('should override static methods with spy', () => {
         const E = new unitsnap._Mock(history).override(B, {c: unitsnap.StaticMethod(f)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(E.c).origin).toBe(bProperties.c);
-        expect(stat(E.c).replacement).toBe(f);
+        expect(state(E.c).origin).toBe(bProperties.c);
+        expect(state(E.c).replacement).toBe(f);
       });
 
       it('should override properties with spy on single getter', () => {
         const E = new unitsnap._Mock(history).override(B, {d: unitsnap.Property().get(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(bPrototypeDescriptors.d.get);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(bPrototypeDescriptors.d.get);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).replacement).toBe(f);
       });
 
       it('should override properties with spy on single setter', () => {
         const E = new unitsnap._Mock(history).override(B, {d: unitsnap.Property().set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(bPrototypeDescriptors.d.set);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(bPrototypeDescriptors.d.set);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).replacement).toBe(f);
       });
 
       it('should override properties with spy on getter of getter/setter pair', () => {
         const E = new unitsnap._Mock(history).override(B, {d: unitsnap.Property().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(bPrototypeDescriptors.d.get);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).origin).toBe(bPrototypeDescriptors.d.get);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').get).replacement).toBe(f);
       });
 
       it('should override properties with spy on setter of getter/setter pair', () => {
         const E = new unitsnap._Mock(history).override(B, {d: unitsnap.Property().get(f).set(f)});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(bPrototypeDescriptors.d.set);
-        expect(stat(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).origin).toBe(bPrototypeDescriptors.d.set);
+        expect(state(Object.getOwnPropertyDescriptor(E.prototype, 'd').set).replacement).toBe(f);
       });
 
       it('should override static properties with spy on single getter', () => {
         const E = new unitsnap._Mock(history).override(B, {d: unitsnap.StaticProperty().get(f)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(bPropertiesDescriptors.d.get);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(bPropertiesDescriptors.d.get);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').get).replacement).toBe(f);
       });
 
       it('should override static properties with spy on single setter', () => {
         const E = new unitsnap._Mock(history).override(B, {d: unitsnap.StaticProperty().set(f)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(bPropertiesDescriptors.d.set);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(bPropertiesDescriptors.d.set);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').set).replacement).toBe(f);
       });
 
       it('should override static properties with spy on getter of getter/setter pair', () => {
         const E = new unitsnap._Mock(history).override(B, {d: unitsnap.StaticProperty().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(bPropertiesDescriptors.d.get);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').get).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').get).origin).toBe(bPropertiesDescriptors.d.get);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').get).replacement).toBe(f);
       });
 
       it('should override static properties with spy on setter of getter/setter pair', () => {
         const E = new unitsnap._Mock(history).override(B, {d: unitsnap.StaticProperty().get(f).set(f)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(bPropertiesDescriptors.d.set);
-        expect(stat(Object.getOwnPropertyDescriptor(E, 'd').set).replacement).toBe(f);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').set).origin).toBe(bPropertiesDescriptors.d.set);
+        expect(state(Object.getOwnPropertyDescriptor(E, 'd').set).replacement).toBe(f);
       });
 
       it('should stub methods marked as Function', () => {
         const E = new unitsnap._Mock(history).override(B, {c: Function});
 
         expect(E.prototype.a).toBe(B.prototype.a);
-        expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
+        expect(state(E.prototype.c).origin).toBe(bPrototype.c);
         expect(typeof E.prototype.c === 'function').toBeTruthy();
       });
 
@@ -1577,7 +1577,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).override(B, {c: unitsnap.StaticMethod(Function)});
 
         expect(E.a).toBe(B.a);
-        expect(stat(E.c).origin).toBe(bProperties.c);
+        expect(state(E.c).origin).toBe(bProperties.c);
         expect(typeof E.c === 'function').toBeTruthy();
       });
 
@@ -1585,7 +1585,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).override(B, {c: 123});
 
         expect(E.prototype.a).toBe(bPrototype.a);
-        expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
+        expect(state(E.prototype.c).origin).toBe(bPrototype.c);
         expect(typeof E.prototype.c === 'function').toBeTruthy();
       });
 
@@ -1593,7 +1593,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).override(B, {c: unitsnap.StaticMethod(123)});
 
         expect(E.a).toBe(bProperties.a);
-        expect(stat(E.c).origin).toBe(bProperties.c);
+        expect(state(E.c).origin).toBe(bProperties.c);
         expect(typeof E.c === 'function').toBeTruthy();
       });
 
@@ -1601,7 +1601,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).override(B, {c: () => {}});
 
         expect(E.prototype.a).toBe(bPrototype.a);
-        expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
+        expect(state(E.prototype.c).origin).toBe(bPrototype.c);
         expect(typeof E.prototype.c === 'function').toBeTruthy();
       });
 
@@ -1609,7 +1609,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).override(B, {c: unitsnap.Initial});
 
         expect(E.prototype.a).toBe(bPrototype.a);
-        expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
+        expect(state(E.prototype.c).origin).toBe(bPrototype.c);
         expect(typeof E.prototype.c === 'function').toBeTruthy();
       });
 
@@ -1617,7 +1617,7 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).override(B, {c: unitsnap.StaticMethod(() => {})});
 
         expect(E.a).toBe(bProperties.a);
-        expect(stat(E.c).origin).toBe(bProperties.c);
+        expect(state(E.c).origin).toBe(bProperties.c);
         expect(typeof E.c === 'function').toBeTruthy();
       });
 
@@ -1637,32 +1637,32 @@ describe('Mock', () => {
         const E = new unitsnap._Mock(history).override(B, {c: fixture});
 
         expect(E.prototype.a).toBe(bPrototype.a);
-        expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
-        expect(stat(E.prototype.c).replacement.original).toBe(fixture.pop);
+        expect(state(E.prototype.c).origin).toBe(bPrototype.c);
+        expect(state(E.prototype.c).replacement.original).toBe(fixture.pop);
       });
 
       it('should override static methods linked to fixture with spy', () => {
         const E = new unitsnap._Mock(history).override(B, {c: unitsnap.StaticMethod(fixture)});
 
         expect(E.a).toBe(bProperties.a);
-        expect(stat(E.c).origin).toBe(bProperties.c);
-        expect(stat(E.c).replacement.original).toBe(fixture.pop);
+        expect(state(E.c).origin).toBe(bProperties.c);
+        expect(state(E.c).replacement.original).toBe(fixture.pop);
       });
 
       it('should override methods linked to fixture of observer by Fixture ref with spy', () => {
         const E = new unitsnap._Mock(new unitsnap._History().link(observer)).override(B, {c: unitsnap._Fixture});
 
         expect(E.prototype.a).toBe(bPrototype.a);
-        expect(stat(E.prototype.c).origin).toBe(bPrototype.c);
-        expect(stat(E.prototype.c).replacement.original).toBe(observer.env.fixture.pop);
+        expect(state(E.prototype.c).origin).toBe(bPrototype.c);
+        expect(state(E.prototype.c).replacement.original).toBe(observer.env.fixture.pop);
       });
 
       it('should override static methods linked to fixture of observer by Fixture ref with spy', () => {
         const E = new unitsnap._Mock(new unitsnap._History().link(observer)).override(B, {c: unitsnap.StaticMethod(unitsnap._Fixture)});
 
         expect(E.a).toBe(bProperties.a);
-        expect(stat(E.c).origin).toBe(bProperties.c);
-        expect(stat(E.c).replacement.original).toBe(observer.env.fixture.pop);
+        expect(state(E.c).origin).toBe(bProperties.c);
+        expect(state(E.c).replacement.original).toBe(observer.env.fixture.pop);
       });
 
       it('should throw exception on methods linked to fixture of unlinked observer by Fixture ref', () => {
@@ -2334,7 +2334,7 @@ describe('Mock', () => {
 
     it('should RESTORE overridden props by list of props', () => {
       const E = new unitsnap._Mock(history).override(B, ['a', 'b', 'x']);
-      E.RESTORE();
+      state(E).restore();
 
       expect(E.prototype.a).toBe(bPrototype.a);
       expect(E.prototype.b).toBe(bPrototype.b);
@@ -2350,7 +2350,7 @@ describe('Mock', () => {
         m: f,
         x: f,
       });
-      E.RESTORE();
+      state(E).restore();
 
       expect(E.prototype.a).toBe(bPrototype.a);
       expect(E.b).toBe(bProperties.b);

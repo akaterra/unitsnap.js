@@ -13,9 +13,7 @@ describe('Observer', () => {
 
   }
 
-  Object.defineProperty(B, 'RESTORE', {
-    value: jasmine.createSpy(),
-  });
+  unitsnap.ensSpyState(B).restore = jasmine.createSpy().and.returnValue(undefined);
 
   let bySpy: jasmine.Spy;
   let fromSpy: jasmine.Spy;
@@ -36,8 +34,8 @@ describe('Observer', () => {
     overrideSpy.calls.reset();
     spySpy.calls.reset();
   
-    if (unitsnap.stat(A).restore) { // @see Mock
-      unitsnap.stat(A).restore();
+    if (unitsnap.state(A).restore) { // @see Mock
+      unitsnap.state(A).restore();
     }
   });
 
@@ -116,7 +114,7 @@ describe('Observer', () => {
 
     e.end();
 
-    expect(unitsnap.stat(B).restore).toHaveBeenCalled();
+    expect(unitsnap.state(B).restore).toHaveBeenCalled();
   });
 
   it('should push fixture value', () => {

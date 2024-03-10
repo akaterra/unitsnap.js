@@ -18,10 +18,6 @@ describe('Snapshot', () => {
       Object.assign(this, snapshots);
     }
 
-    exists(name) {
-      return name in this;
-    }
-
     load(name) {
       return this[name];
     }
@@ -36,6 +32,10 @@ describe('Snapshot', () => {
       this[name] = snapshot._entries;
 
       return this;
+    }
+
+    which(name) {
+      return name in this ? 'test' : null;
     }
   }
 
@@ -732,11 +732,11 @@ describe('Snapshot', () => {
 
 describe('SnapshotFsProvider', () => {
   it('should exist', () => {
-    expect(new unitsnap.SnapshotFsProvider(__dirname + '/spec/snapshots').exists('a')).toBeTruthy();
+    expect(new unitsnap.SnapshotFsProvider(__dirname + '/spec/snapshots').which('a')).toBeTruthy();
   });
 
   it('should not exist', () => {
-    expect(new unitsnap.SnapshotFsProvider(__dirname + '/spec/snapshots').exists('b')).toBeFalsy();
+    expect(new unitsnap.SnapshotFsProvider(__dirname + '/spec/snapshots').which('b')).toBeFalsy();
   });
 
   it('should remove', () => {
@@ -766,11 +766,11 @@ describe('SnapshotFsProvider', () => {
 
 describe('SnapshotMemoryProvider', () => {
   it('should exist', () => {
-    expect(new unitsnap.SnapshotMemoryProvider({a: []}).exists('a')).toBeTruthy();
+    expect(new unitsnap.SnapshotMemoryProvider({a: []}).which('a')).toBeTruthy();
   });
 
   it('should not exist', () => {
-    expect(new unitsnap.SnapshotMemoryProvider({a: []}).exists('b')).toBeFalsy();
+    expect(new unitsnap.SnapshotMemoryProvider({a: []}).which('b')).toBeFalsy();
   });
 
   it('should remove', () => {

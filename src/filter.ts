@@ -111,6 +111,7 @@ export class _Filter {
     if (this._observer) {
       newSnapshot
         .setConfig(this._observer.env.snapshot.config)
+        .setFormat(this._observer.env.snapshot.env.format)
         .setMapper(this._observer.env.snapshot.env.mapper)
         .setProvider(this._observer.env.snapshot.env.provider)
         .addProcessors(...this._observer.env.snapshot.env.processor.processors)

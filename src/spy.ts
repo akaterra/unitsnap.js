@@ -1,5 +1,6 @@
 import * as instance from './instance';
 import { _Custom } from './mock';
+import {_Observer} from './observer';
 import { Es6ClassDef, Fn } from './utils';
 
 export type SpyOnFunctionOptions = {
@@ -58,7 +59,7 @@ export interface State {
   type?: StateType;
 }
 
-export interface CallState {
+export interface SpyState {
   args?: {
     '*'?: any[];
     [key: string]: any;
@@ -72,12 +73,14 @@ export interface CallState {
   origin?: Fn & { original?: Fn };
   replacement?: Fn & { original?: Fn };
   result?: any;
+
+  observer?: _Observer;
   restore?: () => void;
 }
 
-const callStates = new WeakMap<Fn | Es6ClassDef<any>, CallState>();
+const callStates = new WeakMap<Fn | Es6ClassDef<any>, SpyState>();
 
-function cs(fn: Fn): CallState {
+export function ensSpyState(fn: Fn | Es6ClassDef<any>): SpyState {
   if (!callStates.has(fn)) {
     callStates.set(fn, {});
   }
@@ -85,7 +88,7 @@ function cs(fn: Fn): CallState {
   return callStates.get(fn);
 }
 
-export function getSpyStats(fn: Fn | Es6ClassDef<any>) {
+export function getSpyState(fn: Fn | Es6ClassDef<any>) {
   const c = callStates.get(fn);
 
   return {
@@ -98,7 +101,8 @@ export function getSpyStats(fn: Fn | Es6ClassDef<any>) {
     isException: c?.isException ?? false,
     origin: c?.origin ?? undefined,
     replacement: c?.replacement ?? undefined,
-    restore: (fn as any)?.RESTORE ?? c?.restore ?? (() => {}),
+    restore: c?.restore ?? (() => {}),
+    observer: c?.observer ?? null,
   };
 }
 
@@ -131,7 +135,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
   }
 
   callable = function (...args: unknown[]) {
-    const c = cs(callable);
+    const c = ensSpyState(callable);
     c.args = { '*': [] };
     c.callsCount += 1;
 
@@ -183,14 +187,14 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
       }
 
       if (result instanceof Promise) {
-        const c = cs(callable);
+        const c = ensSpyState(callable);
         c.isAsync = true;
         c.isAsyncPending = true;
         c.result = result;
 
         return result.then(
           (result) => {
-            const c = cs(callable);
+            const c = ensSpyState(callable);
             c.exception = undefined;
             c.isAsyncPending = false;
             c.isException = false;
@@ -208,7 +212,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
             return result;
           },
           (error) => {
-            const c = cs(callable);
+            const c = ensSpyState(callable);
             c.exception = error;
             c.isAsyncPending = false;
             c.isException = true;
@@ -228,7 +232,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
         );
       }
 
-      const c = cs(callable);
+      const c = ensSpyState(callable);
       c.exception = undefined;
       c.isAsync = false;
       c.isAsyncPending = false;
@@ -237,7 +241,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
 
       return result;
     } catch (e) {
-      const c = cs(callable);
+      const c = ensSpyState(callable);
       c.exceptionsCount += 1;
 
       c.exception = e;
@@ -248,7 +252,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
 
       throw e;
     } finally {
-      const c = cs(callable);
+      const c = ensSpyState(callable);
 
       if (options && options.onCall) {
         if (options.exclude !== true) {
@@ -262,7 +266,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
     }
   }
 
-  const c = cs(callable);
+  const c = ensSpyState(callable);
   c.args = { '*': [] };
   c.callsCount = 0;
   c.exception = undefined;
@@ -281,7 +285,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
 }
 
 export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions) {
-  const c = cs(callable);
+  const c = ensSpyState(callable);
 
   return {
     level: options?.onEnterLevel ? options.onEnterLevel() : 0,
@@ -301,7 +305,7 @@ export function spyOnFunctionCreateArgsReport(callable, context?, originalCallab
 }
 
 export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions) {
-  const c = cs(callable);
+  const c = ensSpyState(callable);
 
   return {
     level: options?.onLeaveLevel ? options.onLeaveLevel() : 0,
@@ -398,7 +402,7 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
         }
       })(descriptor);
 
-      const c = cs(descriptor.get);
+      const c = ensSpyState(descriptor.get);
       c.args = { '*': [] };
       c.callsCount = 0;
       c.exceptionsCount = 0;
@@ -438,7 +442,7 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
         }
       })(descriptor);
 
-      const c = cs(descriptor.set);
+      const c = ensSpyState(descriptor.set);
       c.args = { '*': [] };
       c.callsCount = 0;
       c.exceptionsCount = 0;
@@ -482,7 +486,7 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
       })(descriptor);
     }
 
-    const c = cs(descriptor.value);
+    const c = ensSpyState(descriptor.value);
     c.args = { '*': [] };
     c.callsCount = 0;
     c.exceptionsCount = 0;

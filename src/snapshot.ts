@@ -8,6 +8,7 @@ import { State, StateReportType } from './spy';
 import { ClassDef } from './utils';
 
 export interface ISnapshotEnv {
+  format;
   mapper: (snapshot: _Snapshot, entry: State) => State;
   observer: _Observer;
   processor: _Processor;
@@ -27,6 +28,7 @@ export class _Snapshot {
     result: true,
   };
   private _entries: any[];
+  private _format;
   private _mapper: ISnapshotEnv['mapper'] = snapshotMapEntry;
   private _name: string = null;
   private _observer: ISnapshotEnv['observer'] = null;
@@ -39,6 +41,7 @@ export class _Snapshot {
 
   get env(): ISnapshotEnv {
     return {
+      format: this._format,
       mapper: this._mapper,
       observer: this._observer,
       processor: this._processor,
@@ -66,6 +69,12 @@ export class _Snapshot {
 
   setConfig(config) {
     this._config = config;
+
+    return this;
+  }
+
+  setFormat(format) {
+    this._format = format;
 
     return this;
   }
@@ -167,7 +176,7 @@ export class _Snapshot {
   }
 
   exists(name?) {
-    return this._provider.exists(name || this._name);
+    return this._provider.which(name || this._name);
   }
 
   filter() {
@@ -264,6 +273,10 @@ export class _Snapshot {
   serialize<T>(format: ISnapshotFormatter<T>): T;
 
   serialize(format?) {
+    if (typeof format === 'undefined') {
+      format = this._format;
+    }
+
     switch (true) {
       case typeof format === 'object':
         return format.format(this);;
@@ -349,8 +362,8 @@ function snapshotMapEntry(snapshot, entry: State): State {
   for (const key of Object.keys(mappedEntry)) {
     if (mappedEntry[key] === undefined) {
       if (
-        (key === 'args' && mappedEntry.reportType === StateReportType.CALL_ARGS) ||
-        (key === 'result' && mappedEntry.reportType === StateReportType.RETURN_VALUE)
+        (key === 'args' && entry.reportType === StateReportType.CALL_ARGS) ||
+        (key === 'result' && entry.reportType === StateReportType.RETURN_VALUE)
       ) {
         continue;
       }
@@ -375,10 +388,10 @@ function every(arr, fn) {
 }
 
 export interface ISnapshotProvider {
-  exists(name: string): boolean;
   load(name: string): any;
   remove(name: string): this;
   save(name: string, snapshot: any): this;
+  which(name: string): string;
 }
 
 export class SnapshotFsProvider implements ISnapshotProvider {
@@ -388,36 +401,59 @@ export class SnapshotFsProvider implements ISnapshotProvider {
     this._dir = dir;
   }
 
-  exists(name) {
-    return existsSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
-  }
-
   load(name) {
-    const snapshot = JSON.parse(readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json', 'utf-8'));
+    const ext = this.which(name);
 
-    return snapshot;
+    if (!ext) {
+      throw new Error('Snapshot not exists: ' + name);
+    }
+
+    const content = readFileSync(this._dir + '/' + name.replace(/\s/g, '_') + `.snapshot.${ext}`, 'utf-8');
+
+    if (ext === 'json') {
+      return JSON.parse(content);
+    }
+
+    return content;
   }
 
   remove(name) {
-    if (name && this.exists(name)) {
-      unlinkSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json');
+    if (name) {
+      const ext = this.which(name);
+
+      if (!ext) {
+        return this;
+      }
+
+      unlinkSync(this._dir + '/' + name.replace(/\s/g, '_') + `.snapshot.${ext}`);
     }
 
     return this;
   }
 
   save(name, snapshot) {
+    const content = snapshot instanceof _Snapshot ? snapshot.serialize() : snapshot;
+    const ext = Array.isArray(content) ? 'json' : 'txt';
+
     writeFileSync(
-      this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json',
-      JSON.stringify(
-        snapshot instanceof _Snapshot ? snapshot.serialize() : snapshot,
+      this._dir + '/' + name.replace(/\s/g, '_') + `.snapshot.${ext}`,
+      Array.isArray(content) ? JSON.stringify(
+        content,
         undefined,
         4
-      ),
+      ) : content,
       'utf-8',
     );
 
     return this;
+  }
+
+  which(name) {
+    return existsSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.json')
+      ? 'json'
+      : existsSync(this._dir + '/' + name.replace(/\s/g, '_') + '.snapshot.txt')
+       ? 'txt'
+       : null;
   }
 }
 
@@ -428,12 +464,8 @@ export class SnapshotMemoryProvider implements ISnapshotProvider {
     this._dictionary = dictionary || {};
   }
 
-  exists(name) {
-    return name in this._dictionary;
-  }
-
   load(name) {
-    if (name in this._dictionary) {
+    if (this._dictionary.hasOwnProperty(name)) {
       return this._dictionary[name];
     }
 
@@ -450,5 +482,9 @@ export class SnapshotMemoryProvider implements ISnapshotProvider {
     this._dictionary[name] = snapshot instanceof _Snapshot ? snapshot.serialize() : snapshot;
 
     return this;
+  }
+
+  which(name) {
+    return name in this._dictionary ? (Array.isArray(this._dictionary) ? 'json' : 'txt') : null;
   }
 }
