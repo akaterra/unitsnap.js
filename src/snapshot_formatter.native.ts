@@ -1,11 +1,15 @@
 import { Snapshot, SnapshotNativeEntry, _Snapshot } from './snapshot';
 
-export function formatNativeSnapshotEntries(shapshot: _Snapshot): SnapshotNativeEntry[] {
-  const processor = shapshot.env.processor;
-  const mapper = shapshot.env.mapper;
+export function formatNativeSnapshotEntries(snapshot: _Snapshot): string | SnapshotNativeEntry[] {
+  const processor = snapshot.env.processor;
+  const mapper = snapshot.env.mapper;
 
-  return shapshot.entries.map((entry, ind) => processor.serialize(
-    mapper(shapshot, entry),
+  if (!Array.isArray(snapshot.entries)) {
+    return snapshot.entries;
+  }
+
+  return snapshot.entries.map((entry, ind) => processor.serialize(
+    mapper(snapshot, entry),
     `[${ind}]`,
   ));
 }

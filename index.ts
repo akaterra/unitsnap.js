@@ -6,8 +6,10 @@ declare global {
   }
 }
 
-if (typeof globalThis === 'undefined') {
-  (window as any).globalThis = window;
+if (typeof globalThis === 'undefined' && typeof window !== 'undefined') {
+  if (typeof (window as any).globalThis === 'undefined') {
+    (window as any).globalThis = window;
+  }
 }
 
 if (typeof globalThis.__dirname === 'undefined') {
@@ -108,5 +110,5 @@ export function extendJasmine(format?) {
 export default new _Observer();
 
 if (typeof window !== 'undefined') {
-  (window as any).unitsnap = module.exports;
+  (window as any).$$unitsnap = module.exports;
 }

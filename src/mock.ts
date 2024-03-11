@@ -464,7 +464,7 @@ export interface ICustomEnv {
   returnValueProcessor: _Processor;
 }
 
-export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Null> {
+export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Observe> {
   private _argsAnnotation: ICustomEnv['argsAnnotation'];
   private _epoch: ICustomEnv['epoch'];
   private _exclude: ICustomEnv['exclude'];
@@ -503,7 +503,7 @@ export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Nu
     return this;
   }
 
-  constructor(public readonly value: T = Null as T) {
+  constructor(public readonly value: T = Observe as T) {
     if (value instanceof _Custom) {
       this.value = value.value as unknown as T;
     }
@@ -568,7 +568,7 @@ export class _Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Nu
   private __custom() {}
 }
 
-export function Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Null>(value: T = Null as T) {
+export function Custom<T extends Exclude<MockPropsTypes, _Custom<any>> = typeof Observe>(value: T = Observe as T) {
   return new _Custom<T>(value);
 }
 

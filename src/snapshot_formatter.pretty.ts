@@ -4,7 +4,7 @@ import { StateReportType } from './spy';
 import { Wrapped } from './type_helpers';
 
 const INDENT = '    ';
-const PARAMS = [ 'name', 'args', 'result', 'exception' ];
+const PARAMS = [ 'name', 'args', 'result', 'exception', 'epoch', 'callsCount', 'exceptionsCount', 'tags', 'time' ];
 
 export function formatPrettySnapshotEntries(snapshot: _Snapshot): string {
   const processor = snapshot.env.processor;
@@ -12,28 +12,41 @@ export function formatPrettySnapshotEntries(snapshot: _Snapshot): string {
 
   let output = '';
 
-  function addLines(param, entry, value, lineIndent) {
+  function addLines(
+    param,
+    entry,
+    serializedEntry,
+    value,
+    lineIndent,
+  ) {
     const strValue = serialize(value).trim();
     const lines = strValue.split('\n');
+    const serializedEntryHasName = !!serializedEntry.name;
 
     if (param === 'name') {
       const fnName = lines[0].slice(1, -1);
 
       if (entry.reportType == StateReportType.CALL_ARGS) {
-        output += `${lineIndent}--> ${fnName} --> `;
+        output += `${lineIndent}--> ${fnName} `;
       } else {
-        output += `${lineIndent}<-- ${fnName} <-- `;
+        if (entry.isException) {
+          output += `${lineIndent}!!! ${fnName} `;
+        } else {
+          output += `${lineIndent}<-- ${fnName} `;
+        }
       }
     } else if (param === 'args') {
-      output += `${lines[0]}\n`;
+      output += `${serializedEntryHasName ? '' : lineIndent}--> ${lines[0]}\n`;
     } else if (param === 'result') {
-      output += `${lines[0]}\n`;
+      output += `${serializedEntryHasName ? '' : lineIndent}<-- ${lines[0]}\n`;
+    } else if (param === 'exception') {
+      output += `${serializedEntryHasName ? '' : lineIndent}!!! ${lines[0]}\n`;
     } else {
-      output += `${lineIndent}${param} = ${lines[0]}\n`;
+      output += `${lineIndent}${INDENT}${param} = ${lines[0]}\n`;
     }
 
     for (const line of lines.slice(1)) {
-      output += `${lineIndent}${lineIndent}${line}\n`;
+      output += `${lineIndent}${INDENT}${line}\n`;
     }
   }
 
@@ -43,7 +56,7 @@ export function formatPrettySnapshotEntries(snapshot: _Snapshot): string {
 
   snapshot.entries.forEach((entry, ind) => {
     const lineIndent = entry.level > 0 ? INDENT.repeat(entry.level) : '';
-    const e = processor.serialize(
+    const serializedEntry = processor.serialize(
       mapper(snapshot, entry),
       `[${ind}]`,
     );
@@ -51,14 +64,15 @@ export function formatPrettySnapshotEntries(snapshot: _Snapshot): string {
     output += '\n';
 
     for (const param of PARAMS) {
-      if (!e.hasOwnProperty(param)) {
+      if (!serializedEntry.hasOwnProperty(param)) {
         continue;
       }
 
       addLines(
         param,
         entry,
-        e[param],
+        serializedEntry,
+        serializedEntry[param],
         lineIndent,
       );
     }
@@ -160,7 +174,11 @@ function serialize(value, indent?, output?, circular?) {
 
     try {
       value.forEach((val) => {
-        output += `${indent}${INDENT}${serialize(val, indent + INDENT, '', circular)}`;
+        try {
+          output += `${indent}${INDENT}${serialize(val, indent + INDENT, '', circular)}`;
+        } catch (err) {
+          output += `${indent}${INDENT}${UNSERIALIZABLE}`;
+        }
       });
     } catch (err) {
       output += `${indent}${INDENT}${UNSERIALIZABLE}\n`;
@@ -184,7 +202,11 @@ function serialize(value, indent?, output?, circular?) {
 
     try {
       Object.entries(value).forEach(([ key, val ], ind) => {
-        output += `${indent}${INDENT}${key} = ${serialize(val, indent + INDENT, '', circular)}`;
+        try {
+          output += `${indent}${INDENT}${key} = ${serialize(val, indent + INDENT, '', circular)}`;
+        } catch (err) {
+          output += `${indent}${INDENT}${key} = ${UNSERIALIZABLE}`;
+        }
       });
     } catch (err) {
       output += `${indent}${INDENT}${UNSERIALIZABLE}\n`;
@@ -195,6 +217,7 @@ function serialize(value, indent?, output?, circular?) {
     circular.delete(value);
 
     return output;
+
   }
 
   return `${pre}${value}${post}\n`;

@@ -1201,7 +1201,7 @@ describe('Mock', () => {
     it('should spy with custom args annotation', () => {
       history.begin('epoch', 'comment');
 
-      const custom = unitsnap.Custom<number>().argsAnnotation(['x', 'y', 'z']);
+      const custom = unitsnap.Custom<number>(null).argsAnnotation(['x', 'y', 'z']);
 
       const E = new unitsnap._Mock(history).by(B, {
         constructor: custom,

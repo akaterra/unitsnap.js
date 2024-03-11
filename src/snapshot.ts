@@ -27,7 +27,7 @@ export class _Snapshot {
     exception: true,
     result: true,
   };
-  private _entries: any[];
+  private _entries: string | any[];
   private _format;
   private _mapper: ISnapshotEnv['mapper'] = snapshotMapEntry;
   private _name: string = null;
@@ -61,7 +61,7 @@ export class _Snapshot {
     return this._name;
   }
 
-  constructor(entries?) {
+  constructor(entries?: _Snapshot['_entries']) {
     this._entries = entries || [];
 
     this.setMemoryProvider({});
@@ -180,6 +180,10 @@ export class _Snapshot {
   }
 
   filter() {
+    if (!Array.isArray(this._entries)) {
+      throw new Error('Snapshot is not filterable');
+    }
+
     return new _Filter(this._entries).link(this._observer);
   }
 
@@ -320,7 +324,7 @@ function snapshotAssert(source, target, path) {
   return source === target ? true : path;
 }
 
-function snapshotMapEntry(snapshot, entry: State): State {
+function snapshotMapEntry(snapshot: _Snapshot, entry: State): State {
   const mappedEntry: State = {};
 
   if (snapshot.isEnabled('name')) {
