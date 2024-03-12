@@ -792,7 +792,7 @@ Note, that each added processor will be inserted into beginning of the processor
 If matched and serialized value has to be continued with the rest processors use **Continue** type helper.
 
 ```typescript
-snapshot.addProcessor((value) => value === 5, (value) => new Continue(value));
+snapshot.addProcessor((value) => value === 5, (value) => Continue(value));
 ```
 
 ##### Type helpers
@@ -982,7 +982,7 @@ import observer, { extendJasmine } from '@akaterra/unitsnap';
 describe('some suite', () => {
     observer.env.snapshot.setFsProvider(__dirname);
 
-    beforeAll(() => extendJasmine()); // adds matcher to jasmine, this line is important
+    beforeAll(() => extendJasmine('compact')); // adds matcher to jasmine, this line is important
     beforeEach(() => observer.begin());
     afterEach(() => observer.end());
     
