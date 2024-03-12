@@ -30,19 +30,9 @@ export * from './src/type_helpers';
 
 import { _Filter } from './src/filter';
 import { _Observer } from './src/observer';
-import { ISnapshotFormatter, _Snapshot } from './src/snapshot';
+import { SnapshotFormat, _Snapshot } from './src/snapshot';
 
-export function extendJasmine();
-
-export function extendJasmine(format: 'compact');
-
-export function extendJasmine(format: 'native');
-
-export function extendJasmine(format: (snapshot: _Snapshot) => any);
-
-export function extendJasmine(format: ISnapshotFormatter<any>);
-
-export function extendJasmine(format?) {
+export function extendJasmine(format?: SnapshotFormat) {
   if (typeof jasmine !== 'undefined') {
     (jasmine as any).addMatchers({
       toMatchSnapshot: function toMatchSnapshot(util) {
