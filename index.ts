@@ -24,7 +24,7 @@ export * from './src/mock';
 export * from './src/observer';
 export * from './src/snapshot';
 export * from './src/snapshot_formatter.native';
-export * from './src/snapshot_formatter.pretty';
+export * from './src/snapshot_formatter.compact';
 export * from './src/spy';
 export * from './src/type_helpers';
 
@@ -34,9 +34,9 @@ import { ISnapshotFormatter, _Snapshot } from './src/snapshot';
 
 export function extendJasmine();
 
-export function extendJasmine(format: 'native');
+export function extendJasmine(format: 'compact');
 
-export function extendJasmine(format: 'pretty');
+export function extendJasmine(format: 'native');
 
 export function extendJasmine(format: (snapshot: _Snapshot) => any);
 
@@ -109,6 +109,6 @@ export function extendJasmine(format?) {
 
 export default new _Observer();
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && typeof (window as any).$$unitsnap === 'undefined') {
   (window as any).$$unitsnap = module.exports;
 }

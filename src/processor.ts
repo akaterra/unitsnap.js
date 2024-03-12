@@ -1,6 +1,6 @@
 import {CIRCULAR, UNSERIALIZABLE} from './const';
 import {
-  _ClassOf,
+  _StrictInstanceOf,
   _InstanceOf,
   _AnyType,
   _BooleanType,
@@ -8,7 +8,7 @@ import {
   _DateType,
   _DateValue,
   Ignore,
-  IType,
+  ITypeHelper,
   _NumberType,
   _StringType,
   _UndefinedType,
@@ -31,7 +31,7 @@ export type ProcessorBaseTypes = typeof Boolean |
   typeof String |
   null |
   typeof undefined |
-  IType |
+  ITypeHelper |
   typeof _AnyType |
   typeof _BooleanType |
   typeof _DateType |
@@ -41,7 +41,7 @@ export type ProcessorBaseTypes = typeof Boolean |
   typeof _StringType |
   typeof _UndefinedType;
 export type ProcessorChecker = ((value?: unknown, path?: string) => boolean | void) | ProcessorBaseTypes;
-export type ProcessorSerializer = ((value?: unknown) => unknown) | ProcessorBaseTypes;
+export type ProcessorSerializer = ((value?: unknown) => unknown) | ProcessorBaseTypes | ITypeHelper;
 
 export class _Processor {
   private _processors: { checker: Fn & { original?: Fn }, serializer: Fn & { original?: Fn } }[] = [];
@@ -83,9 +83,10 @@ export class _Processor {
   }
 
   instanceOf(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    const helper = new _InstanceOf(cls);
-
-    return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
+    return this.addCombined(
+      new _InstanceOf(cls),
+      serializer,
+    );
   }
 
   path(path: string, serializer: ProcessorSerializer) {
@@ -95,29 +96,50 @@ export class _Processor {
       .replace(/_/g, '.') + '$'
     );
 
-    return this.add((value, path) => rgx.test(path), serializer);
+    return this.regexPath(rgx, serializer);
   }
 
   regexPath(regex: string | RegExp, serializer: ProcessorSerializer) {
     const rgx = regex instanceof RegExp ? regex : RegExp(regex);
 
-    return this.add((value, path) => rgx.test(path), serializer);
+    return this.addCombined(
+      { check: (value, path) => rgx.test(path) },
+      serializer,
+    );
   }
 
   strictInstanceOf(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    const helper = new _ClassOf(cls);
-
-    return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
+    return this.addCombined(
+      new _StrictInstanceOf(cls),
+      serializer,
+    );
   }
 
   undefined(serializer?: ProcessorSerializer) {
-    const helper = new _UndefinedType();
-
-    return this.add(helper.check.bind(helper), serializer || helper.serialize.bind(helper));
+    return this.addCombined(
+      new _UndefinedType(),
+      serializer,
+    );
   }
 
   serialize(value, path?: string) {
     return this.serializeInternal(value, path ?? '');
+  }
+
+  private addCombined(typeHelper, serializer?) {
+    const checkerFn = typeof serializer === 'function' || !serializer
+      ? null
+      : serializer.check.bind(serializer);
+    const serializerFn = typeof serializer === 'function'
+      ? serializer
+      : serializer ? serializer.serialize.bind(serializer) : typeHelper.serialize.bind(typeHelper);
+
+    return this.add(
+      checkerFn
+        ? (value, path) => typeHelper.check(value, path) && checkerFn(value, path)
+        : typeHelper.check.bind(typeHelper),
+      serializerFn,
+    );
   }
 
   private serializeInternal(value, path, primitiveOnly?, circular?) {
@@ -198,7 +220,7 @@ export function Processor() {
   return new _Processor();
 }
 
-const basicTypes: [ any, IType ][] = [
+const basicTypes: [ any, ITypeHelper ][] = [
   [ AnyType, new _AnyType() ],
   [ _AnyType, new _AnyType() ],
   [ Boolean, new _BooleanType() ],

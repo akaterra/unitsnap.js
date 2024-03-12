@@ -1,5 +1,5 @@
 import { Snapshot, StateReportType } from '..';
-import { formatPrettySnapshotEntries } from '..';
+import { formatCompactSnapshotEntries as formatCompactSnapshotEntries } from '..';
 
 class Obj {}
 
@@ -38,9 +38,9 @@ const obj = {
   J: Uint32Array.from([1, 2, 3]),
 };
 
-describe('Snapshot formatter "pretty"', () => {
+describe('Snapshot formatter "compact"', () => {
   it('should format snapshot entries', () => {
-    const formatted = formatPrettySnapshotEntries(Snapshot([
+    const formatted = formatCompactSnapshotEntries(Snapshot([
         { name: 'a', args: [ obj ], reportType: StateReportType.CALL_ARGS },
         { name: 'a', result: obj, reportType: StateReportType.RETURN_VALUE },
         { name: 'b', exception: new Error('error'), isException: true, reportType: StateReportType.RETURN_VALUE },

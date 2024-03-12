@@ -1,12 +1,12 @@
 import { DATA, TYPE } from './const';
 import { ClassDef } from './utils';
 
-export interface IType {
+export interface ITypeHelper {
   check(value?: any): boolean;
   serialize(value?: any): any;
 }
 
-export class _AnyType implements IType {
+export class _AnyType implements ITypeHelper {
   check(value?) { // eslint-disable-line unused-imports/no-unused-vars
     return true;
   }
@@ -20,7 +20,7 @@ export function AnyType() {
   return new _AnyType();
 }
 
-export class _BooleanType implements IType {
+export class _BooleanType implements ITypeHelper {
   check(value?) {
     return typeof value === 'boolean';
   }
@@ -36,29 +36,7 @@ export function BooleanType() {
   return new _BooleanType();
 }
 
-export class _ClassOf implements IType {
-  constructor(private _cls: ClassDef<unknown>) {
-
-  }
-
-  check(value?) {
-    return value !== undefined && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls;
-  }
-
-  serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
-    const typA = Object.getPrototypeOf(value).constructor.name;
-    const typB = this._cls.name;
-
-    return { [ DATA ]: pref ? `${typB} ≠ ${typA}` : typA, [ TYPE ]: `${pref}classOf` };
-  }
-}
-
-export function ClassOf(cls: ClassDef<unknown>) {
-  return new _ClassOf(cls);
-}
-
-export class Continue implements IType {
+export class Continue implements ITypeHelper {
   check() {
     return true;
   }
@@ -68,7 +46,7 @@ export class Continue implements IType {
   }
 }
 
-export class _Copy implements IType {
+export class _Copy implements ITypeHelper {
   check(value?) {
     return true;
   }
@@ -86,7 +64,7 @@ export function Copy() {
   return new _Copy();
 }
 
-export class _DateType implements IType {
+export class _DateType implements ITypeHelper {
   check(value?) {
     return value instanceof Date;
   }
@@ -102,7 +80,7 @@ export function DateType() {
   return new _DateType();
 }
 
-export class _DateValue implements IType {
+export class _DateValue implements ITypeHelper {
   check(value?) {
     return value instanceof Date;
   }
@@ -120,7 +98,7 @@ export function DateValue() {
   return new _DateValue();
 }
 
-export class Ignore implements IType {
+export class Ignore implements ITypeHelper {
   check(value?) { // eslint-disable-line unused-imports/no-unused-vars
     return true;
   }
@@ -130,7 +108,7 @@ export class Ignore implements IType {
   }
 }
 
-export class _In implements IType {
+export class _In implements ITypeHelper {
   constructor(private _values: unknown[]) {
 
   }
@@ -150,7 +128,7 @@ export function In(...values: unknown[]) {
   return new _In(values);
 }
 
-export class _InstanceOf implements IType {
+export class _InstanceOf implements ITypeHelper {
   constructor(private _cls: ClassDef<unknown>) {
 
   }
@@ -169,10 +147,10 @@ export class _InstanceOf implements IType {
 }
 
 export function InstanceOf(cls: ClassDef<unknown>) {
-  return new _ClassOf(cls);
+  return new _StrictInstanceOf(cls);
 }
 
-export class _NullType implements IType {
+export class _NullType implements ITypeHelper {
   check(value?) {
     return value === null;
   }
@@ -188,7 +166,7 @@ export function NullType() {
   return new _NullType();
 }
 
-export class _NumberType implements IType {
+export class _NumberType implements ITypeHelper {
   check(value?) {
     return typeof value === 'number';
   }
@@ -204,7 +182,7 @@ export function NumberType() {
   return new _NumberType();
 }
 
-export class _NumberIsCloseTo implements IType {
+export class _NumberIsCloseTo implements ITypeHelper {
   constructor(private _value: number, private _diff: number) {
 
   }
@@ -240,7 +218,7 @@ export function NumberIsCloseTo(value: number, diff: number) {
   return new _NumberIsPreciseTo(value, diff);
 }
 
-export class _NumberIsPreciseTo implements IType {
+export class _NumberIsPreciseTo implements ITypeHelper {
   constructor(private _value: number, private _precision: number) {
 
   }
@@ -276,7 +254,7 @@ export function NumberIsPreciseTo(value: number, precision: number) {
   return new _NumberIsPreciseTo(value, precision);
 }
 
-export class _Range implements IType {
+export class _Range implements ITypeHelper {
   constructor(_min: number, _max: number);
 
   constructor(_min: string, _max: string);
@@ -335,7 +313,29 @@ export function Range(min, max) {
   return new _Range(min, max);
 }
 
-export class _StringType implements IType {
+export class _StrictInstanceOf implements ITypeHelper {
+  constructor(private _cls: ClassDef<unknown>) {
+
+  }
+
+  check(value?) {
+    return value !== undefined && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls;
+  }
+
+  serialize(value?) {
+    const pref = this.check(value) ? '' : 'not:';
+    const typA = Object.getPrototypeOf(value).constructor.name;
+    const typB = this._cls.name;
+
+    return { [ DATA ]: pref ? `${typB} ≠ ${typA}` : typA, [ TYPE ]: `${pref}strictInstanceOf` };
+  }
+}
+
+export function StrictInstanceOf(cls: ClassDef<unknown>) {
+  return new _StrictInstanceOf(cls);
+}
+
+export class _StringType implements ITypeHelper {
   check(value?) {
     return typeof value === 'string';
   }
@@ -351,7 +351,7 @@ export function StringType() {
   return new _StringType();
 }
 
-export class _UndefinedType implements IType {
+export class _UndefinedType implements ITypeHelper {
   check(value?) {
     return value === undefined;
   }

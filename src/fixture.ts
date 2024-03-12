@@ -86,15 +86,15 @@ export class _Fixture<T = any> {
     return this;
   }
 
-  throwOnClassOf(cls) {
-    return this.throwOnCallback((value) => {
-      return value !== undefined && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === cls;
-    });
-  }
-
   throwOnInstanceOf(cls) {
     return this.throwOnCallback((value) => {
       return value instanceof cls;
+    });
+  }
+
+  throwOnStrictInstanceOf(cls) {
+    return this.throwOnCallback((value) => {
+      return value !== undefined && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === cls;
     });
   }
 }

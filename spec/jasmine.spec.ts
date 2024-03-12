@@ -5,7 +5,7 @@ describe('some suite 1', () => {
 
   observer.env.snapshot.setFsProvider(__dirname + '/spec/snapshots').includeName();
 
-  beforeAll(() => unitsnap.extendJasmine('pretty'));
+  beforeAll(() => unitsnap.extendJasmine('compact'));
   beforeEach(() => observer.begin());
   afterEach(() => observer.end());
 
@@ -36,7 +36,7 @@ describe('some suite 2', () => {
 
   observer.env.snapshot.setFsProvider(__dirname + '/spec/snapshots');
 
-  beforeAll(() => unitsnap.extendJasmine('pretty'));
+  beforeAll(() => unitsnap.extendJasmine('compact'));
   beforeEach(() => {
     observer.begin()
     observer.env.snapshot.remove('some spec 2');

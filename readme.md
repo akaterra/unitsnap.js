@@ -610,9 +610,9 @@ Fixture provides a channel with fake data to be used as a result of the function
 
 * **throwOnCallback(function)** - checks the popped value via callback and throws values as an error.
 
-* **throwOnClassOf(class)** - checks the popped value to be strict instance of class and throws values as an error.
-
 * **throwOnInstanceOf(class)** - checks the popped value to be instance of class and throws values as an error.
+
+* **throwOnStrictInstanceOf(class)** - checks the popped value to be strict instance of class and throws values as an error.
 
 ##### FixtureCallbackStrategy
 
@@ -839,14 +839,6 @@ Available helpers:
   }
   ```
 
-* **ClassOf** - checks the value to be class of and serializes the value as:
-  ```typescript
-  {
-    '[[ Data ]]': "<class name>",
-    '[[ Type ]]': "classOf"
-  }
-  ```
-
 * **Continue** - the value will be continued with the rest processors.
 
 * **Copy** - creates as deep copy of the value using [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/structuredClone).
@@ -926,6 +918,14 @@ Available helpers:
   {
     '[[ Data ]]': "<min> .. <max>",
     '[[ Type ]]': "range"
+  }
+  ```
+
+* **StrictInstanceOf** - checks the value to be strict instance of and serializes the value as:
+  ```typescript
+  {
+    '[[ Data ]]': "<class name>",
+    '[[ Type ]]': "strictInstanceOf"
   }
   ```
 

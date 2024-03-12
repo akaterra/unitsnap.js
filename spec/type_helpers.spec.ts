@@ -48,40 +48,6 @@ describe('Type helpers', () => {
     });
   });
 
-  describe('ClassOf', () => {
-    class D extends Date {
-
-    }
-
-    it('should check and resolve class of value', () => {
-      const t = new unitsnap._ClassOf(Date);
-
-      for (const v of [new Date()]) {
-        expect(t.check(v)).toBeTruthy();
-      }
-    });
-
-    it('should check and reject not class of value', () => {
-      const t = new unitsnap._ClassOf(Date);
-
-      for (const v of [new D()]) {
-        expect(t.check(v)).toBeFalsy();
-      }
-    });
-
-    it('should serialize class of value', () => {
-      const t = new unitsnap._ClassOf(Date);
-
-      expect(t.serialize(new Date())).toEqual({[ DATA ]: 'Date', [ TYPE ]: 'classOf'});
-    });
-
-    it('should serialize not class of value', () => {
-      const t = new unitsnap._ClassOf(Date);
-
-      expect(t.serialize(new D())).toEqual({[ DATA ]: 'Date ≠ D', [ TYPE ]: 'not:classOf'});
-    });
-  });
-
   describe('Copy', () => {
     it('should check and resolve any value', () => {
       const t = new unitsnap._Copy();
@@ -402,6 +368,40 @@ describe('Type helpers', () => {
       const t = new unitsnap._Range(new Date('2020-01-01'), new Date('2020-01-02'));
 
       expect(t.serialize(new Date('2020-01-03'))).toEqual({[ DATA ]: `2020-01-03T00:00:00.000Z ∉ 2020-01-01T00:00:00.000Z .. 2020-01-02T00:00:00.000Z`, [ TYPE ]: 'not:range'});
+    });
+  });
+
+  describe('StrictInstanceOf', () => {
+    class D extends Date {
+
+    }
+
+    it('should check and resolve strict instance of value', () => {
+      const t = new unitsnap._StrictInstanceOf(Date);
+
+      for (const v of [new Date()]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and reject not strict instance of value', () => {
+      const t = new unitsnap._StrictInstanceOf(Date);
+
+      for (const v of [new D()]) {
+        expect(t.check(v)).toBeFalsy();
+      }
+    });
+
+    it('should serialize strict instance of value', () => {
+      const t = new unitsnap._StrictInstanceOf(Date);
+
+      expect(t.serialize(new Date())).toEqual({[ DATA ]: 'Date', [ TYPE ]: 'strictInstanceOf'});
+    });
+
+    it('should serialize not strict instance of value', () => {
+      const t = new unitsnap._StrictInstanceOf(Date);
+
+      expect(t.serialize(new D())).toEqual({[ DATA ]: 'Date ≠ D', [ TYPE ]: 'not:strictInstanceOf'});
     });
   });
 

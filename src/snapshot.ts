@@ -2,8 +2,8 @@ import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { _Filter } from './filter';
 import { _Observer } from './observer';
 import { _Processor, ProcessorChecker, ProcessorSerializer } from './processor';
+import { formatCompactSnapshotEntries } from './snapshot_formatter.compact';
 import { formatNativeSnapshotEntries } from './snapshot_formatter.native';
-import { formatPrettySnapshotEntries } from './snapshot_formatter.pretty';
 import { State, StateReportType } from './spy';
 import { ClassDef } from './utils';
 
@@ -131,12 +131,6 @@ export class _Snapshot {
     return this;
   }
 
-  addClassOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
-    this._processor.strictInstanceOf(cls, serializer);
-
-    return this;
-  }
-
   addInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
     this._processor.instanceOf(cls, serializer);
 
@@ -151,6 +145,12 @@ export class _Snapshot {
 
   addRegexPathProcessor(regex: string | RegExp, serializer: ProcessorSerializer) {
     this._processor.regexPath(regex, serializer);
+
+    return this;
+  }
+
+  addStrictInstanceOfProcessor(cls: ClassDef<unknown>, serializer?: ProcessorSerializer) {
+    this._processor.strictInstanceOf(cls, serializer);
 
     return this;
   }
@@ -240,13 +240,13 @@ export class _Snapshot {
   }
 
   load(name?: string) {
-    this._entries = this._provider.load(name || this._name);
+    this._entries = this._provider.load(name || this._name, this._format);
 
     return this;
   }
 
   loadCopy(name?: string) {
-    return new _Snapshot(this._provider.load(name || this._name))
+    return new _Snapshot(this._provider.load(name || this._name, this._format))
       .setConfig({ ...this._config })
       .setName(this._name)
       .setProvider(this._provider)
@@ -268,9 +268,9 @@ export class _Snapshot {
 
   serialize(): SnapshotNativeEntry[];
 
-  serialize(format: 'native'): SnapshotNativeEntry[];
+  serialize(format: 'compact'): string;
 
-  serialize(format: 'pretty'): string;
+  serialize(format: 'native'): SnapshotNativeEntry[];
 
   serialize<T>(format: (snapshot: _Snapshot) => T): T;
 
@@ -286,8 +286,8 @@ export class _Snapshot {
         return format.format(this);;
       case typeof format === 'function':
         return format(this);
-      case format === 'pretty':
-        return formatPrettySnapshotEntries(this);
+      case format === 'compact':
+        return formatCompactSnapshotEntries(this);
       default:
         return formatNativeSnapshotEntries(this);
     }
@@ -392,7 +392,7 @@ function every(arr, fn) {
 }
 
 export interface ISnapshotProvider {
-  load(name: string): any;
+  load(name: string, format?: 'native' | 'compact'): any;
   remove(name: string): this;
   save(name: string, snapshot: any): this;
   which(name: string): string;
@@ -405,8 +405,8 @@ export class SnapshotFsProvider implements ISnapshotProvider {
     this._dir = dir;
   }
 
-  load(name) {
-    const ext = this.which(name);
+  load(name, format?) {
+    const ext = format === 'native' ? 'json' : format === 'compact' ? 'txt' : this.which(name);
 
     if (!ext) {
       throw new Error('Snapshot not exists: ' + name);

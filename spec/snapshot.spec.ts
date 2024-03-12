@@ -13,6 +13,10 @@ describe('Snapshot', () => {
 
   }
 
+  class TestDate extends Date {
+    
+  }
+
   class Provider implements unitsnap.ISnapshotProvider {
     constructor(snapshots) {
       Object.assign(this, snapshots);
@@ -291,18 +295,6 @@ describe('Snapshot', () => {
     expect(e.env.processor.processors[0].checker).toBe(f);
   });
 
-  it('should add processor of class of', () => {
-    const e = new unitsnap._Snapshot().addClassOfProcessor(Date);
-
-    expect(e.env.processor.processors[0].checker.original).toBe(unitsnap._ClassOf.prototype.check);
-  });
-
-  it('should add processor of class of with custom serializer', () => {
-    const e = new unitsnap._Snapshot().addClassOfProcessor(Date, f);
-
-    expect(e.env.processor.processors[0].serializer).toBe(f);
-  });
-
   it('should add processor of instance of', () => {
     const e = new unitsnap._Snapshot().addInstanceOfProcessor(Date);
 
@@ -315,10 +307,58 @@ describe('Snapshot', () => {
     expect(e.env.processor.processors[0].serializer).toBe(f);
   });
 
+  it('should add processor of instance of with custom serializer as type helper', () => {
+    const e = new unitsnap._Snapshot().addInstanceOfProcessor(Date, { check: (value, path) => path === 'a.a', serialize: (value) => 'serialized' });
+
+    expect(e.env.processor.serialize({
+      a: {
+        a: new Date('2020-01-01'),
+        b: new Date('2020-01-02'),
+      },
+      b: {
+        a: new Date('2020-01-03'),
+        b: new Date('2020-01-04'),
+      },
+    })).toEqual({
+      a: {
+        a: 'serialized',
+        b: new Date('2020-01-02'),
+      },
+      b: {
+        a: new Date('2020-01-03'),
+        b: new Date('2020-01-04'),
+      },
+    });
+  });
+
   it('should add processor of path with custom serializer', () => {
     const e = new unitsnap._Snapshot().addPathProcessor('a', f);
 
     expect(e.env.processor.processors[0].serializer).toBe(f);
+  });
+
+  it('should add processor of path with custom serializer as type helper', () => {
+    const e = new unitsnap._Snapshot().addPathProcessor('a._', { check: (value) => value === 'a', serialize: (value) => 'serialized' });
+
+    expect(e.env.processor.serialize({
+      a: {
+        a: 'a',
+        b: 'b',
+      },
+      b: {
+        a: 'a',
+        b: 'b',
+      },
+    })).toEqual({
+      a: {
+        a: 'serialized',
+        b: 'b',
+      },
+      b: {
+        a: 'a',
+        b: 'b',
+      },
+    });
   });
 
   it('should add processor of path regex with custom serializer', () => {
@@ -331,6 +371,66 @@ describe('Snapshot', () => {
     const e = new unitsnap._Snapshot().addRegexPathProcessor(/a/, f);
 
     expect(e.env.processor.processors[0].serializer).toBe(f);
+  });
+
+  it('should add processor of path regex as prepared regex  with custom serializer as type helper', () => {
+    const e = new unitsnap._Snapshot().addRegexPathProcessor(/^a\..+/, { check: (value) => value === 'a', serialize: (value) => 'serialized' });
+
+    expect(e.env.processor.serialize({
+      a: {
+        a: 'a',
+        b: 'b',
+      },
+      b: {
+        a: 'a',
+        b: 'b',
+      },
+    })).toEqual({
+      a: {
+        a: 'serialized',
+        b: 'b',
+      },
+      b: {
+        a: 'a',
+        b: 'b',
+      },
+    });
+  });
+
+  it('should add processor of strict instance of', () => {
+    const e = new unitsnap._Snapshot().addStrictInstanceOfProcessor(Date);
+
+    expect(e.env.processor.processors[0].checker.original).toBe(unitsnap._StrictInstanceOf.prototype.check);
+  });
+
+  it('should add processor of strict instance of with custom serializer', () => {
+    const e = new unitsnap._Snapshot().addStrictInstanceOfProcessor(Date, f);
+
+    expect(e.env.processor.processors[0].serializer).toBe(f);
+  });
+
+  it('should add processor of strict instance of with custom serializer as type helper', () => {
+    const e = new unitsnap._Snapshot().addStrictInstanceOfProcessor(Date, { check: (value, path) => path === 'a.a', serialize: (value) => 'serialized' });
+
+    expect(e.env.processor.serialize({
+      a: {
+        a: new Date('2020-01-01'),
+        b: new TestDate('2020-01-02'),
+      },
+      b: {
+        a: new Date('2020-01-03'),
+        b: new TestDate('2020-01-04'),
+      },
+    })).toEqual({
+      a: {
+        a: 'serialized',
+        b: new TestDate('2020-01-02'),
+      },
+      b: {
+        a: new Date('2020-01-03'),
+        b: new TestDate('2020-01-04'),
+      },
+    });
   });
 
   it('should add processor of undefined', () => {
@@ -599,7 +699,7 @@ describe('Snapshot', () => {
       .setConfig({a: 1})
       .setName('a')
       .setProvider(new Provider({a: [null]}))
-      .addClassOfProcessor(Date)
+      .addStrictInstanceOfProcessor(Date)
       .link(observer);
 
     const copy = e.loadCopy();

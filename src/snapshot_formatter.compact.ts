@@ -6,7 +6,7 @@ import { Wrapped } from './type_helpers';
 const INDENT = '    ';
 const PARAMS = [ 'name', 'args', 'result', 'exception', 'epoch', 'callsCount', 'exceptionsCount', 'tags', 'time' ];
 
-export function formatPrettySnapshotEntries(snapshot: _Snapshot): string {
+export function formatCompactSnapshotEntries(snapshot: _Snapshot): string {
   const processor = snapshot.env.processor;
   const mapper = snapshot.env.mapper;
 
