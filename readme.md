@@ -790,6 +790,7 @@ Note, that each added processor will be inserted into beginning of the processor
   ```
 
 If matched and serialized value has to be continued with the rest processors use **Continue** type helper.
+
 ```typescript
 snapshot.addProcessor((value) => value === 5, (value) => new Continue(value));
 ```

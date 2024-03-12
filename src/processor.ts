@@ -4,6 +4,7 @@ import {
   _InstanceOf,
   _AnyType,
   _BooleanType,
+  _Continue,
   Continue,
   _DateType,
   _DateValue,
@@ -21,7 +22,7 @@ import {
   NumberType,
   _NullType,
   NullType,
-  Wrapped
+  Wrapped,
 } from './type_helpers';
 import { ClassDef, Fn } from './utils';
 
@@ -153,7 +154,7 @@ export class _Processor {
       if (p.checker(value, path)) {
         value = p.serializer(value);
   
-        if (!(value instanceof Continue) && value !== Continue) {
+        if (!(value instanceof _Continue) && value !== _Continue && value !== Continue) {
           return true;
         }
   

@@ -36,14 +36,22 @@ export function BooleanType() {
   return new _BooleanType();
 }
 
-export class Continue implements ITypeHelper {
+export class _Continue implements ITypeHelper {
+  constructor(public readonly value) {
+
+  }
+
   check() {
     return true;
   }
 
   serialize() {
-    return Continue;
+    return _Continue;
   }
+}
+
+export function Continue(value: unknown) {
+  return new _Continue(value);
 }
 
 export class _Copy implements ITypeHelper {
