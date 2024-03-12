@@ -736,9 +736,9 @@ Snapshot entries in their turn could be filtered and then create an additional s
 
 * **save(name)** - saves a serialized representation of the snapshot.
 
-* **serialize(format="native" | "pretty" | function)** - creates a serialized representation of the snapshot.
+* **serialize(format="native" | "compact" | function)** - creates a serialized representation of the snapshot.
   * "native" - returns array of serialized entries
-  * "pretty" - returns formatted string
+  * "compact" - returns formatted string
   * function - custom formatter
 
 * **setName(name)** - sets the name of the snapshot, this name will be used as a default name for **exists**, **load**, **loadCopy**, **remove** and **save**.
