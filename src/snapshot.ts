@@ -31,6 +31,7 @@ export type SnapshotFormat<T = any> = ((snapshot: _Snapshot) => T) | ISnapshotFo
 export class _Snapshot {
   private _config: any = {
     args: true,
+    caller: true,
     exception: true,
     result: true,
   };
@@ -200,6 +201,12 @@ export class _Snapshot {
     return this;
   }
 
+  includeCaller(flag?: boolean) {
+    this._config.caller = flag !== false;
+
+    return this;
+  }
+
   includeCallsCount(flag?: boolean) {
     this._config.callsCount = flag !== false;
 
@@ -275,9 +282,9 @@ export class _Snapshot {
 
   serialize(): SnapshotNativeEntry[];
 
-  serialize(format: 'compact'): string;
+  serialize(format: SnapshotStorageFormat.COMPACT): string;
 
-  serialize(format: 'native'): SnapshotNativeEntry[];
+  serialize(format: SnapshotStorageFormat.NATIVE): SnapshotNativeEntry[];
 
   serialize<T>(format: (snapshot: _Snapshot) => T): T;
 
@@ -346,6 +353,10 @@ function snapshotMapEntry(snapshot: _Snapshot, entry: State): State {
 
   if (snapshot.isEnabled('args')) {
     mappedEntry.args = entry.args;
+  }
+
+  if (snapshot.isEnabled('caller')) {
+    mappedEntry.caller = entry.caller;
   }
 
   if (snapshot.isEnabled('exception') && entry.isException) {

@@ -1,6 +1,7 @@
 import * as instance from './instance';
 import { _Custom } from './mock';
 import {_Observer} from './observer';
+import { getV8StackFrames } from './stacktrace';
 import { Es6ClassDef, Fn } from './utils';
 
 export type SpyOnFunctionOptions = {
@@ -57,6 +58,9 @@ export interface State {
   tags?: string[];
   time?: Date;
   type?: StateType;
+
+  caller?: string;
+  callee?: string;
 }
 
 export interface SpyState {
@@ -106,7 +110,7 @@ export function getSpyState(fn: Fn | Es6ClassDef<any>) {
   };
 }
 
-export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstructor?: boolean) {
+export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstructor?: boolean, stackOffset: number = 1) {
   if (typeof callable !== 'function') {
     throw new Error('Callable fn must be callable');
   }
@@ -135,6 +139,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
   }
 
   callable = function (...args: unknown[]) {
+    const stackFrames = getV8StackFrames();
     const c = ensSpyState(callable);
     c.args = { '*': [] };
     c.callsCount += 1;
@@ -172,7 +177,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
       if (options && options.onCall) {
         if (options.exclude !== true) {
           options.onCall(this, {
-            ...spyOnFunctionCreateArgsReport(callable, this, originalCallable, options),
+            ...spyOnFunctionCreateArgsReport(callable, this, originalCallable, options, stackFrames[1 + stackOffset]),
             ...options.extra ?? {},
           }); // context, fn
         }
@@ -203,7 +208,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
             if (options && options.onCall) {
               if (options.exclude !== true) {
                 options.onCall(this, {
-                  ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
+                  ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options, stackFrames[2 + stackOffset]),
                   ...options.extra ?? {},
                 }); // context, fn
               }
@@ -221,7 +226,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
             if (options && options.onCall) {
               if (options.exclude !== true) {
                 options.onCall(this, {
-                  ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
+                  ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options, stackFrames[2 + stackOffset]),
                   ...options.extra || {},
                 }); // context, fn
               }
@@ -257,7 +262,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
       if (options && options.onCall) {
         if (options.exclude !== true) {
           options.onCall(this, {
-            ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options),
+            ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options, stackFrames[1 + stackOffset]),
             ...options.extra || {},
             result: asConstructor ? undefined : c.result,
           }); // context, fn
@@ -284,7 +289,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
   return callable;
 }
 
-export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions) {
+export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions, stackFrame?) {
   const c = ensSpyState(callable);
 
   return {
@@ -301,10 +306,14 @@ export function spyOnFunctionCreateArgsReport(callable, context?, originalCallab
     // isException: c.isException,
     origin: options && options.origin || originalCallable,
     replacement: options && options.replacement || c.replacement,
+
+    caller: stackFrame
+      ? `${stackFrame?.functionName ?? '?'} ${stackFrame?.fileName ?? '?'}:${stackFrame?.lineNumber ?? '?'}:${stackFrame?.columnNumber ?? '?'}`
+      : null,
   };
 }
 
-export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions) {
+export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions, stackFrame?) {
   const c = ensSpyState(callable);
 
   return {
@@ -321,6 +330,10 @@ export function spyOnFunctionCreateResultReport(callable, context?, originalCall
     origin: options && options.origin || originalCallable,
     replacement: options && options.replacement || c.replacement,
     result: c.result,
+
+    caller: stackFrame
+      ? `${stackFrame?.functionName ?? '?'} ${stackFrame?.fileName ?? '?'}:${stackFrame?.lineNumber ?? '?'}:${stackFrame?.columnNumber ?? '?'}`
+      : null,
   };
 }
 

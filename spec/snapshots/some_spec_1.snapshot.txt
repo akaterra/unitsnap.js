@@ -2,12 +2,16 @@
 --> A --> {
         * = []
     }
+    caller = "UserContext.<anonymous> ./spec/jasmine.spec.ts:20:18"
 
 <-- A <-- undefined
+    caller = "UserContext.<anonymous> ./spec/jasmine.spec.ts:20:18"
 
 --> A.b --> {
         * = []
         x = 111
     }
+    caller = "callable.<anonymous> ./src/spy.ts:497:21"
 
 <-- A.b <-- 1
+    caller = "callable.<anonymous> ./src/spy.ts:497:21"

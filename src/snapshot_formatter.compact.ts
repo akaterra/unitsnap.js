@@ -4,7 +4,7 @@ import { StateReportType } from './spy';
 import { Wrapped } from './type_helpers';
 
 const INDENT = '    ';
-const PARAMS = [ 'name', 'args', 'result', 'exception', 'epoch', 'callsCount', 'exceptionsCount', 'tags', 'time' ];
+const PARAMS = [ 'name', 'args', 'result', 'exception', 'caller', 'callee', 'epoch', 'callsCount', 'exceptionsCount', 'tags', 'time' ];
 
 export function formatCompactSnapshotEntries(snapshot: _Snapshot): string {
   const processor = snapshot.env.processor;
