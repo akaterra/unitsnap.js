@@ -1,5 +1,5 @@
 /**
- * Taken from https://github.com/stacktracejs
+ * @url https://github.com/stacktracejs
  */
 
 const CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+:\d+|\(native\))/m;
@@ -48,4 +48,31 @@ function extractLocation(urlLike) {
   const parts = regExp.exec(urlLike.replace(/[()]/g, ''));
 
   return [parts[1], parts[2] || undefined, parts[3] || undefined];
+}
+
+/**
+ * @url https://github.com/sindresorhus/callsites
+ */
+export function callsites() {
+	const _prepareStackTrace = Error.prepareStackTrace;
+
+  if (_prepareStackTrace === undefined) {
+    return [];
+  }
+
+  try {
+		let result = [];
+
+    Error.prepareStackTrace = (_, callSites) => {
+			const callSitesWithoutCurrent = callSites.slice(1);
+			result = callSitesWithoutCurrent;
+      return callSitesWithoutCurrent;
+		};
+
+		new Error().stack; // eslint-disable-line unicorn/error-message, no-unused-expressions
+
+    return result.filter((cs) => !cs.isNative);
+	} finally {
+		Error.prepareStackTrace = _prepareStackTrace;
+	}
 }
