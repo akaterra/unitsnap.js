@@ -26,14 +26,10 @@ export function getV8StackFrames(error?) {
 
     const frame = {
       functionName: functionName,
-      fileName: fileName && fileName.startsWith('file://') ? fileName.slice(7) : fileName,
-      lineNumber: parseInt(locationParts[1]),
-      columnNumber: parseInt(locationParts[2]),
+      file: alignFile(fileName),
+      line: parseInt(locationParts[1]),
+      column: parseInt(locationParts[2]),
     };
-
-    if (frame.fileName && frame.fileName.slice(0, CWD.length) === CWD) {
-      frame.fileName = `.${frame.fileName.slice(CWD.length)}`;
-    }
 
     return frame;
   });
@@ -53,7 +49,7 @@ function extractLocation(urlLike) {
 /**
  * @url https://github.com/sindresorhus/callsites
  */
-export function callsites() {
+export function getV8StackFramesFromCallsites() {
 	const _prepareStackTrace = Error.prepareStackTrace;
 
   if (_prepareStackTrace === undefined) {
@@ -71,8 +67,38 @@ export function callsites() {
 
 		new Error().stack; // eslint-disable-line unicorn/error-message, no-unused-expressions
 
-    return result.filter((cs) => !cs.isNative);
+    return result.filter((cs) => !cs.isNative()).map((cs) => {
+      const typeName = cs.getTypeName();
+      const methodName = cs.getMethodName();
+      const fnName = cs.getFunctionName();
+      const functionName = methodName ? `${typeName}.${methodName}` : fnName;
+
+      const frame = {
+        functionName,
+        file: alignFile(cs.getFileName()),
+        line: cs.getLineNumber(),
+        column: cs.getColumnNumber(),
+      };
+
+      return frame;
+    });
 	} finally {
 		Error.prepareStackTrace = _prepareStackTrace;
 	}
+}
+
+function alignFile(file?) {
+  if (!file) {
+    return file;
+  }
+
+  if (file.startsWith('file://')) {
+    file = file.slice(7);
+  }
+
+  if (file.slice(0, CWD.length) === CWD) {
+    return `.${file.slice(CWD.length)}`;
+  }
+
+  return file;
 }

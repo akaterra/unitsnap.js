@@ -1,12 +1,14 @@
 import * as instance from './instance';
 import { _Custom } from './mock';
 import {_Observer} from './observer';
-import { getV8StackFrames } from './stacktrace';
+import { getV8StackFrames, getV8StackFramesFromCallsites } from './stacktrace';
+import {Wrapped} from './type_helpers';
 import { Es6ClassDef, Fn } from './utils';
 
 export type SpyOnFunctionOptions = {
   argsAnnotation?: _Custom['_argsAnnotation'];
   bypassOnBehalfOfInstanceReplacement?: boolean;
+  currentStackFrameOffset?: number;
   epoch?: _Custom['_epoch'];
   exclude?: _Custom['_exclude'];
   extra?: Record<string, any>;
@@ -14,6 +16,8 @@ export type SpyOnFunctionOptions = {
   set?: Omit<SpyOnFunctionOptions, 'get' | 'set'>;
   origin?: Fn;
   replacement?: Fn;
+  getSpyState?: typeof getSpyState;
+  ensSpyState?: typeof ensSpyState;
   onCall?: (context: unknown, state: State) => void;
   onEnterLevel?: () => number;
   onLeaveLevel?: () => number;
@@ -59,8 +63,13 @@ export interface State {
   time?: Date;
   type?: StateType;
 
-  caller?: string;
-  callee?: string;
+  caller?: Wrapped;
+  callee?: Wrapped;
+}
+
+export enum SpyDescriptorType {
+  GETTER_SETTER = 'getterSetter',
+  FUNCTION = 'function',
 }
 
 export interface SpyState {
@@ -115,8 +124,16 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
     throw new Error('Callable fn must be callable');
   }
 
+  const getSpyStateFn = options?.getSpyState ?? getSpyState;
+  const ensSpyStateFn = options?.ensSpyState ?? ensSpyState;
+
   const originalCallable = callable;
   let originalCallableAnnotation;
+
+  if (options && options.currentStackFrameOffset) {
+    stackOffset += options.currentStackFrameOffset;
+    options.currentStackFrameOffset = 0;
+  }
 
   if (options && options.argsAnnotation) {
     if (Array.isArray(options.argsAnnotation)) {
@@ -139,8 +156,8 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
   }
 
   callable = function (...args: unknown[]) {
-    const stackFrames = getV8StackFrames();
-    const c = ensSpyState(callable);
+    const stackFrames = getV8StackFramesFromCallsites();
+    const c = ensSpyStateFn(callable);
     c.args = { '*': [] };
     c.callsCount += 1;
 
@@ -192,14 +209,14 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
       }
 
       if (result instanceof Promise) {
-        const c = ensSpyState(callable);
+        const c = ensSpyStateFn(callable);
         c.isAsync = true;
         c.isAsyncPending = true;
         c.result = result;
 
         return result.then(
           (result) => {
-            const c = ensSpyState(callable);
+            const c = ensSpyStateFn(callable);
             c.exception = undefined;
             c.isAsyncPending = false;
             c.isException = false;
@@ -208,7 +225,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
             if (options && options.onCall) {
               if (options.exclude !== true) {
                 options.onCall(this, {
-                  ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options, stackFrames[2 + stackOffset]),
+                  ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options, stackFrames[1 + stackOffset]),
                   ...options.extra ?? {},
                 }); // context, fn
               }
@@ -217,7 +234,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
             return result;
           },
           (error) => {
-            const c = ensSpyState(callable);
+            const c = ensSpyStateFn(callable);
             c.exception = error;
             c.isAsyncPending = false;
             c.isException = true;
@@ -226,7 +243,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
             if (options && options.onCall) {
               if (options.exclude !== true) {
                 options.onCall(this, {
-                  ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options, stackFrames[2 + stackOffset]),
+                  ...spyOnFunctionCreateResultReport(callable, this, originalCallable, options, stackFrames[1 + stackOffset]),
                   ...options.extra || {},
                 }); // context, fn
               }
@@ -237,7 +254,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
         );
       }
 
-      const c = ensSpyState(callable);
+      const c = ensSpyStateFn(callable);
       c.exception = undefined;
       c.isAsync = false;
       c.isAsyncPending = false;
@@ -246,7 +263,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
 
       return result;
     } catch (e) {
-      const c = ensSpyState(callable);
+      const c = ensSpyStateFn(callable);
       c.exceptionsCount += 1;
 
       c.exception = e;
@@ -257,7 +274,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
 
       throw e;
     } finally {
-      const c = ensSpyState(callable);
+      const c = ensSpyStateFn(callable);
 
       if (options && options.onCall) {
         if (options.exclude !== true) {
@@ -271,7 +288,7 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
     }
   }
 
-  const c = ensSpyState(callable);
+  const c = ensSpyStateFn(callable);
   c.args = { '*': [] };
   c.callsCount = 0;
   c.exception = undefined;
@@ -290,7 +307,8 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
 }
 
 export function spyOnFunctionCreateArgsReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions, stackFrame?) {
-  const c = ensSpyState(callable);
+  const ensSpyStateFn = options?.ensSpyState ?? ensSpyState;
+  const c = ensSpyStateFn(callable);
 
   return {
     level: options?.onEnterLevel ? options.onEnterLevel() : 0,
@@ -307,14 +325,13 @@ export function spyOnFunctionCreateArgsReport(callable, context?, originalCallab
     origin: options && options.origin || originalCallable,
     replacement: options && options.replacement || c.replacement,
 
-    caller: stackFrame
-      ? `${stackFrame?.functionName ?? '?'} ${stackFrame?.fileName ?? '?'}:${stackFrame?.lineNumber ?? '?'}:${stackFrame?.columnNumber ?? '?'}`
-      : null,
+    caller: spyOnFunctionCreateReportCaller(stackFrame),
   };
 }
 
 export function spyOnFunctionCreateResultReport(callable, context?, originalCallable?, options?: SpyOnFunctionOptions, stackFrame?) {
-  const c = ensSpyState(callable);
+  const ensSpyStateFn = options?.ensSpyState ?? ensSpyState;
+  const c = ensSpyStateFn(callable);
 
   return {
     level: options?.onLeaveLevel ? options.onLeaveLevel() : 0,
@@ -331,13 +348,19 @@ export function spyOnFunctionCreateResultReport(callable, context?, originalCall
     replacement: options && options.replacement || c.replacement,
     result: c.result,
 
-    caller: stackFrame
-      ? `${stackFrame?.functionName ?? '?'} ${stackFrame?.fileName ?? '?'}:${stackFrame?.lineNumber ?? '?'}:${stackFrame?.columnNumber ?? '?'}`
-      : null,
+    caller: spyOnFunctionCreateReportCaller(stackFrame),
   };
 }
 
+export function spyOnFunctionCreateReportCaller(stackFrame) {
+  return stackFrame
+    ? new Wrapped(`${stackFrame?.functionName ?? '<anonymous>'} : ${stackFrame?.file ?? '?'}:${stackFrame?.line ?? '?'}:${stackFrame?.column ?? '?'}`)
+    : null;
+}
+
 export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctionOptions, bypassClass?) {
+  const ensSpyStateFn = options?.ensSpyState ?? ensSpyState;
+
   const initialObj = obj;
   const objIsClass = typeof obj === 'function' && obj.prototype instanceof Object;
 
@@ -367,8 +390,8 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
     descriptor = {
       descriptor: { ...repDescriptor },
       type: repDescriptor.get || repDescriptor.set
-        ? 'getterSetter'
-        : 'function'
+        ? SpyDescriptorType.GETTER_SETTER
+        : SpyDescriptorType.FUNCTION
     };
   } else {
     descriptor.descriptor = { ...descriptor.descriptor };
@@ -380,42 +403,44 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
 
   descriptor.descriptor.configurable = true;
 
-  if (descriptor.type !== 'getterSetter') {
+  if (descriptor.type !== SpyDescriptorType.GETTER_SETTER) {
     descriptor.descriptor.writeable = true;
   }
 
   switch (descriptor.type) {
-  case 'getterSetter':
+  case SpyDescriptorType.GETTER_SETTER:
     descriptor = descriptor.descriptor;
 
     if (repDescriptor.get) {
-      descriptor.get = (function (descriptor) {
-        return function () {
-          descriptor.get = spyOnFunction(repDescriptor.get, { ...options, ...options.get || {}, ...{
+      descriptor.get = function () {
+        descriptor.get = spyOnFunction(repDescriptor.get, {
+          ...options,
+          ...options.get || {},
+          extra: {
+            name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[get]',
+            ...options.extra,
+            ...options.get && options.get.extra || {},
+          },
+        });
+
+        if (repDescriptor.set) {
+          descriptor.set = spyOnFunction(repDescriptor.set, {
+            ...options,
+            ...options.set || {},
             extra: {
-              name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[get]',
+              name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[set]',
               ...options.extra,
-              ...options.get && options.get.extra || {},
+              ...options.set && options.set.extra || {},
             },
-          } });
-
-          if (repDescriptor.set) {
-            descriptor.set = spyOnFunction(repDescriptor.set, { ...options, ...options.set || {}, ...{
-              extra: {
-                name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[set]',
-                ...options.extra,
-                ...options.set && options.set.extra || {},
-              },
-            } });
-          }
-
-          Object.defineProperty(this, key, descriptor);
-
-          return this[key];
+          });
         }
-      })(descriptor);
 
-      const c = ensSpyState(descriptor.get);
+        Object.defineProperty(this, key, descriptor);
+
+        return this[key];
+      }
+
+      const c = ensSpyStateFn(descriptor.get);
       c.args = { '*': [] };
       c.callsCount = 0;
       c.exceptionsCount = 0;
@@ -429,33 +454,35 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
     }
 
     if (repDescriptor.set) {
-      descriptor.set = (function (descriptor) {
-        return function (val) {
-          descriptor.set = spyOnFunction(repDescriptor.set, { ...options, ...options.set || {}, ...{
+      descriptor.set = function (val) {
+        descriptor.set = spyOnFunction(repDescriptor.set, {
+          ...options,
+          ...options.set || {},
+          extra: {
+            name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[set]',
+            ...options.extra,
+            ...options.set && options.set.extra || {},
+          },
+        });
+
+        if (repDescriptor.get) {
+          descriptor.get = spyOnFunction(repDescriptor.get, {
+            ...options,
+            ...options.get || {},
             extra: {
-              name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[set]',
+              name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[get]',
               ...options.extra,
-              ...options.set && options.set.extra || {},
+              ...options.get && options.get.extra || {},
             },
-          } });
-
-          if (repDescriptor.get) {
-            descriptor.get = spyOnFunction(repDescriptor.get, { ...options, ...options.get || {}, ...{
-              extra: {
-                name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[get]',
-                ...options.extra,
-                ...options.get && options.get.extra || {},
-              },
-            } });
-          }
-
-          Object.defineProperty(this, key, descriptor);
-
-          this[key] = val;
+          });
         }
-      })(descriptor);
 
-      const c = ensSpyState(descriptor.set);
+        Object.defineProperty(this, key, descriptor);
+
+        this[key] = val;
+      }
+
+      const c = ensSpyStateFn(descriptor.set);
       c.args = { '*': [] };
       c.callsCount = 0;
       c.exceptionsCount = 0;
@@ -469,37 +496,37 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
     }
 
     break;
-
-  case 'function':
+  case SpyDescriptorType.FUNCTION:
     descriptor = descriptor.descriptor;
 
     if (options.bypassOnBehalfOfInstanceReplacement) {
-      descriptor.value = spyOnFunction(repDescriptor.value, { ...options, ...{
+      descriptor.value = spyOnFunction(repDescriptor.value, {
+        ...options,
         extra: {
           name: (objIsClass ? obj.constructor.name + '.' : '') + key,
           ...options.extra,
         },
-      } });
+      });
     } else {
-      descriptor.value = (function (descriptor) {
-        return function (...args: unknown[]) {
-          descriptor.value = spyOnFunction(repDescriptor.value, { ...options, ...{
-            extra: {
-              name: (objIsClass ? obj.constructor.name + '.' : '') + key,
-              ...options.extra,
-            },
-          } });
+      descriptor.value = function (...args: unknown[]) {
+        descriptor.value = spyOnFunction(repDescriptor.value, {
+          ...options,
+          currentStackFrameOffset: 0,
+          extra: {
+            name: (objIsClass ? obj.constructor.name + '.' : '') + key,
+            ...options.extra,
+          },
+        });
 
-          Object.defineProperty(this, key, descriptor);
+        Object.defineProperty(this, key, descriptor);
 
-          const fn = this[key];
+        const fn = this[key];
 
-          return fn.apply(this, args);
-        }
-      })(descriptor);
+        return fn.apply(this, args);
+      }
     }
 
-    const c = ensSpyState(descriptor.value);
+    const c = ensSpyStateFn(descriptor.value);
     c.args = { '*': [] };
     c.callsCount = 0;
     c.exceptionsCount = 0;
@@ -512,7 +539,6 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
     c.result = undefined;
 
     break;
-
   default:
     descriptor = descriptor.descriptor;
   }

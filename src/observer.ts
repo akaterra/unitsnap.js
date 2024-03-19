@@ -64,7 +64,7 @@ export class _Observer {
     return this;
   }
 
-  by<T extends ClassDef<any>, P extends ReadonlyArray<string | number | symbol> | mock.MockPropsMap = (keyof T)[]>(
+  by<T extends ClassDef<unknown>, P extends ReadonlyArray<string | number | symbol> | mock.MockPropsMap = (keyof T)[]>(
     cls: T,
     props?: P,
     bypassOnBehalfOfInstanceReplacement?,
@@ -86,7 +86,7 @@ export class _Observer {
     return clazz;
   }
 
-  override<T extends ClassDef<any>, P extends ReadonlyArray<string | number | symbol> | mock.MockPropsMap = (keyof T)[]>(
+  override<T extends ClassDef<unknown>, P extends ReadonlyArray<string | number | symbol> | mock.MockPropsMap = (keyof T)[]>(
     cls: T,
     props?: P,
     bypassOnBehalfOfInstanceReplacement?,

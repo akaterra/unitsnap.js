@@ -2,16 +2,16 @@
 --> A --> {
         * = []
     }
-    caller = "UserContext.<anonymous> ./spec/jasmine.spec.ts:54:18"
+    caller = QueueRunner.attempt : ./node_modules/jasmine-core/lib/jasmine-core/jasmine.js:7799:40
 
 <-- A <-- undefined
-    caller = "UserContext.<anonymous> ./spec/jasmine.spec.ts:54:18"
+    caller = QueueRunner.attempt : ./node_modules/jasmine-core/lib/jasmine-core/jasmine.js:7799:40
 
 --> A.c --> {
         * = []
         x = 222
     }
-    caller = "callable.<anonymous> ./src/spy.ts:497:21"
+    caller = <anonymous> : ./spec/jasmine.spec.ts:40:14
 
 <-- A.c <-- 1
-    caller = "callable.<anonymous> ./src/spy.ts:497:21"
+    caller = <anonymous> : ./spec/jasmine.spec.ts:40:14

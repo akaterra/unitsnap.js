@@ -1,5 +1,5 @@
 import * as fixture from './fixture';
-import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod, State, StateReportType, StateType, ensSpyState } from './spy';
+import { spyOnDescriptor, spyOnStaticDescriptor, spyOnFunction, spyOnMethod, spyOnStaticMethod, State, StateReportType, StateType, ensSpyState, SpyDescriptorType, SpyState } from './spy';
 import { copyConstructor, copyPrototype, copyScope, copyScopeDescriptors, getAncestors } from './instance';
 import { _History } from './history';
 import { ClassDef, ConstructorParameters, ConstructorReturnType, Es5ClassDef, Es6Class, Es6ClassDef, Fn, NotNeverKeys, ObjectFromList } from './utils';
@@ -227,6 +227,7 @@ export class _Mock {
   private _returnValueProcessor = new _Processor();
   private _currentProcessor: _Processor = null;
 
+  private _callStates = new WeakMap<Fn | Es6ClassDef<any>, SpyState>();
   private _history: _History;
   private _fixturePop: any;
 
@@ -313,7 +314,7 @@ export class _Mock {
     return this;
   }
 
-  by<T extends ClassDef<any>, P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[]>(
+  by<T extends ClassDef<unknown>, P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[]>(
     cls: T,
     props?: P,
     bypassOnBehalfOfInstanceReplacement?,
@@ -331,7 +332,7 @@ export class _Mock {
     return clazz;
   }
 
-  override<T extends ClassDef<any>, P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[]>(
+  override<T extends ClassDef<unknown>, P extends ReadonlyArray<string | number | symbol> | MockPropsMap = (keyof T)[]>(
     cls: T,
     props?: P,
     bypassOnBehalfOfInstanceReplacement?,
@@ -379,6 +380,32 @@ export class _Mock {
         }
       }
     });
+  }
+
+  getCallState(fn: Fn | Es6ClassDef<any>) {
+    const c = this._callStates.get(fn);
+  
+    return {
+      args: c?.args ?? {},
+      callsCount: c?.callsCount ?? 0,
+      exceptionsCount: c?.exceptionsCount ?? 0,
+      exception: c?.exception ?? undefined,
+      isAsync: c?.isAsync ?? false,
+      isAsyncPending: c?.isAsyncPending ?? false,
+      isException: c?.isException ?? false,
+      origin: c?.origin ?? undefined,
+      replacement: c?.replacement ?? undefined,
+      restore: c?.restore ?? (() => {}),
+      observer: c?.observer ?? null,
+    };
+  }
+
+  ensCallState(fn: Fn | Es6ClassDef<any>): SpyState {
+    if (!this._callStates.has(fn)) {
+      this._callStates.set(fn, {});
+    }
+  
+    return this._callStates.get(fn);
   }
 }
 
@@ -457,7 +484,7 @@ export function StaticProperty<T extends MockPropsTypes = typeof Observe>(get?: 
 }
 
 export interface ICustomEnv {
-  argsAnnotation: string[] | Fn;
+  argsAnnotation: string[] | Fn | ClassDef<unknown>;
   callArgsProcessor: _Processor;
   epoch: string;
   exclude: boolean;
@@ -588,12 +615,12 @@ const CLASS_NATIVE_PROPS = [ 'arguments', 'callee', 'caller', 'length', 'name', 
 
 export class ClassMaker {
   private _bypassOnBehalfOfInstanceReplacement: boolean;
-  private _cls: any;
+  private _cls: ClassDef<unknown>;
   private _clsConstructorName: string;
-  private _clsProps: any;
-  private _clsProtoProps: any;
-  private _clsPropsDescriptors: any;
-  private _clsProtoPropsDescriptors: any;
+  private _clsProps: Record<string, unknown>;
+  private _clsProtoProps: Record<string, unknown>;
+  private _clsPropsDescriptors: Record<string, { descriptor: PropertyDescriptor, type: SpyDescriptorType }>;
+  private _clsProtoPropsDescriptors: Record<string, { descriptor: PropertyDescriptor, type: SpyDescriptorType }>;
   private _mock: _Mock;
   private _props: any;
   private _propsMetadata: any;
@@ -618,7 +645,7 @@ export class ClassMaker {
     return this._propsMetadata;
   }
 
-  constructor(mock: _Mock, cls, props, bypassOnBehalfOfInstanceReplacement) {
+  constructor(mock: _Mock, cls: ClassDef<unknown>, props, bypassOnBehalfOfInstanceReplacement) {
     if (typeof cls !== 'function') {
       throw new Error('Class constructor must be function');
     }
@@ -651,7 +678,7 @@ export class ClassMaker {
           const descriptor = this._clsProtoPropsDescriptors[key];
 
           switch (descriptor.type) {
-          case 'function':
+          case SpyDescriptorType.FUNCTION:
             acc[key] = cls;
 
             break;
