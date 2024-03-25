@@ -461,7 +461,7 @@ export class _StaticProperty<T extends MockPropsTypes = typeof Observe> {
   readonly descriptor: PropertyDescriptor<T>;
 
   constructor(get?: T, set?: T) {
-    this.descriptor = { get, set };
+    this.descriptor = { get, set: set ?? get };
   }
 
   get<U extends MockPropsTypes = _StaticProperty<T>['descriptor']['value']>(get: U): _StaticProperty<U> {
@@ -783,13 +783,16 @@ export class ClassMaker {
       let repDescriptor = null;
 
       if (this._props[key] instanceof _StaticProperty) {
-        customGet = maybeCustom(this._props[key].descriptor.get);
-        customSet = maybeCustom(this._props[key].descriptor.set);
+        const get = this._props[key].descriptor?.get ?? this._props[key];
+        const set = this._props[key].descriptor?.set ?? this._props[key];
+
+        customGet = maybeCustom(get);
+        customSet = maybeCustom(set);
         repDescriptor = {};
 
-        if (this._props[key].descriptor.get) {
+        if (get) {
           repDescriptor.get = classMakerGetReplacement(
-            maybeCustomValueOrInitial(this._props[key].descriptor.get),
+            maybeCustomValueOrInitial(get),
             key,
             this._cls,
             this._clsProps,
@@ -799,9 +802,9 @@ export class ClassMaker {
           repDescriptor.get = this.getFinalReplacementForGet(repDescriptor.get, key);
         }
 
-        if (this._props[key].descriptor.set) {
+        if (set) {
           repDescriptor.set = classMakerGetReplacement(
-            maybeCustomValueOrInitial(this._props[key].descriptor.set),
+            maybeCustomValueOrInitial(set),
             key,
             this._cls,
             this._clsProps,
@@ -817,21 +820,21 @@ export class ClassMaker {
             argsAnnotation: customGet?.env?.argsAnnotation,
             exclude: customGet?.env?.exclude,
             extra: {
-              name: this._clsConstructorName + '.' + key,
+              name: this._clsConstructorName + '.' + key + '.[[ get ]]',
               type: StateType.STATIC_GETTER,
             },
             origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.get,
-            replacement: this._props[key].descriptor.get,
+            replacement: get,
           },
           set: {
             argsAnnotation: customSet?.env?.argsAnnotation,
             exclude: customSet?.env?.exclude,
             extra: {
-              name: this._clsConstructorName + '.' + key,
+              name: this._clsConstructorName + '.' + key + '.[[ set ]]',
               type: StateType.STATIC_SETTER,
             },
             origin: hasOwnProperty(this._clsPropsDescriptors, key) && this._clsPropsDescriptors[key].descriptor.set,
-            replacement: this._props[key].descriptor.set,
+            replacement: set,
           },
           onCall: (context, state) => {
             if (this._mock.history) {
@@ -845,14 +848,23 @@ export class ClassMaker {
           onEnterLevel: this._mock.history ? () => this._mock.history.enterLevel : null,
           onLeaveLevel: this._mock.history ? () => this._mock.history.leaveLevel : null,
         });
-      } else if (this._props[key] instanceof _Property) {
-        customGet = maybeCustom(this._props[key].descriptor.get);
-        customSet = maybeCustom(this._props[key].descriptor.set);
+      } else if (
+        this._props[key] instanceof _Property ||
+        (
+          this._props.hasOwnProperty(key) &&
+          this._clsProtoPropsDescriptors[key]?.type === SpyDescriptorType.GETTER_SETTER
+        )
+      ) {
+        const get = this._props[key].descriptor?.get ?? this._props[key];
+        const set = this._props[key].descriptor?.set ?? this._props[key];
+
+        customGet = maybeCustom(get);
+        customSet = maybeCustom(set);
         repDescriptor = {};
 
-        if (this._props[key].descriptor.get) {
+        if (get) {
           repDescriptor.get = classMakerGetReplacement(
-            maybeCustomValueOrInitial(this._props[key].descriptor.get),
+            maybeCustomValueOrInitial(get),
             key,
             this._cls,
             this._clsProtoProps,
@@ -862,9 +874,9 @@ export class ClassMaker {
           repDescriptor.get = this.getFinalReplacementForProtoGet(repDescriptor.get, key);
         }
 
-        if (this._props[key].descriptor.set) {
+        if (set) {
           repDescriptor.set = classMakerGetReplacement(
-            maybeCustomValueOrInitial(this._props[key].descriptor.set),
+            maybeCustomValueOrInitial(set),
             key,
             this._cls,
             this._clsProtoProps,
@@ -880,21 +892,21 @@ export class ClassMaker {
             argsAnnotation: customGet?.env?.argsAnnotation,
             exclude: customGet?.env?.exclude,
             extra: {
-              name: this._clsConstructorName + '.' + key,
+              name: this._clsConstructorName + '.' + key + '.[[ get ]]',
               type: StateType.GETTER,
             },
             origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.get,
-            replacement: this._props[key].descriptor.get,
+            replacement: get,
           },
           set: {
             argsAnnotation: customSet?.env.argsAnnotation,
             exclude: customSet?.env.exclude,
             extra: {
-              name: this._clsConstructorName + '.' + key,
+              name: this._clsConstructorName + '.' + key + '.[[ set ]]',
               type: StateType.SETTER,
             },
             origin: hasOwnProperty(this._clsProtoPropsDescriptors, key) && this._clsProtoPropsDescriptors[key].descriptor.set,
-            replacement: this._props[key].descriptor.set,
+            replacement: set,
           },
           onCall: (context, state) => {
             if (this._mock.history) {

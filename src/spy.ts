@@ -130,11 +130,6 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
   const originalCallable = callable;
   let originalCallableAnnotation;
 
-  if (options && options.currentStackFrameOffset) {
-    stackOffset += options.currentStackFrameOffset;
-    options.currentStackFrameOffset = 0;
-  }
-
   if (options && options.argsAnnotation) {
     if (Array.isArray(options.argsAnnotation)) {
       originalCallableAnnotation = { args: options.argsAnnotation.map((arg) => {
@@ -155,8 +150,17 @@ export function spyOnFunction(callable, options?: SpyOnFunctionOptions, asConstr
     }
   }
 
+  const initialStackOffset = stackOffset;
+
   callable = function (...args: unknown[]) {
-    const stackFrames = getV8StackFramesFromCallsites();
+    if (options && options.currentStackFrameOffset) {
+      stackOffset += options.currentStackFrameOffset;
+      options.currentStackFrameOffset = 0;
+    } else {
+      stackOffset = initialStackOffset;
+    }
+
+    const stackFrames = getV8StackFrames();
     const c = ensSpyStateFn(callable);
     c.args = { '*': [] };
     c.callsCount += 1;
@@ -352,9 +356,9 @@ export function spyOnFunctionCreateResultReport(callable, context?, originalCall
   };
 }
 
-export function spyOnFunctionCreateReportCaller(stackFrame) {
+export function spyOnFunctionCreateReportCaller(stackFrame, name?) {
   return stackFrame
-    ? new Wrapped(`${stackFrame?.functionName ?? '<anonymous>'} : ${stackFrame?.file ?? '?'}:${stackFrame?.line ?? '?'}:${stackFrame?.column ?? '?'}`)
+    ? new Wrapped(`${name ?? stackFrame?.functionName ?? '<anonymous>'} : ${stackFrame?.file ?? '?'}:${stackFrame?.line ?? '?'}:${stackFrame?.column ?? '?'}`)
     : null;
 }
 
@@ -416,8 +420,9 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
         descriptor.get = spyOnFunction(repDescriptor.get, {
           ...options,
           ...options.get || {},
+          currentStackFrameOffset: 1,
           extra: {
-            name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[get]',
+            name: (objIsClass ? obj.constructor.name + '.' : '') + key + '.[[ get ]]',
             ...options.extra,
             ...options.get && options.get.extra || {},
           },
@@ -427,8 +432,9 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
           descriptor.set = spyOnFunction(repDescriptor.set, {
             ...options,
             ...options.set || {},
+            // currentStackFrameOffset: 1,
             extra: {
-              name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[set]',
+              name: (objIsClass ? obj.constructor.name + '.' : '') + key + '.[[ set ]]',
               ...options.extra,
               ...options.set && options.set.extra || {},
             },
@@ -458,6 +464,7 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
         descriptor.set = spyOnFunction(repDescriptor.set, {
           ...options,
           ...options.set || {},
+          currentStackFrameOffset: 1,
           extra: {
             name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[set]',
             ...options.extra,
@@ -469,6 +476,7 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
           descriptor.get = spyOnFunction(repDescriptor.get, {
             ...options,
             ...options.get || {},
+            // currentStackFrameOffset: 1,
             extra: {
               name: (objIsClass ? obj.constructor.name + '.' : '') + key + '[get]',
               ...options.extra,
@@ -511,7 +519,7 @@ export function spyOnDescriptor(obj, key, repDescriptor?, options?: SpyOnFunctio
       descriptor.value = function (...args: unknown[]) {
         descriptor.value = spyOnFunction(repDescriptor.value, {
           ...options,
-          currentStackFrameOffset: 0,
+          currentStackFrameOffset: 1,
           extra: {
             name: (objIsClass ? obj.constructor.name + '.' : '') + key,
             ...options.extra,

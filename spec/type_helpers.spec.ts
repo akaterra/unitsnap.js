@@ -27,6 +27,14 @@ describe('Type helpers', () => {
       }
     });
 
+    it('should check and resolve instance of not boolean value', () => {
+      const t = new unitsnap._BooleanType().not();
+
+      for (const v of [1, '1', null, Object, {}, []]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
     it('should check and reject not instance of boolean value', () => {
       const t = new unitsnap._BooleanType();
 
@@ -39,6 +47,12 @@ describe('Type helpers', () => {
       const t = new unitsnap._BooleanType();
 
       expect(t.serialize(true)).toEqual({[ DATA ]: null, [ TYPE ]: 'boolean'});
+    });
+
+    it('should serialize instance of not boolean value', () => {
+      const t = new unitsnap._BooleanType().not();
+
+      expect(t.serialize(1)).toEqual({[ DATA ]: null, [ TYPE ]: 'not:boolean'});
     });
 
     it('should serialize not instance of boolean value', () => {
@@ -76,6 +90,14 @@ describe('Type helpers', () => {
       }
     });
 
+    it('should check and resolve instance of not date value', () => {
+      const t = new unitsnap._DateType().not();
+
+      for (const v of [1, '1', null, false, Object, {}, []]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
     it('should check and reject not instance of date value', () => {
       const t = new unitsnap._DateType();
 
@@ -90,10 +112,16 @@ describe('Type helpers', () => {
       expect(t.serialize(new Date())).toEqual({[ DATA ]: null, [ TYPE ]: 'date'});
     });
 
+    it('should serialize instance of not date value', () => {
+      const t = new unitsnap._DateType().not();
+
+      expect(t.serialize(1)).toEqual({[ DATA ]: null, [ TYPE ]: 'not:date'});
+    });
+
     it('should serialize not instance of date value', () => {
       const t = new unitsnap._DateType();
 
-      expect(t.serialize(1)).toEqual({[ DATA ]: null, [ TYPE ]: 'not:date'});
+      expect(t.serialize(1)).toEqual({[ DATA ]: 1, [ TYPE ]: 'not:date'});
     });
   });
 
@@ -146,6 +174,14 @@ describe('Type helpers', () => {
       }
     });
 
+    it('should check and resolve value is not in', () => {
+      const t = unitsnap.In(1, 2, 3).not();
+
+      for (const v of [0, 4, '1', '2', '3']) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
     it('should check and reject value is not in', () => {
       const t = unitsnap.In(1, 2, 3);
 
@@ -163,7 +199,19 @@ describe('Type helpers', () => {
     it('should serialize value is not in', () => {
       const t = unitsnap.In(1, 2, 3, "1");
 
+      expect(t.serialize(0)).toEqual({[ DATA ]: '0 ∉ 1,2,3,"1"', [ TYPE ]: 'not:in'});
+    });
+
+    it('should serialize value is in negative', () => {
+      const t = unitsnap.In(1, 2, 3, "1").not();
+
       expect(t.serialize(0)).toEqual({[ DATA ]: '1,2,3,"1"', [ TYPE ]: 'not:in'});
+    });
+
+    it('should serialize value is not in negative', () => {
+      const t = unitsnap.In(1, 2, 3, "1").not();
+
+      expect(t.serialize(1)).toEqual({[ DATA ]: '1 ∈ 1,2,3,"1"', [ TYPE ]: 'in'});
     });
   });
 

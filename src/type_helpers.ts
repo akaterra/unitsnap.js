@@ -6,7 +6,42 @@ export interface ITypeHelper {
   serialize(value?: any): any;
 }
 
-export class _AnyType implements ITypeHelper {
+abstract class BaseTypeHelper {
+  protected _not = false;
+
+  abstract check(value?: any): boolean;
+
+  not() {
+    this._not = true;
+
+    return this;
+  }
+
+  protected _assert(value) {
+    return this._not ? !value : value;
+  }
+
+  protected _formatSerialized(
+    value,
+    type,
+    posPassPref,
+    posPassData,
+    posFailPref,
+    posFailData,
+    negPassPref,
+    negPassData,
+    negFailPref,
+    negFailData,
+  ) {
+    const pass = this.check(value);
+
+    return this._not
+      ? { [ DATA ]: pass ? negPassData : negFailData, [ TYPE ]: `${pass ? negPassPref : negFailPref}${type}` }
+      : { [ DATA ]: pass ? posPassData : posFailData, [ TYPE ]: `${pass ? posPassPref : posFailPref}${type}` }
+  }
+}
+
+export class _AnyType extends BaseTypeHelper implements ITypeHelper {
   check(value?) { // eslint-disable-line unused-imports/no-unused-vars
     return true;
   }
@@ -20,15 +55,13 @@ export function AnyType() {
   return new _AnyType();
 }
 
-export class _BooleanType implements ITypeHelper {
+export class _BooleanType extends BaseTypeHelper implements ITypeHelper {
   check(value?) {
-    return typeof value === 'boolean';
+    return this._assert(typeof value === 'boolean');
   }
 
   serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
-
-    return { [ DATA ]: pref ? value : null, [ TYPE ]: `${pref}boolean` };
+    return this._formatSerialized(value, 'boolean', '', null, 'not:', value, 'not:', null, '', value);
   }
 }
 
@@ -72,15 +105,13 @@ export function Copy() {
   return new _Copy();
 }
 
-export class _DateType implements ITypeHelper {
+export class _DateType extends BaseTypeHelper implements ITypeHelper {
   check(value?) {
-    return value instanceof Date;
+    return this._assert(value instanceof Date);
   }
 
   serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
-
-    return { [ DATA ]: null, [ TYPE ]: `${pref}date` };
+    return this._formatSerialized(value, 'date', '', null, 'not:', value, 'not:', null, '', value);
   }
 }
 
@@ -106,7 +137,7 @@ export function DateValue() {
   return new _DateValue();
 }
 
-export class Ignore implements ITypeHelper {
+export class Ignore extends BaseTypeHelper implements ITypeHelper {
   check(value?) { // eslint-disable-line unused-imports/no-unused-vars
     return true;
   }
@@ -116,19 +147,19 @@ export class Ignore implements ITypeHelper {
   }
 }
 
-export class _In implements ITypeHelper {
+export class _In extends BaseTypeHelper implements ITypeHelper {
   constructor(private _values: unknown[]) {
-
+    super();
   }
 
   check(value?) {
-    return this._values.includes(value);
+    return this._assert(this._values.includes(value));
   }
 
   serialize(value?) { // eslint-disable-line unused-imports/no-unused-vars
-    const pref = this.check(value) ? '' : 'not:';
+    const inStr = JSON.stringify(this._values).slice(1, -1);
 
-    return { [ DATA ]: JSON.stringify(this._values).slice(1, -1), [ TYPE ]: `${pref}in` };
+    return this._formatSerialized(value, 'in', '', inStr, 'not:', `${value} ∉ ${inStr}`, 'not:', inStr, '', `${value} ∈ ${inStr}`);
   }
 }
 
@@ -136,9 +167,13 @@ export function In(...values: unknown[]) {
   return new _In(values);
 }
 
-export class _InstanceOf implements ITypeHelper {
-  constructor(private _cls: ClassDef<unknown>) {
+export function NotIn(...values: unknown[]) {
+  return new _In(values).not();
+}
 
+export class _InstanceOf extends BaseTypeHelper implements ITypeHelper {
+  constructor(private _cls: ClassDef<unknown>) {
+    super();
   }
 
   check(value?) {
@@ -158,7 +193,7 @@ export function InstanceOf(cls: ClassDef<unknown>) {
   return new _StrictInstanceOf(cls);
 }
 
-export class _NullType implements ITypeHelper {
+export class _NullType extends BaseTypeHelper implements ITypeHelper {
   check(value?) {
     return value === null;
   }
@@ -174,7 +209,7 @@ export function NullType() {
   return new _NullType();
 }
 
-export class _NumberType implements ITypeHelper {
+export class _NumberType extends BaseTypeHelper implements ITypeHelper {
   check(value?) {
     return typeof value === 'number';
   }
@@ -190,9 +225,9 @@ export function NumberType() {
   return new _NumberType();
 }
 
-export class _NumberIsCloseTo implements ITypeHelper {
+export class _NumberIsCloseTo extends BaseTypeHelper implements ITypeHelper {
   constructor(private _value: number, private _diff: number) {
-
+    super();
   }
 
   check(value?) {
@@ -226,9 +261,9 @@ export function NumberIsCloseTo(value: number, diff: number) {
   return new _NumberIsPreciseTo(value, diff);
 }
 
-export class _NumberIsPreciseTo implements ITypeHelper {
+export class _NumberIsPreciseTo extends BaseTypeHelper implements ITypeHelper {
   constructor(private _value: number, private _precision: number) {
-
+    super();
   }
 
   check(value?) {
@@ -262,7 +297,7 @@ export function NumberIsPreciseTo(value: number, precision: number) {
   return new _NumberIsPreciseTo(value, precision);
 }
 
-export class _Range implements ITypeHelper {
+export class _Range extends BaseTypeHelper implements ITypeHelper {
   constructor(_min: number, _max: number);
 
   constructor(_min: string, _max: string);
@@ -270,7 +305,7 @@ export class _Range implements ITypeHelper {
   constructor(_min: Date, _max: Date);
 
   constructor(private _min: number | string | Date, private _max: number | string | Date) {
-
+    super();
   }
 
   check(value?) {
@@ -321,9 +356,9 @@ export function Range(min, max) {
   return new _Range(min, max);
 }
 
-export class _StrictInstanceOf implements ITypeHelper {
+export class _StrictInstanceOf extends BaseTypeHelper implements ITypeHelper {
   constructor(private _cls: ClassDef<unknown>) {
-
+    super();
   }
 
   check(value?) {
@@ -343,7 +378,7 @@ export function StrictInstanceOf(cls: ClassDef<unknown>) {
   return new _StrictInstanceOf(cls);
 }
 
-export class _StringType implements ITypeHelper {
+export class _StringType extends BaseTypeHelper implements ITypeHelper {
   check(value?) {
     return typeof value === 'string';
   }
@@ -359,7 +394,7 @@ export function StringType() {
   return new _StringType();
 }
 
-export class _UndefinedType implements ITypeHelper {
+export class _UndefinedType extends BaseTypeHelper implements ITypeHelper {
   check(value?) {
     return value === undefined;
   }

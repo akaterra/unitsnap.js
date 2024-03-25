@@ -129,6 +129,9 @@ function serialize(value, indent?, output?, circular?) {
       post = ' ]]';
       value = Object.fromEntries(value.entries());
       break;
+    case value instanceof Promise:
+      value = `[[ Promise : ${getPromiseState(value)() || '<no state>'} ]]`;
+      return `${value}\n`;
     case value instanceof RegExp:
       value = `[[ RegExp : ${value.source || '<no source>'} ]]`;
       return `${value}\n`;
@@ -221,4 +224,20 @@ function serialize(value, indent?, output?, circular?) {
   }
 
   return `${pre}${value}${post}\n`;
+}
+
+function getPromiseState(promise): () => string {
+  let state = 'pending';
+
+  promise.then((res) =>{
+    state = 'fulfilled';
+
+    return res;
+  }).catch((err) => {
+    state = 'rejected';
+
+    return Promise.reject(err);
+  });
+
+  return () => state;
 }

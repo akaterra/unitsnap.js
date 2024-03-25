@@ -2,16 +2,223 @@
 --> A --> {
         * = []
     }
-    caller = QueueRunner.attempt : ./node_modules/jasmine-core/lib/jasmine-core/jasmine.js:7799:40
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:78:18
 
 <-- A <-- undefined
-    caller = QueueRunner.attempt : ./node_modules/jasmine-core/lib/jasmine-core/jasmine.js:7799:40
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:78:18
 
---> A.b --> {
+--> A.b.[[ get ]] --> {
         * = []
-        x = 111
     }
-    caller = <anonymous> : ./spec/jasmine.spec.ts:16:14
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:80:10
 
-<-- A.b <-- 1
-    caller = <anonymous> : ./spec/jasmine.spec.ts:16:14
+<-- A.b.[[ get ]] <-- "b"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:80:10
+
+--> A.b.[[ get ]] --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:81:10
+
+<-- A.b.[[ get ]] <-- "b"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:81:10
+
+--> A.b.[[ set ]] --> {
+        * = []
+        v = "2"
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:82:11
+
+<-- A.b.[[ set ]] <-- undefined
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:82:11
+
+--> A.b.[[ set ]] --> {
+        * = []
+        v = "2"
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:83:11
+
+<-- A.b.[[ set ]] <-- undefined
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:83:11
+
+--> A.b1.[[ set ]] --> {
+        * = []
+        v = "2"
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:84:12
+
+<-- A.b1.[[ set ]] <-- undefined
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:84:12
+
+--> A.b1.[[ set ]] --> {
+        * = []
+        v = "2"
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:85:12
+
+<-- A.b1.[[ set ]] <-- undefined
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:85:12
+
+--> A.b1.[[ get ]] --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:86:10
+
+<-- A.b1.[[ get ]] <-- "b"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:86:10
+
+--> A.b1.[[ get ]] --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:87:10
+
+<-- A.b1.[[ get ]] <-- "b"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:87:10
+
+--> A.c --> {
+        * = []
+        x = 222
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:88:10
+
+<-- A.c <-- "c"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:88:10
+
+--> A.c --> {
+        * = []
+        x = 222
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:89:10
+
+<-- A.c <-- "c"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:89:10
+
+--> A.B.[[ get ]] --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:90:10
+
+<-- A.B.[[ get ]] <-- "B"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:90:10
+
+--> A.B.[[ get ]] --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:91:10
+
+<-- A.B.[[ get ]] <-- "B"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:91:10
+
+--> A.B.[[ set ]] --> {
+        * = []
+        v = "2"
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:92:11
+
+<-- A.B.[[ set ]] <-- undefined
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:92:11
+
+--> A.B.[[ set ]] --> {
+        * = []
+        v = "2"
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:93:11
+
+<-- A.B.[[ set ]] <-- undefined
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:93:11
+
+--> A.B1.[[ set ]] --> {
+        * = []
+        v = "2"
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:94:12
+
+<-- A.B1.[[ set ]] <-- undefined
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:94:12
+
+--> A.B1.[[ set ]] --> {
+        * = []
+        v = "2"
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:95:12
+
+<-- A.B1.[[ set ]] <-- undefined
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:95:12
+
+--> A.B1.[[ get ]] --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:96:10
+
+<-- A.B1.[[ get ]] <-- "B"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:96:10
+
+--> A.B1.[[ get ]] --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:97:10
+
+<-- A.B1.[[ get ]] <-- "B"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:97:10
+
+--> A.C --> {
+        * = []
+        x = 222
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:98:10
+
+<-- A.C <-- "C"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:98:10
+
+--> A.C --> {
+        * = []
+        x = 222
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:99:10
+
+<-- A.C <-- "C"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:99:10
+
+--> A.p --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:100:16
+
+<-- A.p <-- [[ Promise : pending ]]
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:100:16
+
+<-- A.p <-- "p"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:100:16
+
+--> A.p --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:101:16
+
+<-- A.p <-- [[ Promise : pending ]]
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:101:16
+
+<-- A.p <-- "p"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:101:16
+
+--> A.P --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:102:16
+
+<-- A.P <-- [[ Promise : pending ]]
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:102:16
+
+<-- A.P <-- "P"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:102:16
+
+--> A.P --> {
+        * = []
+    }
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:103:16
+
+<-- A.P <-- [[ Promise : pending ]]
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:103:16
+
+<-- A.P <-- "P"
+    caller = UserContext.<anonymous> : ./spec/jasmine.spec.ts:103:16
