@@ -1,4 +1,4 @@
-import {CIRCULAR, UNSERIALIZABLE} from './const';
+import { CIRCULAR, UNSERIALIZABLE } from './const';
 import {
   _StrictInstanceOf,
   _InstanceOf,

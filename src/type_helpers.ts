@@ -69,6 +69,10 @@ export function BooleanType() {
   return new _BooleanType();
 }
 
+export function NotBooleanType() {
+  return new _BooleanType().not();
+}
+
 export class _Continue implements ITypeHelper {
   constructor(public readonly value) {
 
@@ -117,6 +121,10 @@ export class _DateType extends BaseTypeHelper implements ITypeHelper {
 
 export function DateType() {
   return new _DateType();
+}
+
+export function NotDateType() {
+  return new _DateType().not();
 }
 
 export class _DateValue implements ITypeHelper {
@@ -177,36 +185,41 @@ export class _InstanceOf extends BaseTypeHelper implements ITypeHelper {
   }
 
   check(value?) {
-    return value instanceof this._cls;
+    return this._assert(value instanceof this._cls);
   }
 
   serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
     const typA = Object.getPrototypeOf(value).constructor.name;
     const typB = this._cls.name;
 
-    return { [ DATA ]: pref ? `${typB} ⊈ ${typA}` : typA, [ TYPE ]: `${pref}instanceOf` };
+    return this._formatSerialized(value, 'instanceOf', '', typB, 'not:', `${typB} ⊈ ${typA}`, 'not:', typB, '', `${typB} ⊆ ${typA}`);
   }
 }
 
 export function InstanceOf(cls: ClassDef<unknown>) {
-  return new _StrictInstanceOf(cls);
+  return new _InstanceOf(cls);
+}
+
+export function NotInstanceOf(cls: ClassDef<unknown>) {
+  return new _InstanceOf(cls).not();
 }
 
 export class _NullType extends BaseTypeHelper implements ITypeHelper {
   check(value?) {
-    return value === null;
+    return this._assert(value === null);
   }
 
   serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
-
-    return { [ DATA ]: pref ? value : null, [ TYPE ]: `${pref}null` };
+    return this._formatSerialized(value, 'null', '', null, 'not:', value, 'not:', null, '', value);
   }
 }
 
 export function NullType() {
   return new _NullType();
+}
+
+export function NotNullType() {
+  return new _NullType().not();
 }
 
 export class _NumberType extends BaseTypeHelper implements ITypeHelper {
@@ -223,6 +236,10 @@ export class _NumberType extends BaseTypeHelper implements ITypeHelper {
 
 export function NumberType() {
   return new _NumberType();
+}
+
+export function NotNumberType() {
+  return new _NumberType().not();
 }
 
 export class _NumberIsCloseTo extends BaseTypeHelper implements ITypeHelper {
