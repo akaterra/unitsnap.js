@@ -334,7 +334,23 @@ describe('Type helpers', () => {
     it('should check and resolve number close to', () => {
       const t = new unitsnap._NumberIsCloseTo(5, 0.01);
 
-      for (const v of [4.99, 5, 5.01]) {
+      for (const v of [ 4.99, 5, 5.01 ]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and resolve number close to', () => {
+      const t = new unitsnap._NumberIsCloseTo(Infinity, 0.01);
+
+      for (const v of [ Infinity ]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and resolve number close to', () => {
+      const t = new unitsnap._NumberIsCloseTo(-Infinity, 0.01);
+
+      for (const v of [ -Infinity ]) {
         expect(t.check(v)).toBeTruthy();
       }
     });
@@ -342,7 +358,7 @@ describe('Type helpers', () => {
     it('should check and resolve number not close to negative', () => {
       const t = new unitsnap._NumberIsCloseTo(5, 0.01).not();
 
-      for (const v of [4.98, 5.02]) {
+      for (const v of [ -Infinity, 4.98, 5.02, Infinity ]) {
         expect(t.check(v)).toBeTruthy();
       }
     });
@@ -350,7 +366,7 @@ describe('Type helpers', () => {
     it('should check and reject number not close to', () => {
       const t = new unitsnap._NumberIsCloseTo(5, 0.01);
 
-      for (const v of [4.98, 5.02]) {
+      for (const v of [ -Infinity, 4.98, 5.02, Infinity ]) {
         expect(t.check(v)).toBeFalsy();
       }
     });
@@ -384,7 +400,23 @@ describe('Type helpers', () => {
     it('should check and resolve number precise to', () => {
       const t = new unitsnap._NumberIsPreciseTo(5, 2);
 
-      for (const v of [4.99, 5, 5.01]) {
+      for (const v of [ 4.99, 5, 5.01 ]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and resolve number precise to', () => {
+      const t = new unitsnap._NumberIsPreciseTo(Infinity, 2);
+
+      for (const v of [ Infinity ]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and resolve number precise to', () => {
+      const t = new unitsnap._NumberIsPreciseTo(-Infinity, 2);
+
+      for (const v of [ -Infinity ]) {
         expect(t.check(v)).toBeTruthy();
       }
     });
@@ -392,7 +424,7 @@ describe('Type helpers', () => {
     it('should check and resolve number precise to negative', () => {
       const t = new unitsnap._NumberIsPreciseTo(5, 2).not();
 
-      for (const v of [4.98, 5.02]) {
+      for (const v of [ -Infinity, 4.98, 5.02, Infinity ]) {
         expect(t.check(v)).toBeTruthy();
       }
     });
@@ -400,7 +432,7 @@ describe('Type helpers', () => {
     it('should check and reject number not precise to', () => {
       const t = new unitsnap._NumberIsPreciseTo(5, 2);
 
-      for (const v of [4.98, 5.02]) {
+      for (const v of [ -Infinity, 4.98, 5.02, Infinity ]) {
         expect(t.check(v)).toBeFalsy();
       }
     });
@@ -483,7 +515,7 @@ describe('Type helpers', () => {
   describe('Range', () => {
     it('should check and resolve value in range', () => {
       for (const [ min, max, v ] of [
-        [ 0, 10, 5 ],
+        [ 0, 10, 5 ], [ -Infinity, Infinity, 0 ],
         [ 'a', 'abc', 'aa' ],
         [ new Date('2020-01-01'), new Date('2020-02-01'), new Date('2020-01-15') ],
       ]) {

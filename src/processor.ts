@@ -198,7 +198,7 @@ export class _Processor {
         try {
           serialized = this.serializeInternal(value[key], path ? path + '.' + key : key, false, circular);
         } catch (err) {
-          return new Wrapped('[[ Unserializable ! ]]');
+          return new Wrapped(UNSERIALIZABLE);
         }
   
         if (serialized !== Ignore) {

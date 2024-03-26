@@ -27,7 +27,6 @@ Then this result can be saved as a snapshot and compared with a snapshot of the 
         - [SnapshotFsProvider](#snapshotfsprovider)
         - [SnapshotMemoryProvider](#snapshotmemoryprovider)
     - [Jasmine matcher](#jasmine-matcher)
-    - [Using with typescript-ioc](#using-with-typescript-ioc)
 
 ### Installation
 
@@ -825,39 +824,69 @@ Serialized snapshot:
 Available helpers:
 
 * **AnyType** - serializes any value as:
-  ```typescript
+  ```json
   {
-    '[[ Data ]]': null,
-    '[[ Type ]]': "any"
+    "[[ Data ]]": null,
+    "[[ Type ]]": "any"
   }
   ```
 
-* **BooleanType (or JS Boolean type)** - checks the value to be boolean and serializes the value as:
+* **BooleanType (or JS Boolean type)** - checks the value to be boolean and serializes it
   ```typescript
+  snapshot.addProcessor(Boolean);
+  ```
+
+  ```json
   {
-    '[[ Data ]]': null,
-    '[[ Type ]]': "boolean"
+    "[[ Data ]]": null,
+    "[[ Type ]]": "boolean"
   }
   ```
 
-* **Continue** - the value will be continued with the rest processors.
+* **Continue** - the value will be continued with the rest of processors.
 
 * **Copy** - creates as deep copy of the value using [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/structuredClone).
   If there is no support of **structuredClone** feature the [polyfill](https://github.com/ungap/structured-clone) can be used instead.
 
-* **DateType (or JS Date type)** - checks the value to be instance of Date and serializes the value as:
+* **DateType (or JS Date type)** - checks the value to be instance of Date and serializes it
   ```typescript
+  snapshot.addProcessor(Date);
+  ```
+
+  ```json
   {
-    '[[ Data ]]': null,
-    '[[ Type ]]': "date"
+    "[[ Data ]]": null,
+    "[[ Type ]]": "date"
   }
   ```
 
-* **DateValue** - checks the value to be instance of Date and serializes the value as:
+* **DateValue** - checks the value to be instance of Date and serializes it
   ```typescript
+  snapshot.addProcessor(DateValue);
+  ```
+
+  ```json
   {
-    '[[ Data ]]': "<ISO string>",
-    '[[ Type ]]': "date"
+    "[[ Data ]]": "<date ISO string>",
+    "[[ Type ]]": "date"
+  }
+  ```
+
+  Serializes `new Date('2020-01-01')` to:
+
+  ```json
+  {
+    "[[ Data ]]": "2020-01-01T00:00:00.000Z",
+    "[[ Type ]]": "date"
+  }
+  ```
+
+  Serializes `1` to:
+
+  ```json
+  {
+    "[[ Data ]]": 1,
+    "[[ Type ]]": "not:date"
   }
   ```
 
@@ -865,28 +894,61 @@ Available helpers:
 
 * **In** - checks the value is contained in provided enum:
   ```typescript
-  const value = In(1, 2, 3).serialize(1);
+  snapshot.addProcessor(In(1, 2, 3));
+  ```
 
+  ```json
   {
-    '[[ Data ]]': '1,2,3',
-    '[[ Type ]]': 'in'
+    "[[ Data ]]": "<comma separated values>",
+    "[[ Type ]]": "in"
   }
   ```
 
-  ```typescript
-  const value = In(1, 2, 3).serialize(4);
+  Serializes `2` to:
 
+  ```json
   {
-    '[[ Data ]]': '4 ∉ 1,2,3',
-    '[[ Type ]]': 'not:in'
+    "[[ Data ]]": "1,2,3",
+    "[[ Type ]]": "in"
+  }
+  ```
+
+  Serializes `4` to:
+
+  ```json
+  {
+    "[[ Data ]]": "4 ∉ 1,2,3",
+    "[[ Type ]]": "not:in"
   }
   ```
 
 * **InstanceOf** - checks the value to be instance of Date and serializes the value as:
   ```typescript
+  snapshot.addProcessor(InstanceOf(A));
+  ```
+
+  ```json
   {
-    '[[ Data ]]': "<class name>",
-    '[[ Type ]]': "instanceOf"
+    "[[ Data ]]": "<class name>",
+    "[[ Type ]]": "instanceOf"
+  }
+  ```
+
+  Serializes `new A()` to:
+
+  ```json
+  {
+    "[[ Data ]]": "A",
+    "[[ Type ]]": "instanceOf"
+  }
+  ```
+
+  Serializes `new NotInstanceOfA()` to:
+
+  ```json
+  {
+    "[[ Data ]]": "A ⊈ NotInstanceOfA",
+    "[[ Type ]]": "not:instanceOf"
   }
   ```
 
@@ -901,8 +963,8 @@ Available helpers:
 * **NumberIsPreciseTo** - same as **NumberIsCloseTo** but uses negative exponent to calculate an expected difference:
   ```typescript
   {
-    '[[ Data ]]': "<expected> ±<difference>",
-    '[[ Type ]]': "numberIsPreciseTo"
+    '[[ Data ]]': '<expected> ±<difference>',
+    '[[ Type ]]': 'numberIsPreciseTo'
   }
   ```
 
@@ -910,23 +972,23 @@ Available helpers:
   ```typescript
   {
     '[[ Data ]]': null,
-    '[[ Type ]]': "number"
+    '[[ Type ]]': 'number'
   }
   ```
 
 * **Range** - checks the value is in range (numeric, lexicographic or dates) and serializes the value as:
   ```typescript
   {
-    '[[ Data ]]': "<min> .. <max>",
-    '[[ Type ]]': "range"
+    '[[ Data ]]': '<min> .. <max>',
+    '[[ Type ]]': 'range'
   }
   ```
 
 * **StrictInstanceOf** - checks the value to be strict instance of and serializes the value as:
   ```typescript
   {
-    '[[ Data ]]': "<class name>",
-    '[[ Type ]]': "strictInstanceOf"
+    '[[ Data ]]': '<class name>',
+    '[[ Type ]]': 'strictInstanceOf'
   }
   ```
 
@@ -934,7 +996,7 @@ Available helpers:
   ```typescript
   {
     '[[ Data ]]': null,
-    '[[ Type ]]': "string"
+    '[[ Type ]]': 'string'
   }
   ```
 
@@ -942,7 +1004,7 @@ Available helpers:
   ```typescript
   {
     '[[ Data ]]': null,
-    '[[ Type ]]': "undefined"
+    '[[ Type ]]': 'undefined'
   }
   ```
 
@@ -1010,52 +1072,3 @@ Be sure that the saved snapshot represents valid state of the execution flow.
 
 Run Jasmine usually now to assert the saved snapshot (not existing snapshot will be auto saved instead).
 It will throw standard Jasmine **toEqual** error on mismatch.
-
-### Using with typescript-ioc
-
-Next bootstrap code can be useful:
-
-```typescript
-import { Container, Scope } from 'typescript-ioc';
-
-export const unitsnapIoC = (observer) => {
-    const ioc = {
-        mocked: new Array<any>(),
-
-        // builds mock by baseCls or cls and registers it in IoC
-        by: (cls, props?, baseCls?) => {
-            const newCls = observer.by(baseCls || cls, props);
-
-            ioc.mocked.unshift([cls, Container.getType(cls), newCls]);
-
-            Container.bind(cls).scope(Scope.Singleton).to(newCls);
-
-            return ioc;
-        },
-
-        // builds mock by baseCls or cls and registers it in IoC
-        override: (cls, props?, baseCls?) => {
-            const newCls = observer.override(baseCls || cls, props);
-
-            ioc.mocked.unshift([cls, Container.getType(cls), newCls]);
-
-            Container.bind(cls).scope(Scope.Singleton).to(newCls);
-
-            return ioc;
-        },
-
-        // restores original association
-        restore: () => {
-            for (const cls of ioc.mocked) {
-                Container.bind(cls[0]).scope(Scope.Singleton).to(cls[1] || cls[0]);
-            }
-
-            ioc.mocked = [];
-
-            return ioc;
-        }
-    };
-
-    return ioc;
-};
-```
