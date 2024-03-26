@@ -167,7 +167,18 @@ export class _In extends BaseTypeHelper implements ITypeHelper {
   serialize(value?) { // eslint-disable-line unused-imports/no-unused-vars
     const inStr = JSON.stringify(this._values).slice(1, -1);
 
-    return this._formatSerialized(value, 'in', '', inStr, 'not:', `${value} ∉ ${inStr}`, 'not:', inStr, '', `${value} ∈ ${inStr}`);
+    return this._formatSerialized(
+      value,
+      'in',
+      '',
+      inStr,
+      'not:',
+      `${value} ∉ ${inStr}`,
+      'not:',
+      inStr,
+      '',
+      `${value} ∈ ${inStr}`,
+    );
   }
 }
 
@@ -222,26 +233,6 @@ export function NotNullType() {
   return new _NullType().not();
 }
 
-export class _NumberType extends BaseTypeHelper implements ITypeHelper {
-  check(value?) {
-    return typeof value === 'number';
-  }
-
-  serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
-
-    return { [ DATA ]: pref ? value : null, [ TYPE ]: `${pref}number` };
-  }
-}
-
-export function NumberType() {
-  return new _NumberType();
-}
-
-export function NotNumberType() {
-  return new _NumberType().not();
-}
-
 export class _NumberIsCloseTo extends BaseTypeHelper implements ITypeHelper {
   constructor(private _value: number, private _diff: number) {
     super();
@@ -260,22 +251,36 @@ export class _NumberIsCloseTo extends BaseTypeHelper implements ITypeHelper {
       return true;
     }
     
-    return Math.abs(this._value - value) <= this._diff;
+    return this._assert(Math.abs(this._value - value) <= this._diff);
   }
 
   serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
     const diff = this._value === Number.POSITIVE_INFINITY || this._value === Number.NEGATIVE_INFINITY
       ? 0
       : this._diff;
-    const data = pref ? `${value} ∉ ${this._value} ±${diff}` : `${this._value} ±${diff}`;
+    const closeToStr = `${this._value} ±${diff}`;
 
-    return { [ DATA ]: data, [ TYPE ]: `${pref}numberIsCloseTo` };
+    return this._formatSerialized(
+      value,
+      'numberIsCloseTo',
+      '',
+      closeToStr,
+      'not:',
+      `${value} ∉ ${this._value} ±${diff}`,
+      'not:',
+      closeToStr,
+      '',
+      `${value} ∈ ${this._value} ±${diff}`,
+    );
   }
 }
 
 export function NumberIsCloseTo(value: number, diff: number) {
   return new _NumberIsPreciseTo(value, diff);
+}
+
+export function NumberIsNotCloseTo(value: number, diff: number) {
+  return new _NumberIsPreciseTo(value, diff).not();
 }
 
 export class _NumberIsPreciseTo extends BaseTypeHelper implements ITypeHelper {
@@ -285,33 +290,65 @@ export class _NumberIsPreciseTo extends BaseTypeHelper implements ITypeHelper {
 
   check(value?) {
     if (typeof value !== 'number') {
-      return false;
+      return this._assert(false);
     }
 
     if (value === Number.POSITIVE_INFINITY && this._value === Number.POSITIVE_INFINITY) {
-      return true;
+      return this._assert(true);
     }
     
     if (value === Number.NEGATIVE_INFINITY && this._value === Number.NEGATIVE_INFINITY) {
-      return true;
+      return this._assert(true);
     }
     
-    return Math.abs(this._value - value) <= Math.pow(10, -this._precision);
+    return this._assert(Math.abs(this._value - value) <= Math.pow(10, -this._precision));
   }
 
   serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
     const diff = this._value === Number.POSITIVE_INFINITY || this._value === Number.NEGATIVE_INFINITY
       ? 0
       : Math.pow(10, -this._precision);
-    const data = pref ? `${value} ∉ ${this._value} ±${diff}` : `${this._value} ±${diff}`;
+    const priciseToStr = `${this._value} ±${diff}`;
 
-    return { [ DATA ]: data, [ TYPE ]: `${pref}numberIsPreciseTo` };
+    return this._formatSerialized(
+      value,
+      'numberIsPreciseTo',
+      '',
+      priciseToStr,
+      'not:',
+      `${value} ∉ ${this._value} ±${diff}`,
+      'not:',
+      priciseToStr,
+      '',
+      `${value} ∈ ${this._value} ±${diff}`,
+    );
   }
 }
 
 export function NumberIsPreciseTo(value: number, precision: number) {
   return new _NumberIsPreciseTo(value, precision);
+}
+
+export function NumberIsNotPreciseTo(value: number, precision: number) {
+  return new _NumberIsPreciseTo(value, precision).not();
+}
+
+export class _NumberType extends BaseTypeHelper implements ITypeHelper {
+  check(value?) {
+    return this._assert(typeof value === 'number');
+  }
+
+  serialize(value?) {
+    return this._formatSerialized(value, 'number', '', null, 'not:', value, 'not:', null, '', value);
+  }
+}
+
+export function NumberType() {
+  return new _NumberType();
+}
+
+export function NotNumberType() {
+  return new _NumberType().not();
 }
 
 export class _Range extends BaseTypeHelper implements ITypeHelper {
@@ -327,19 +364,27 @@ export class _Range extends BaseTypeHelper implements ITypeHelper {
 
   check(value?) {
     if (!this.isSameType(value, this._min) || !this.isSameType(value, this._max)) {
-      return false;
+      return this._assert(false);
     }
 
-    return this._min <= value && value <= this._max;
+    return this._assert(this._min <= value && value <= this._max);
   }
 
   serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
-    const data = pref
-      ? `${this.primitive(value)} ∉ ${this.primitive(this._min)} .. ${this.primitive(this._max)}`
-      : `${this.primitive(this._min)} .. ${this.primitive(this._max)}`;
+    const rangeStr = `${this.primitive(this._min)} .. ${this.primitive(this._max)}`;
 
-    return { [ DATA ]: data, [ TYPE ]: `${pref}range` };
+    return this._formatSerialized(
+      value,
+      'range',
+      '',
+      rangeStr,
+      'not:',
+      `${this.primitive(value)} ∉ ${this.primitive(this._min)} .. ${this.primitive(this._max)}`,
+      'not:',
+      rangeStr,
+      '',
+      `${this.primitive(value)} ∈ ${this.primitive(this._min)} .. ${this.primitive(this._max)}`,
+    );
   }
 
   private isSameType(val1, val2): boolean {
@@ -373,21 +418,30 @@ export function Range(min, max) {
   return new _Range(min, max);
 }
 
+export function NotRange(min: number, max: number);
+
+export function NotRange(min: string, max: string);
+
+export function NotRange(min: Date, max: Date);
+
+export function NotRange(min, max) {
+  return new _Range(min, max).not();
+}
+
 export class _StrictInstanceOf extends BaseTypeHelper implements ITypeHelper {
   constructor(private _cls: ClassDef<unknown>) {
     super();
   }
 
   check(value?) {
-    return value !== undefined && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls;
+    return this._assert(value !== undefined && value !== null && Object.getPrototypeOf(value) && Object.getPrototypeOf(value).constructor === this._cls);
   }
 
   serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
     const typA = Object.getPrototypeOf(value).constructor.name;
     const typB = this._cls.name;
 
-    return { [ DATA ]: pref ? `${typB} ≠ ${typA}` : typA, [ TYPE ]: `${pref}strictInstanceOf` };
+    return this._formatSerialized(value, 'strictInstanceOf', '', typB, 'not:', `${typB} ≠ ${typA}`, 'not:', typB, '', `${typB} = ${typA}`);
   }
 }
 
@@ -395,15 +449,17 @@ export function StrictInstanceOf(cls: ClassDef<unknown>) {
   return new _StrictInstanceOf(cls);
 }
 
+export function NotStrictInstanceOf(cls: ClassDef<unknown>) {
+  return new _StrictInstanceOf(cls).not();
+}
+
 export class _StringType extends BaseTypeHelper implements ITypeHelper {
   check(value?) {
-    return typeof value === 'string';
+    return this._assert(typeof value === 'string');
   }
 
   serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
-
-    return { [ DATA ]: pref ? value : null, [ TYPE ]: `${pref}string` };
+    return this._formatSerialized(value, 'string', '', null, 'not:', value, 'not:', null, '', value);
   }
 }
 
@@ -411,20 +467,26 @@ export function StringType() {
   return new _StringType();
 }
 
+export function NotStringType() {
+  return new _StringType().not();
+}
+
 export class _UndefinedType extends BaseTypeHelper implements ITypeHelper {
   check(value?) {
-    return value === undefined;
+    return this._assert(value === undefined);
   }
 
   serialize(value?) {
-    const pref = this.check(value) ? '' : 'not:';
-
-    return { [ DATA ]: pref ? value : null, [ TYPE ]: `${pref}undefined` };
+    return this._formatSerialized(value, 'undefined', '', null, 'not:', value, 'not:', null, '', value);
   }
 }
 
 export function UndefinedType() {
   return new _UndefinedType();
+}
+
+export function NotUndefinedType() {
+  return new _UndefinedType().not();
 }
 
 export class Wrapped {

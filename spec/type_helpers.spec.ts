@@ -339,6 +339,14 @@ describe('Type helpers', () => {
       }
     });
 
+    it('should check and resolve number not close to negative', () => {
+      const t = new unitsnap._NumberIsCloseTo(5, 0.01).not();
+
+      for (const v of [4.98, 5.02]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
     it('should check and reject number not close to', () => {
       const t = new unitsnap._NumberIsCloseTo(5, 0.01);
 
@@ -358,6 +366,18 @@ describe('Type helpers', () => {
 
       expect(t.serialize(4)).toEqual({[ DATA ]: `4 ∉ 5 ±0.01`, [ TYPE ]: 'not:numberIsCloseTo'});
     });
+
+    it('should serialize number not close to negative', () => {
+      const t = new unitsnap._NumberIsCloseTo(5, 0.01).not();
+
+      expect(t.serialize(4)).toEqual({[ DATA ]: `5 ±0.01`, [ TYPE ]: 'not:numberIsCloseTo'});
+    });
+
+    it('should serialize number close to negative', () => {
+      const t = new unitsnap._NumberIsCloseTo(5, 0.01).not();
+
+      expect(t.serialize(5.005)).toEqual({[ DATA ]: `5.005 ∈ 5 ±0.01`, [ TYPE ]: 'numberIsCloseTo'});
+    });
   });
 
   describe('NumberIsPreciseTo', () => {
@@ -365,6 +385,14 @@ describe('Type helpers', () => {
       const t = new unitsnap._NumberIsPreciseTo(5, 2);
 
       for (const v of [4.99, 5, 5.01]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and resolve number precise to negative', () => {
+      const t = new unitsnap._NumberIsPreciseTo(5, 2).not();
+
+      for (const v of [4.98, 5.02]) {
         expect(t.check(v)).toBeTruthy();
       }
     });
@@ -388,6 +416,18 @@ describe('Type helpers', () => {
 
       expect(t.serialize(4)).toEqual({[ DATA ]: `4 ∉ 5 ±0.01`, [ TYPE ]: 'not:numberIsPreciseTo'});
     });
+
+    it('should serialize number not precise to negative', () => {
+      const t = new unitsnap._NumberIsPreciseTo(5, 2).not();
+
+      expect(t.serialize(4)).toEqual({[ DATA ]: `5 ±0.01`, [ TYPE ]: 'not:numberIsPreciseTo'});
+    });
+
+    it('should serialize number close to negative', () => {
+      const t = new unitsnap._NumberIsPreciseTo(5, 2).not();
+
+      expect(t.serialize(5.005)).toEqual({[ DATA ]: `5.005 ∈ 5 ±0.01`, [ TYPE ]: 'numberIsPreciseTo'});
+    });
   });
 
   describe('NumberType', () => {
@@ -395,6 +435,14 @@ describe('Type helpers', () => {
       const t = new unitsnap._NumberType();
 
       for (const v of [1, NaN]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and resolve instance of number value negative', () => {
+      const t = new unitsnap._NumberType().not();
+
+      for (const v of ['1', null, false, Object, {}, []]) {
         expect(t.check(v)).toBeTruthy();
       }
     });
@@ -418,6 +466,18 @@ describe('Type helpers', () => {
 
       expect(t.serialize('1')).toEqual({[ DATA ]: '1', [ TYPE ]: 'not:number'});
     });
+
+    it('should serialize instance of not number value negative', () => {
+      const t = new unitsnap._NumberType().not();
+
+      expect(t.serialize('1')).toEqual({[ DATA ]: null, [ TYPE ]: 'not:number'});
+    });
+
+    it('should serialize instance of number value negative', () => {
+      const t = new unitsnap._NumberType().not();
+
+      expect(t.serialize(1)).toEqual({[ DATA ]: 1, [ TYPE ]: 'number'});
+    });
   });
 
   describe('Range', () => {
@@ -428,6 +488,18 @@ describe('Type helpers', () => {
         [ new Date('2020-01-01'), new Date('2020-02-01'), new Date('2020-01-15') ],
       ]) {
         const t = new unitsnap._Range(min as any, max as any);
+
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and resolve value in range negative', () => {
+      for (const [ min, max, v ] of [
+        [ 0, 10, -1 ], [ 0, 10, 11 ],
+        [ 'a', 'abc', '' ], [ 'a', 'abc', 'b' ], [ 0, 5, '3' ],
+        [ new Date('2020-01-01'), new Date('2020-02-01'), new Date('2021-02-02') ], [ new Date('2020-01-01'), new Date('2020-02-01'), new Date('2019-12-31') ],
+      ]) {
+        const t = new unitsnap._Range(min as any, max as any).not();
 
         expect(t.check(v)).toBeTruthy();
       }
@@ -457,6 +529,18 @@ describe('Type helpers', () => {
       expect(t.serialize(0)).toEqual({[ DATA ]: `0 ∉ 1 .. 5`, [ TYPE ]: 'not:range'});
     });
 
+    it('should serialize not value in range negative', () => {
+      const t = new unitsnap._Range(1, 5).not();
+
+      expect(t.serialize(0)).toEqual({[ DATA ]: `1 .. 5`, [ TYPE ]: 'not:range'});
+    });
+
+    it('should serialize value in range negative', () => {
+      const t = new unitsnap._Range(1, 5).not();
+
+      expect(t.serialize(3)).toEqual({[ DATA ]: `3 ∈ 1 .. 5`, [ TYPE ]: 'range'});
+    });
+
     it('should serialize value in range (Date instance)', () => {
       const t = new unitsnap._Range(new Date('2020-01-01'), new Date('2020-01-02'));
 
@@ -483,6 +567,14 @@ describe('Type helpers', () => {
       }
     });
 
+    it('should check and resolve strict instance of value negative', () => {
+      const t = new unitsnap._StrictInstanceOf(Date).not();
+
+      for (const v of [new D()]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
     it('should check and reject not strict instance of value', () => {
       const t = new unitsnap._StrictInstanceOf(Date);
 
@@ -502,6 +594,18 @@ describe('Type helpers', () => {
 
       expect(t.serialize(new D())).toEqual({[ DATA ]: 'Date ≠ D', [ TYPE ]: 'not:strictInstanceOf'});
     });
+
+    it('should serialize not strict instance of value negative', () => {
+      const t = new unitsnap._StrictInstanceOf(Date).not();
+
+      expect(t.serialize(new D())).toEqual({[ DATA ]: 'Date', [ TYPE ]: 'not:strictInstanceOf'});
+    });
+
+    it('should serialize strict instance of value negative', () => {
+      const t = new unitsnap._StrictInstanceOf(Date).not();
+
+      expect(t.serialize(new Date())).toEqual({[ DATA ]: 'Date = Date', [ TYPE ]: 'strictInstanceOf'});
+    });
   });
 
   describe('StringType', () => {
@@ -509,6 +613,14 @@ describe('Type helpers', () => {
       const t = new unitsnap._StringType();
 
       for (const v of ['1']) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and resolve instance of string value negative', () => {
+      const t = new unitsnap._StringType().not();
+
+      for (const v of [1, null, false, Object, {}, []]) {
         expect(t.check(v)).toBeTruthy();
       }
     });
@@ -532,6 +644,18 @@ describe('Type helpers', () => {
 
       expect(t.serialize(1)).toEqual({[ DATA ]: 1, [ TYPE ]: 'not:string'});
     });
+
+    it('should serialize not instance of string value negative', () => {
+      const t = new unitsnap._StringType().not();
+
+      expect(t.serialize(1)).toEqual({[ DATA ]: null, [ TYPE ]: 'not:string'});
+    });
+
+    it('should serialize instance of string value', () => {
+      const t = new unitsnap._StringType().not();
+
+      expect(t.serialize('')).toEqual({[ DATA ]: '', [ TYPE ]: 'string'});
+    });
   });
 
   describe('UndefinedType', () => {
@@ -539,6 +663,14 @@ describe('Type helpers', () => {
       const t = new unitsnap._UndefinedType();
 
       for (const v of [undefined]) {
+        expect(t.check(v)).toBeTruthy();
+      }
+    });
+
+    it('should check and resolve undefined value negative', () => {
+      const t = new unitsnap._UndefinedType().not();
+
+      for (const v of [1, '1', null, false, Object, {}, []]) {
         expect(t.check(v)).toBeTruthy();
       }
     });
@@ -561,6 +693,18 @@ describe('Type helpers', () => {
       const t = new unitsnap._UndefinedType();
 
       expect(t.serialize(1)).toEqual({[ DATA ]: 1, [ TYPE ]: 'not:undefined'});
+    });
+
+    it('should serialize defined value negative', () => {
+      const t = new unitsnap._UndefinedType().not();
+
+      expect(t.serialize(1)).toEqual({[ DATA ]: null, [ TYPE ]: 'not:undefined'});
+    });
+
+    it('should serialize undefined value negative', () => {
+      const t = new unitsnap._UndefinedType().not();
+
+      expect(t.serialize(undefined)).toEqual({[ DATA ]: undefined, [ TYPE ]: 'undefined'});
     });
   });
 });
